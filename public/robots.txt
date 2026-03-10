@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /dashboard
+Disallow: /chat
+Disallow: /transactions
+Disallow: /settings
+Disallow: /onboarding
+
+Sitemap: https://cleo-app-iota.vercel.app/sitemap.xml
