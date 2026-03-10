@@ -29,13 +29,16 @@ export function OnboardingReminders() {
 
   useEffect(() => {
     fetch('/api/onboarding')
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
       .then((data) => {
-        if (data.skippedSteps?.length) {
+        if (data?.skippedSteps?.length) {
           setSkippedSteps(data.skippedSteps);
         }
       })
-      .catch(() => {});
+      .catch(() => { /* Optional widget — graceful no-op */ });
   }, []);
 
   const visibleSteps = skippedSteps.filter((s) => !dismissed.includes(s));

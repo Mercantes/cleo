@@ -19,9 +19,9 @@ export function ChatTable({ data, title }: { data: TableData; title: string }) {
         </thead>
         <tbody>
           {data.rows.map((row, i) => (
-            <tr key={i} className="border-b last:border-0">
+            <tr key={`row-${i}-${row[0]}`} className="border-b last:border-0">
               {row.map((cell, j) => (
-                <td key={j} className="px-2 py-1">
+                <td key={`${i}-${j}`} className="px-2 py-1">
                   {typeof cell === 'number' ? formatCurrency(cell) : cell}
                 </td>
               ))}

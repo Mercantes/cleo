@@ -25,9 +25,12 @@ export function SubscriptionsCard() {
 
   useEffect(() => {
     fetch('/api/recurring')
-      .then((res) => res.json())
-      .then(setData)
-      .catch(() => {});
+      .then((res) => {
+        if (!res.ok) return null;
+        return res.json();
+      })
+      .then((json) => { if (json) setData(json); })
+      .catch(() => { /* Optional card — graceful no-op */ });
   }, []);
 
   if (!data || (data.subscriptions.length === 0 && data.installments.length === 0)) {

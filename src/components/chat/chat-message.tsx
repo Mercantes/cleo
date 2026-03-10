@@ -33,7 +33,7 @@ export function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
       >
         {text && <div className="whitespace-pre-wrap">{text}</div>}
         {visuals.map((visual, i) => (
-          <ChatVisual key={i} visual={visual} />
+          <ChatVisual key={`${visual.type}-${visual.title}-${i}`} visual={visual} />
         ))}
         {createdAt && (
           <p className="mt-1 text-[10px] opacity-50">
