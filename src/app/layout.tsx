@@ -13,8 +13,42 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Cleo - Assistente Financeiro Pessoal",
-  description: "Seu assistente financeiro pessoal com IA",
+  title: {
+    default: 'Cleo - Assistente Financeiro com IA',
+    template: '%s | Cleo',
+  },
+  description:
+    'Conecte seu banco, converse com IA sobre suas finanças e tome decisões mais inteligentes. Categorização automática, projeções e planejamento de aposentadoria.',
+  keywords: [
+    'finanças pessoais',
+    'assistente financeiro',
+    'inteligência artificial',
+    'open finance',
+    'controle financeiro',
+    'planejamento financeiro',
+  ],
+  authors: [{ name: 'Cleo' }],
+  openGraph: {
+    type: 'website',
+    locale: 'pt_BR',
+    siteName: 'Cleo',
+    title: 'Cleo - Sua Assistente Financeira com IA',
+    description:
+      'Conecte seu banco, converse com IA sobre suas finanças e tome decisões mais inteligentes.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Cleo - Assistente Financeiro com IA',
+    description:
+      'Conecte seu banco e use IA para entender suas finanças.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({
@@ -23,7 +57,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="pt-BR">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
