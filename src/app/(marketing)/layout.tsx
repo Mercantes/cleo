@@ -27,9 +27,22 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
-          <Link href="/" className="text-xl font-bold">
-            Cleo
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-xl font-bold">
+              Cleo
+            </Link>
+            <nav className="hidden items-center gap-4 text-sm text-muted-foreground md:flex">
+              <a href="#como-funciona" className="transition-colors hover:text-foreground">
+                Como funciona
+              </a>
+              <a href="#planos" className="transition-colors hover:text-foreground">
+                Planos
+              </a>
+              <a href="#seguranca" className="transition-colors hover:text-foreground">
+                Segurança
+              </a>
+            </nav>
+          </div>
           <div className="flex items-center gap-3">
             <Link
               href="/login"

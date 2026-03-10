@@ -10,6 +10,7 @@ import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { GoogleIcon } from '@/components/ui/google-icon';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function SignupPage() {
           onClick={handleGoogleSignup}
           disabled={isGoogleLoading || isSubmitting}
         >
+          <GoogleIcon className="mr-2 h-4 w-4" />
           {isGoogleLoading ? 'Conectando...' : 'Continuar com Google'}
         </Button>
 

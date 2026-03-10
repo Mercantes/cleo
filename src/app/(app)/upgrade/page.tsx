@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { PlanComparison } from '@/components/paywall/plan-comparison';
 
 export default function UpgradePage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleSelectPro = async () => {

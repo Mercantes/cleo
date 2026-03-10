@@ -171,7 +171,7 @@ export default function LandingPage() {
       </section>
 
       {/* Trust Signals */}
-      <section className="py-20">
+      <section id="seguranca" className="py-20">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <h2 className="text-center text-3xl font-bold">Segurança em primeiro lugar</h2>
           <div className="mt-12 grid gap-8 md:grid-cols-3">
@@ -209,7 +209,7 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing */}
-      <section className="border-t bg-muted/30 py-20">
+      <section id="planos" className="border-t bg-muted/30 py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-6">
           <h2 className="text-center text-3xl font-bold">Planos</h2>
           <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
@@ -255,8 +255,52 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Final CTA */}
+      {/* FAQ */}
       <section className="py-20">
+        <div className="mx-auto max-w-3xl px-4 md:px-6">
+          <h2 className="text-center text-3xl font-bold">Perguntas frequentes</h2>
+          <div className="mt-12 space-y-4">
+            {[
+              {
+                q: 'A Cleo é realmente gratuita?',
+                a: 'Sim! O plano gratuito inclui 1 conta bancária, 100 transações por mês e 30 perguntas ao chat. Para uso ilimitado, oferecemos o plano Pro por R$19,90/mês.',
+              },
+              {
+                q: 'Como funciona a conexão com o banco?',
+                a: 'Usamos o Open Finance, regulado pelo Banco Central do Brasil. A conexão é feita diretamente pelo seu banco — nunca pedimos ou armazenamos sua senha bancária.',
+              },
+              {
+                q: 'Meus dados estão seguros?',
+                a: 'Absolutamente. Seus dados são criptografados em trânsito e em repouso. Usamos Row Level Security para garantir que cada usuário acesse apenas seus próprios dados.',
+              },
+              {
+                q: 'Posso cancelar o plano Pro a qualquer momento?',
+                a: 'Sim, sem multa ou carência. Você pode cancelar pelo próprio painel de configurações e continuará com acesso até o fim do período pago.',
+              },
+              {
+                q: 'A IA da Cleo substitui um consultor financeiro?',
+                a: 'Não. A Cleo ajuda a organizar suas finanças e oferece insights baseados nos seus dados, mas não substitui aconselhamento financeiro profissional.',
+              },
+            ].map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-lg border bg-background px-6 py-4"
+              >
+                <summary className="flex cursor-pointer items-center justify-between font-medium">
+                  {item.q}
+                  <span className="ml-2 text-muted-foreground transition-transform group-open:rotate-180">
+                    &#9662;
+                  </span>
+                </summary>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="border-t bg-muted/30 py-20">
         <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
           <h2 className="text-3xl font-bold">Pronto para transformar suas finanças?</h2>
           <p className="mt-4 text-lg text-muted-foreground">
