@@ -14,16 +14,16 @@ describe('Pricing Tiers', () => {
     expect(free.highlighted).toBeFalsy();
   });
 
-  it('Pro tier should be R$29,90 and highlighted', () => {
+  it('Pro tier should be R$19,90 and highlighted', () => {
     const pro = pricingTiers[1];
-    expect(pro.price).toBe('R$29,90');
+    expect(pro.price).toBe('R$19,90');
     expect(pro.highlighted).toBe(true);
   });
 
   it('Free tier should have expected features', () => {
     const free = pricingTiers[0];
     expect(free.features).toContain('1 conta bancária');
-    expect(free.features).toContain('3 perguntas ao chat por dia');
+    expect(free.features).toContain('30 perguntas ao chat/mês');
     expect(free.features).toContain('Dashboard básico');
     expect(free.features).toContain('Categorização automática');
   });

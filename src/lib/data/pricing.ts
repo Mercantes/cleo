@@ -16,7 +16,8 @@ export const pricingTiers: PricingTier[] = [
     description: 'Para começar a organizar suas finanças.',
     features: [
       '1 conta bancária',
-      '3 perguntas ao chat por dia',
+      '100 transações/mês',
+      '30 perguntas ao chat/mês',
       'Dashboard básico',
       'Categorização automática',
     ],
@@ -24,7 +25,7 @@ export const pricingTiers: PricingTier[] = [
   },
   {
     name: 'Pro',
-    price: 'R$29,90',
+    price: 'R$19,90',
     period: '/mês',
     description: 'Para quem quer controle total das finanças.',
     features: [
