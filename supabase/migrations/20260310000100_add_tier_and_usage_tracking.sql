@@ -16,11 +16,14 @@ CREATE TABLE IF NOT EXISTS usage_tracking (
 -- RLS policies
 ALTER TABLE usage_tracking ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users read own usage" ON usage_tracking
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Service role manages usage" ON usage_tracking
-  FOR ALL USING (auth.role() = 'service_role');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'usage_tracking' AND policyname = 'Users read own usage') THEN
+    CREATE POLICY "Users read own usage" ON usage_tracking FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'usage_tracking' AND policyname = 'Service role manages usage') THEN
+    CREATE POLICY "Service role manages usage" ON usage_tracking FOR ALL USING (auth.role() = 'service_role');
+  END IF;
+END $$;
 
 -- Index for fast lookups
 CREATE INDEX IF NOT EXISTS idx_usage_tracking_user_period

@@ -16,8 +16,11 @@ CREATE TABLE IF NOT EXISTS goals (
 
 ALTER TABLE goals ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users read own goals" ON goals
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users manage own goals" ON goals
-  FOR ALL USING (auth.uid() = user_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'goals' AND policyname = 'Users read own goals') THEN
+    CREATE POLICY "Users read own goals" ON goals FOR SELECT USING (auth.uid() = user_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'goals' AND policyname = 'Users manage own goals') THEN
+    CREATE POLICY "Users manage own goals" ON goals FOR ALL USING (auth.uid() = user_id);
+  END IF;
+END $$;
