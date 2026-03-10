@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+
+export const metadata: Metadata = {
+  title: 'Acessar sua conta',
+  robots: { index: false, follow: false },
+};
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();

@@ -5,7 +5,11 @@ Disallow: /auth/
 Disallow: /dashboard
 Disallow: /chat
 Disallow: /transactions
+Disallow: /projections
+Disallow: /retirement
+Disallow: /subscriptions
 Disallow: /settings
 Disallow: /onboarding
+Disallow: /upgrade
 
 Sitemap: https://cleo-app-iota.vercel.app/sitemap.xml
