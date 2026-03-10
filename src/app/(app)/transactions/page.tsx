@@ -1,12 +1,15 @@
-import { ArrowLeftRight } from 'lucide-react';
-import { EmptyState } from '@/components/ui/empty-state';
+import { TransactionList } from '@/components/transactions/transaction-list';
 
 export default function TransactionsPage() {
   return (
-    <EmptyState
-      icon={ArrowLeftRight}
-      title="Suas transações aparecerão aqui"
-      description="Conecte seu banco para visualizar, categorizar e analisar todas as suas transações em um só lugar."
-    />
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Transações</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Visualize e filtre todas as suas transações.
+        </p>
+      </div>
+      <TransactionList />
+    </div>
   );
 }
