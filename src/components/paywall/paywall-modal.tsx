@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const FEATURE_MESSAGES: Record<string, { title: string; description: string }> = {
   transactions: {
@@ -36,16 +37,19 @@ export function PaywallModal({ feature, current, limit, onClose }: PaywallModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="relative w-full max-w-md rounded-xl bg-background p-6 shadow-2xl sm:p-8">
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="absolute right-4 top-4 rounded-full p-1 text-muted-foreground hover:bg-muted"
+          className="absolute right-4 top-4"
+          aria-label="Fechar"
         >
           <X className="h-5 w-5" />
-        </button>
+        </Button>
 
         <div className="text-center">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
-            <span className="text-2xl">🔒</span>
+            <span className="text-2xl" role="img" aria-label="Bloqueado">🔒</span>
           </div>
 
           <h2 className="text-lg font-bold">{message.title}</h2>
@@ -58,18 +62,12 @@ export function PaywallModal({ feature, current, limit, onClose }: PaywallModalP
           </div>
 
           <div className="mt-6 space-y-3">
-            <button
-              onClick={() => router.push('/upgrade')}
-              className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-            >
+            <Button onClick={() => router.push('/upgrade')} className="w-full">
               Upgrade para Pro
-            </button>
-            <button
-              onClick={onClose}
-              className="w-full rounded-lg px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-            >
+            </Button>
+            <Button variant="ghost" onClick={onClose} className="w-full">
               Continuar no plano Free
-            </button>
+            </Button>
           </div>
         </div>
       </div>
