@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface ProfileFormProps {
   initialName: string;
@@ -30,32 +32,30 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-sm font-medium">Nome</label>
-        <input
+        <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
+        <Input
+          id="profile-name"
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+          className="mt-1"
           maxLength={100}
         />
       </div>
       <div>
-        <label className="text-sm font-medium">Email</label>
-        <input
+        <label htmlFor="profile-email" className="text-sm font-medium">Email</label>
+        <Input
+          id="profile-email"
           type="email"
           value={email}
           disabled
-          className="mt-1 w-full rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground"
+          className="mt-1"
         />
       </div>
       <div className="flex items-center gap-3">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
+        <Button onClick={handleSave} disabled={saving}>
           {saving ? 'Salvando...' : 'Salvar'}
-        </button>
+        </Button>
         {saved && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
       </div>
     </div>

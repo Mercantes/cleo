@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Landmark, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { ConnectBankButton } from '@/components/bank/connect-bank-button';
 
 interface BankConnection {
@@ -66,26 +67,32 @@ export function BankList({ connections, onDisconnect }: BankListProps) {
             </span>
             {confirmId === conn.id ? (
               <div className="flex gap-1">
-                <button
+                <Button
+                  size="sm"
                   onClick={() => { onDisconnect(conn.id); setConfirmId(null); }}
-                  className="rounded bg-red-500 px-2 py-1 text-xs text-white"
+                  className="h-7 bg-red-500 text-xs hover:bg-red-600"
                 >
                   Confirmar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setConfirmId(null)}
-                  className="rounded bg-muted px-2 py-1 text-xs"
+                  className="h-7 text-xs"
                 >
                   Cancelar
-                </button>
+                </Button>
               </div>
             ) : (
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setConfirmId(conn.id)}
-                className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-red-500"
+                className="h-8 w-8 text-muted-foreground hover:text-red-500"
+                aria-label={`Desconectar ${conn.connector_name}`}
               >
                 <Trash2 className="h-4 w-4" />
-              </button>
+              </Button>
             )}
           </div>
         </div>

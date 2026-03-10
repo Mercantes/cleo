@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { TransactionList } from '@/components/transactions/transaction-list';
+
+export const metadata: Metadata = {
+  title: 'Transações',
+};
 
 export default function TransactionsPage() {
   return (

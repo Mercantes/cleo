@@ -1,6 +1,7 @@
 'use client';
 
 import { Tags } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface ReviewCategoriesStepProps {
   onComplete: () => void;
@@ -30,18 +31,12 @@ export function ReviewCategoriesStep({ onComplete, onSkip }: ReviewCategoriesSte
       </div>
 
       <div className="space-y-3">
-        <button
-          onClick={onComplete}
-          className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
+        <Button onClick={onComplete} className="w-full">
           Entendido!
-        </button>
-        <button
-          onClick={onSkip}
-          className="w-full rounded-lg px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-        >
+        </Button>
+        <Button variant="ghost" onClick={onSkip} className="w-full">
           Pular por agora
-        </button>
+        </Button>
       </div>
     </div>
   );

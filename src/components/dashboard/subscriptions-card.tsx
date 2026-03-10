@@ -5,9 +5,18 @@ import { Repeat } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import Link from 'next/link';
 
+interface RecurringItem {
+  merchant: string;
+  amount: number;
+  frequency: string;
+  type: string;
+  next_expected_date: string;
+  installments_remaining?: number;
+}
+
 interface RecurringData {
-  subscriptions: unknown[];
-  installments: unknown[];
+  subscriptions: RecurringItem[];
+  installments: RecurringItem[];
   monthlyTotal: number;
 }
 

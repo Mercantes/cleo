@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { RetirementContent } from '@/components/retirement/retirement-content';
+
+export const metadata: Metadata = {
+  title: 'Aposentadoria FIRE',
+};
 
 export default function RetirementPage() {
   return (

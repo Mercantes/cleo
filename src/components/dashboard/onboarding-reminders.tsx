@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Landmark, Tags, Target, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const STEP_CONFIG: Record<string, { icon: typeof Landmark; label: string; description: string }> = {
   'connect-bank': {
@@ -67,13 +68,15 @@ export function OnboardingReminders() {
               >
                 Completar
               </Link>
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setDismissed([...dismissed, stepName])}
-                className="rounded p-1 text-muted-foreground hover:bg-muted"
+                className="h-7 w-7"
                 aria-label={`Dispensar ${config.label}`}
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </div>
           </div>
         );

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeftRight, Loader2 } from 'lucide-react';
+import { AlertTriangle, ArrowLeftRight, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
@@ -27,6 +27,7 @@ export function TransactionList() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [filters, setFilters] = useState<Filters>({});
@@ -43,6 +44,7 @@ export function TransactionList() {
 
       try {
         const response = await fetch(`/api/transactions?${params.toString()}`);
+        if (!response.ok) throw new Error('Falha ao carregar transações');
         const data = await response.json();
 
         if (append) {
@@ -51,8 +53,9 @@ export function TransactionList() {
           setTransactions(data.data);
         }
         setTotal(data.total);
+        setError(null);
       } catch {
-        // Silently fail — keep existing data
+        if (!append) setError('Não foi possível carregar suas transações. Tente novamente.');
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);
@@ -82,6 +85,20 @@ export function TransactionList() {
           <div key={i} className="h-16 animate-pulse rounded-lg border bg-muted" />
         ))}
       </div>
+    );
+  }
+
+  if (error && transactions.length === 0) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title="Erro ao carregar"
+        description={error}
+        action={{
+          label: 'Tentar novamente',
+          onClick: () => fetchTransactions(1),
+        }}
+      />
     );
   }
 

@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { Target } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface SetGoalsStepProps {
   onComplete: (goals: { monthlySavingsTarget?: number; retirementAgeTarget?: number }) => void;
@@ -34,41 +36,37 @@ export function SetGoalsStep({ onComplete, onSkip }: SetGoalsStepProps) {
 
       <div className="space-y-4 text-left">
         <div>
-          <label className="text-sm font-medium">Meta de economia mensal (R$)</label>
-          <input
+          <label htmlFor="savings-target" className="text-sm font-medium">Meta de economia mensal (R$)</label>
+          <Input
+            id="savings-target"
             type="number"
             value={savingsTarget}
             onChange={(e) => setSavingsTarget(e.target.value)}
             placeholder="Ex: 500"
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="mt-1"
           />
         </div>
 
         <div>
-          <label className="text-sm font-medium">Idade alvo para aposentadoria (opcional)</label>
-          <input
+          <label htmlFor="retirement-age" className="text-sm font-medium">Idade alvo para aposentadoria (opcional)</label>
+          <Input
+            id="retirement-age"
             type="number"
             value={retirementAge}
             onChange={(e) => setRetirementAge(e.target.value)}
             placeholder="Ex: 55"
-            className="mt-1 w-full rounded-md border bg-background px-3 py-2 text-sm"
+            className="mt-1"
           />
         </div>
       </div>
 
       <div className="space-y-3">
-        <button
-          onClick={handleComplete}
-          className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-        >
+        <Button onClick={handleComplete} className="w-full">
           Salvar metas
-        </button>
-        <button
-          onClick={onSkip}
-          className="w-full rounded-lg px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
-        >
+        </Button>
+        <Button variant="ghost" onClick={onSkip} className="w-full">
           Pular por agora
-        </button>
+        </Button>
       </div>
     </div>
   );

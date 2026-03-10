@@ -1,5 +1,7 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+
 const SUGGESTIONS = [
   'Quanto gastei esse mês?',
   'Minhas assinaturas estão pesando?',
@@ -21,13 +23,14 @@ export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {SUGGESTIONS.map((suggestion) => (
-          <button
+          <Button
             key={suggestion}
+            variant="outline"
             onClick={() => onSelect(suggestion)}
-            className="rounded-full border bg-card px-4 py-2 text-sm transition-colors hover:bg-accent"
+            className="rounded-full"
           >
             {suggestion}
-          </button>
+          </Button>
         ))}
       </div>
     </div>

@@ -138,7 +138,7 @@ export function ChatInterface() {
         {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: 'Desculpe, ocorreu um erro. Tente novamente.',
+          content: 'Desculpe, não consegui processar sua mensagem. Verifique sua conexão e tente novamente.',
           created_at: new Date().toISOString(),
         },
       ]);

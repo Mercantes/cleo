@@ -21,6 +21,7 @@ describe('TransactionList', () => {
 
   it('should show empty state when no transactions', async () => {
     mockFetch.mockResolvedValue({
+      ok: true,
       json: () => Promise.resolve({ data: [], total: 0, page: 1, pageSize: 50 }),
     });
 
@@ -31,8 +32,23 @@ describe('TransactionList', () => {
     });
   });
 
+  it('should show error state on fetch failure', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.resolve({ error: 'Internal error' }),
+    });
+
+    render(<TransactionList />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Erro ao carregar')).toBeInTheDocument();
+    });
+  });
+
   it('should render transactions after loading', async () => {
     mockFetch.mockResolvedValue({
+      ok: true,
       json: () =>
         Promise.resolve({
           data: [

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Search, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface TransactionFiltersProps {
@@ -61,13 +62,10 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
           aria-label="Data final"
         />
         {hasFilters && (
-          <button
-            onClick={clearFilters}
-            className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs text-muted-foreground hover:bg-muted"
-          >
+          <Button variant="outline" size="sm" onClick={clearFilters} className="gap-1">
             <X className="h-3 w-3" />
             Limpar
-          </button>
+          </Button>
         )}
       </div>
     </div>

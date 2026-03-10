@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { RecurringList } from '@/components/recurring/recurring-list';
+
+export const metadata: Metadata = {
+  title: 'Assinaturas & Parcelas',
+};
 
 export default function SubscriptionsPage() {
   return (

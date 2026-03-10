@@ -1,4 +1,9 @@
+import type { Metadata } from 'next';
 import { ProjectionsContent } from '@/components/projections/projections-content';
+
+export const metadata: Metadata = {
+  title: 'Projeções',
+};
 
 export default function ProjectionsPage() {
   return (
