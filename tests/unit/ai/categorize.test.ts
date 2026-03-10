@@ -111,6 +111,7 @@ describe('AI Categorization', () => {
                 text: '[{"index": 1, "category": "Alimentação", "confidence": 0.95}]',
               },
             ],
+            usage: { input_tokens: 150, output_tokens: 30 },
           }),
       });
 
@@ -123,6 +124,28 @@ describe('AI Categorization', () => {
         'https://api.anthropic.com/v1/messages',
         expect.objectContaining({ method: 'POST' }),
       );
+    });
+
+    it('should log token usage when available', async () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            content: [{ text: '[{"index": 1, "category": "Outros", "confidence": 0.5}]' }],
+            usage: { input_tokens: 200, output_tokens: 50 },
+          }),
+      });
+
+      await categorizeTransactions([
+        { id: 'tx-1', description: 'Unknown', amount: 10, type: 'debit' },
+      ]);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining('[categorize] batch=0'),
+      );
+      consoleSpy.mockRestore();
     });
 
     it('should handle API errors gracefully', async () => {

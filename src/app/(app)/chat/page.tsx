@@ -1,12 +1,9 @@
-import { MessageSquare } from 'lucide-react';
-import { EmptyState } from '@/components/ui/empty-state';
+import { ChatInterface } from '@/components/chat/chat-interface';
 
 export default function ChatPage() {
   return (
-    <EmptyState
-      icon={MessageSquare}
-      title="Chat com IA em breve"
-      description="Converse com a Cleo para tirar dúvidas sobre suas finanças, receber dicas personalizadas e planejar seus objetivos."
-    />
+    <div className="flex h-[calc(100vh-4rem)] flex-col">
+      <ChatInterface />
+    </div>
   );
 }

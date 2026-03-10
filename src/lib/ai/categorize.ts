@@ -112,6 +112,16 @@ export async function categorizeTransactions(
       const text = data.content?.[0]?.text || '';
       const results = parseAIResponse(text);
 
+      // Log token usage for cost monitoring
+      const usage = data.usage;
+      if (usage) {
+        const batchIndex = Math.floor(i / BATCH_SIZE);
+        const estimatedCost = (usage.input_tokens * 0.25 + usage.output_tokens * 1.25) / 1_000_000;
+        console.log(
+          `[categorize] batch=${batchIndex} tokens_in=${usage.input_tokens} tokens_out=${usage.output_tokens} cost_usd=${estimatedCost.toFixed(6)}`,
+        );
+      }
+
       // Update transactions with categories
       for (const result of results) {
         const tx = batch[result.index - 1];

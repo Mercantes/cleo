@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { navItems } from '@/components/layout/nav-items';
 
 describe('Navigation Items', () => {
-  it('should have 5 navigation items', () => {
-    expect(navItems).toHaveLength(5);
+  it('should have 6 navigation items', () => {
+    expect(navItems).toHaveLength(6);
   });
 
   it('each item should have label, href, and icon', () => {
@@ -19,6 +19,7 @@ describe('Navigation Items', () => {
     expect(hrefs).toContain('/dashboard');
     expect(hrefs).toContain('/chat');
     expect(hrefs).toContain('/transactions');
+    expect(hrefs).toContain('/subscriptions');
     expect(hrefs).toContain('/projections');
     expect(hrefs).toContain('/settings');
   });

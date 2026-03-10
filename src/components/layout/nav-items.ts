@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   MessageSquare,
   ArrowLeftRight,
+  Repeat,
   TrendingUp,
   Settings,
   type LucideIcon,
@@ -17,6 +18,7 @@ export const navItems: NavItem[] = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Chat', href: '/chat', icon: MessageSquare },
   { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
+  { label: 'Assinaturas', href: '/subscriptions', icon: Repeat },
   { label: 'Projeções', href: '/projections', icon: TrendingUp },
   { label: 'Configurações', href: '/settings', icon: Settings },
 ];
