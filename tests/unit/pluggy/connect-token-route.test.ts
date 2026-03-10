@@ -15,6 +15,11 @@ vi.mock('@/lib/pluggy/client', () => ({
   createConnectToken: (...args: unknown[]) => mockCreateConnectToken(...args),
 }));
 
+// Mock tier check
+vi.mock('@/lib/finance/tier-check', () => ({
+  checkTierLimit: vi.fn().mockResolvedValue({ allowed: true, current: 0, limit: 1, tier: 'free' }),
+}));
+
 import { POST } from '@/app/api/pluggy/connect-token/route';
 
 function createRequest(body?: Record<string, unknown>) {

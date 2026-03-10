@@ -26,9 +26,9 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }));
 
-vi.mock('@/lib/ai/chat-rate-limit', () => ({
-  checkChatRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 29, limit: 30 }),
-  incrementChatUsage: vi.fn().mockResolvedValue(undefined),
+vi.mock('@/lib/finance/tier-check', () => ({
+  checkTierLimit: vi.fn().mockResolvedValue({ allowed: true, current: 1, limit: 30, tier: 'free' }),
+  incrementUsage: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('@/lib/ai/financial-context', () => ({
@@ -81,11 +81,11 @@ describe('POST /api/chat', () => {
     expect(response.status).toBe(400);
   });
 
-  it('returns 429 when rate limited', async () => {
+  it('returns 403 when tier limit reached', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
 
-    const { checkChatRateLimit } = await import('@/lib/ai/chat-rate-limit');
-    vi.mocked(checkChatRateLimit).mockResolvedValueOnce({ allowed: false, remaining: 0, limit: 30 });
+    const { checkTierLimit } = await import('@/lib/finance/tier-check');
+    vi.mocked(checkTierLimit).mockResolvedValueOnce({ allowed: false, current: 30, limit: 30, tier: 'free' });
 
     const { POST } = await import('@/app/api/chat/route');
     const { NextRequest } = await import('next/server');
@@ -95,6 +95,6 @@ describe('POST /api/chat', () => {
     });
     const response = await POST(request);
 
-    expect(response.status).toBe(429);
+    expect(response.status).toBe(403);
   });
 });

@@ -4,6 +4,7 @@ import {
   ArrowLeftRight,
   Repeat,
   TrendingUp,
+  Target,
   Settings,
   type LucideIcon,
 } from 'lucide-react';
@@ -20,5 +21,6 @@ export const navItems: NavItem[] = [
   { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
   { label: 'Assinaturas', href: '/subscriptions', icon: Repeat },
   { label: 'Projeções', href: '/projections', icon: TrendingUp },
+  { label: 'Aposentadoria', href: '/retirement', icon: Target },
   { label: 'Configurações', href: '/settings', icon: Settings },
 ];

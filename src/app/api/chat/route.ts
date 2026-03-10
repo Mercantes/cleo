@@ -3,7 +3,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { buildFinancialContext } from '@/lib/ai/financial-context';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
-import { checkChatRateLimit, incrementChatUsage } from '@/lib/ai/chat-rate-limit';
+import { checkTierLimit, incrementUsage } from '@/lib/finance/tier-check';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -26,16 +26,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Message is required' }, { status: 400 });
   }
 
-  // Check rate limit
-  const rateLimit = await checkChatRateLimit(user.id);
-  if (!rateLimit.allowed) {
+  // Check tier limit
+  const tierCheck = await checkTierLimit(user.id, 'chat');
+  if (!tierCheck.allowed) {
     return NextResponse.json(
       {
-        error: 'Rate limit exceeded',
-        remaining: rateLimit.remaining,
-        limit: rateLimit.limit,
+        error: 'TIER_LIMIT_REACHED',
+        feature: 'chat',
+        current: tierCheck.current,
+        limit: tierCheck.limit,
+        tier: tierCheck.tier,
+        upgradeUrl: '/upgrade',
       },
-      { status: 429 },
+      { status: 403 },
     );
   }
 
@@ -95,8 +98,8 @@ export async function POST(request: NextRequest) {
             .select('id, role, content, created_at')
             .single();
 
-          // Increment usage
-          await incrementChatUsage(user.id);
+          // Increment tier usage
+          await incrementUsage(user.id, 'chat');
 
           // Send final message with metadata
           controller.enqueue(
