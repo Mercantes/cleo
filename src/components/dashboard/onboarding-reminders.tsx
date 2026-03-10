@@ -70,6 +70,7 @@ export function OnboardingReminders() {
               <button
                 onClick={() => setDismissed([...dismissed, stepName])}
                 className="rounded p-1 text-muted-foreground hover:bg-muted"
+                aria-label={`Dispensar ${config.label}`}
               >
                 <X className="h-3.5 w-3.5" />
               </button>
