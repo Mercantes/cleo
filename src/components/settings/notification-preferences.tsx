@@ -56,6 +56,7 @@ export function NotificationPreferences() {
           <button
             role="switch"
             aria-checked={prefs[item.key]}
+            aria-label={item.label}
             onClick={() => toggle(item.key)}
             className={`relative h-6 w-11 rounded-full transition-colors ${
               prefs[item.key] ? 'bg-primary' : 'bg-muted'

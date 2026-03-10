@@ -43,6 +43,8 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
           <button
             key={s.label}
             onClick={() => setActiveScenario(activeScenario === s.label ? null : s.label)}
+            aria-label={`Filtrar cenário ${SCENARIO_LABELS[s.label]}`}
+            aria-pressed={activeScenario === s.label}
             className={`rounded-full px-3 py-1 text-xs font-medium transition-opacity ${
               activeScenario && activeScenario !== s.label ? 'opacity-40' : 'opacity-100'
             }`}

@@ -2,7 +2,9 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Landmark } from 'lucide-react';
+import { AlertTriangle, Landmark } from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { EmptyState } from '@/components/ui/empty-state';
 import { MonthSelector } from './month-selector';
 import { SummaryCards } from './summary-cards';
 import { ExpenseChart } from './expense-chart';
@@ -41,15 +43,21 @@ export function DashboardContent() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [trends, setTrends] = useState<TrendMonth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   const fetchData = useCallback(async (m: string) => {
     setIsLoading(true);
+    setError(false);
     try {
       const [summaryRes, categoriesRes, trendsRes] = await Promise.all([
         fetch(`/api/dashboard/summary?month=${m}`),
         fetch(`/api/dashboard/categories?month=${m}`),
         fetch('/api/dashboard/trends'),
       ]);
+
+      if (!summaryRes.ok || !categoriesRes.ok || !trendsRes.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
 
       const [summaryData, categoriesData, trendsData] = await Promise.all([
         summaryRes.json(),
@@ -61,7 +69,7 @@ export function DashboardContent() {
       setCategories(categoriesData.categories || []);
       setTrends(trendsData.months || []);
     } catch {
-      // Keep empty state
+      setError(true);
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +97,17 @@ export function DashboardContent() {
     );
   }
 
+  if (error) {
+    return (
+      <EmptyState
+        icon={AlertTriangle}
+        title="Erro ao carregar dados"
+        description="Não foi possível carregar o dashboard. Verifique sua conexão e tente novamente."
+        action={{ label: 'Tentar novamente', onClick: () => fetchData(month) }}
+      />
+    );
+  }
+
   const hasData = summary && (summary.income > 0 || summary.expenses > 0);
 
   return (
@@ -112,10 +131,7 @@ export function DashboardContent() {
               análises aqui.
             </p>
           </div>
-          <Link
-            href="/settings"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-          >
+          <Link href="/settings" className={buttonVariants()}>
             Conectar banco
           </Link>
         </div>

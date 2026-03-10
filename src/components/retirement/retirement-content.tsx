@@ -14,19 +14,23 @@ export function RetirementContent() {
   });
   const [data, setData] = useState<RetirementResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   const calculate = useCallback(async () => {
     setLoading(true);
+    setError(false);
     try {
       const res = await fetch('/api/retirement', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formValues),
       });
+      if (!res.ok) throw new Error('Failed');
       const json = await res.json();
       setData(json);
     } catch {
       setData(null);
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -51,6 +55,12 @@ export function RetirementContent() {
           <div className="space-y-4">
             <div className="h-[280px] animate-pulse rounded-lg bg-muted" />
             <div className="h-32 animate-pulse rounded-lg bg-muted" />
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-dashed p-8 text-center">
+            <p className="text-sm text-muted-foreground">
+              Erro ao calcular. Ajuste os parâmetros e tente novamente.
+            </p>
           </div>
         ) : data ? (
           <>

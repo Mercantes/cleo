@@ -12,18 +12,20 @@ interface ProfileFormProps {
 export function ProfileForm({ initialName, email }: ProfileFormProps) {
   const [name, setName] = useState(initialName);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [feedback, setFeedback] = useState<'saved' | 'error' | null>(null);
 
   const handleSave = async () => {
     setSaving(true);
-    setSaved(false);
+    setFeedback(null);
     try {
       const res = await fetch('/api/settings/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name: name }),
       });
-      if (res.ok) setSaved(true);
+      setFeedback(res.ok ? 'saved' : 'error');
+    } catch {
+      setFeedback('error');
     } finally {
       setSaving(false);
     }
@@ -56,7 +58,8 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
         <Button onClick={handleSave} disabled={saving}>
           {saving ? 'Salvando...' : 'Salvar'}
         </Button>
-        {saved && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
+        {feedback === 'saved' && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
+        {feedback === 'error' && <span className="text-sm text-red-600">Erro ao salvar. Tente novamente.</span>}
       </div>
     </div>
   );

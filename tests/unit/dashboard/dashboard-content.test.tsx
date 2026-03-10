@@ -36,6 +36,7 @@ describe('DashboardContent', () => {
     mockFetch.mockImplementation((url: string) => {
       if (url.includes('/summary')) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({
             income: 5000, expenses: 3500, balance: 1500,
             savingsRate: 30, percentChange: -10, month: '2026-03',
@@ -44,16 +45,19 @@ describe('DashboardContent', () => {
       }
       if (url.includes('/categories')) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ categories: [] }),
         });
       }
       if (url.includes('/trends')) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({ months: [] }),
         });
       }
       // /api/recurring
       return Promise.resolve({
+        ok: true,
         json: () => Promise.resolve({ subscriptions: [], installments: [], monthlyTotal: 0 }),
       });
     });
@@ -72,6 +76,7 @@ describe('DashboardContent', () => {
     mockFetch.mockImplementation((url: string) => {
       if (url.includes('/summary')) {
         return Promise.resolve({
+          ok: true,
           json: () => Promise.resolve({
             income: 5000, expenses: 3500, balance: 1500,
             savingsRate: 30, percentChange: 15, month: '2026-03',
@@ -79,12 +84,13 @@ describe('DashboardContent', () => {
         });
       }
       if (url.includes('/categories')) {
-        return Promise.resolve({ json: () => Promise.resolve({ categories: [] }) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ categories: [] }) });
       }
       if (url.includes('/trends')) {
-        return Promise.resolve({ json: () => Promise.resolve({ months: [] }) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ months: [] }) });
       }
       return Promise.resolve({
+        ok: true,
         json: () => Promise.resolve({ subscriptions: [], installments: [], monthlyTotal: 0 }),
       });
     });

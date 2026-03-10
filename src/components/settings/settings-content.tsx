@@ -28,12 +28,22 @@ export function SettingsContent() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/settings/profile').then((r) => r.json()),
-      fetch('/api/settings/banks').then((r) => r.json()),
+      fetch('/api/settings/profile').then((r) => {
+        if (!r.ok) throw new Error('Profile fetch failed');
+        return r.json();
+      }),
+      fetch('/api/settings/banks').then((r) => {
+        if (!r.ok) throw new Error('Banks fetch failed');
+        return r.json();
+      }),
     ])
       .then(([profileRes, banksRes]) => {
         setProfile(profileRes.profile);
         setBanks(banksRes.connections || []);
+      })
+      .catch(() => {
+        setProfile({ full_name: null, email: '' });
+        setBanks([]);
       })
       .finally(() => setLoading(false));
   }, []);
