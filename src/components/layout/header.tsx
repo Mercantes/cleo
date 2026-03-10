@@ -1,0 +1,115 @@
+'use client';
+
+import { usePathname, useRouter } from 'next/navigation';
+import { LogOut, Menu, Settings, User } from 'lucide-react';
+import Link from 'next/link';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { navItems } from '@/components/layout/nav-items';
+import { signOut } from '@/lib/actions/auth';
+
+interface HeaderProps {
+  userName: string;
+}
+
+const pageTitles: Record<string, string> = {
+  '/dashboard': 'Dashboard',
+  '/chat': 'Chat',
+  '/transactions': 'Transações',
+  '/projections': 'Projeções',
+  '/settings': 'Configurações',
+};
+
+export function Header({ userName }: HeaderProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const pageTitle = pageTitles[pathname] || 'Cleo';
+  const initials = userName
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  return (
+    <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
+      <div className="flex items-center gap-3">
+        <Sheet>
+          <SheetTrigger
+            render={<Button variant="ghost" size="icon" className="md:hidden" />}
+          >
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Menu</span>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-64 p-0">
+            <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
+            <div className="flex h-14 items-center border-b px-6">
+              <span className="text-xl font-bold">Cleo</span>
+            </div>
+            <nav className="space-y-1 p-3">
+              {navItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                    )}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    {item.label}
+                  </Link>
+                );
+              })}
+            </nav>
+          </SheetContent>
+        </Sheet>
+        <h1 className="text-lg font-semibold">{pageTitle}</h1>
+      </div>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button variant="ghost" className="flex items-center gap-2" />}
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+          </Avatar>
+          <span className="hidden text-sm md:inline-block">{userName}</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => router.push('/settings')}>
+            <User className="mr-2 h-4 w-4" />
+            Meu Perfil
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/settings')}>
+            <Settings className="mr-2 h-4 w-4" />
+            Configurações
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => signOut()}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Sair
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </header>
+  );
+}
