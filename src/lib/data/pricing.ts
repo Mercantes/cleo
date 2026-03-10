@@ -36,7 +36,7 @@ export const pricingTiers: PricingTier[] = [
       'Exportação de dados',
       'Dashboard completo',
     ],
-    cta: 'Começar grátis',
+    cta: 'Começar com Pro',
     highlighted: true,
   },
 ];

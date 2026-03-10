@@ -1,6 +1,7 @@
 'use client';
 
 import { Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const PLAN_FEATURES = [
   { name: 'Transações por mês', free: '100', pro: 'Ilimitado' },
@@ -46,12 +47,9 @@ export function PlanComparison({ onSelectPro, loading }: PlanComparisonProps) {
           ))}
         </div>
 
-        <button
-          disabled
-          className="mt-6 w-full rounded-lg border px-4 py-2.5 text-sm font-medium text-muted-foreground"
-        >
+        <Button variant="outline" disabled className="mt-6 w-full">
           Plano atual
-        </button>
+        </Button>
       </div>
 
       {/* Pro Plan */}
@@ -79,13 +77,9 @@ export function PlanComparison({ onSelectPro, loading }: PlanComparisonProps) {
           ))}
         </div>
 
-        <button
-          onClick={onSelectPro}
-          disabled={loading}
-          className="mt-6 w-full rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        >
+        <Button onClick={onSelectPro} disabled={loading} className="mt-6 w-full">
           {loading ? 'Redirecionando...' : 'Começar Pro'}
-        </button>
+        </Button>
       </div>
     </div>
   );

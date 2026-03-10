@@ -34,7 +34,7 @@ export function RetirementContent() {
 
   useEffect(() => {
     calculate();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [calculate]);
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
