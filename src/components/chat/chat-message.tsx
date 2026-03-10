@@ -17,7 +17,11 @@ export function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
   return (
     <div className={cn('group flex gap-2 px-4 py-2', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser && (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm">
+        <div
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm"
+          role="img"
+          aria-label="Cleo"
+        >
           🤖
         </div>
       )}
@@ -32,7 +36,7 @@ export function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
           <ChatVisual key={i} visual={visual} />
         ))}
         {createdAt && (
-          <p className="mt-1 text-[10px] opacity-0 transition-opacity group-hover:opacity-60">
+          <p className="mt-1 text-[10px] opacity-50">
             {new Date(createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </p>
         )}

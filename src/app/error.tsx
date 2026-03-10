@@ -1,25 +1,26 @@
 'use client';
 
+import Link from 'next/link';
+import { Button, buttonVariants } from '@/components/ui/button';
+
 export default function Error({
-  error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4">
-      <h1 className="text-4xl font-bold text-muted-foreground">Ops!</h1>
-      <p className="text-lg text-muted-foreground">Algo deu errado.</p>
-      <p className="max-w-md text-center text-sm text-muted-foreground">
-        {error.message || 'Ocorreu um erro inesperado. Tente novamente.'}
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+      <h1 className="text-4xl font-bold">Algo deu errado</h1>
+      <p className="max-w-md text-muted-foreground">
+        Ocorreu um erro inesperado. Tente recarregar a página ou volte ao início.
       </p>
-      <button
-        onClick={reset}
-        className="mt-4 rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-      >
-        Tentar novamente
-      </button>
+      <div className="flex gap-3">
+        <Button onClick={reset}>Tentar novamente</Button>
+        <Link href="/" className={buttonVariants({ variant: 'outline' })}>
+          Voltar ao início
+        </Link>
+      </div>
     </div>
   );
 }
