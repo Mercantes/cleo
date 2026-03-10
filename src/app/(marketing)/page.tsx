@@ -148,7 +148,7 @@ export default function LandingPage() {
                     feature: 'Preço',
                     planilha: 'Grátis',
                     outros: 'R$20-50/mês',
-                    cleo: 'Grátis*',
+                    cleo: 'Grátis',
                   },
                 ].map((row) => (
                   <tr key={row.feature}>
@@ -260,8 +260,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-3xl px-4 text-center md:px-6">
           <h2 className="text-3xl font-bold">Pronto para transformar suas finanças?</h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Junte-se a milhares de brasileiros que já usam a Cleo para tomar decisões financeiras
-            mais inteligentes.
+            Comece agora e tenha controle total das suas finanças com a ajuda da inteligência artificial.
           </p>
           <Link href="/signup" className={cn(btnPrimary, 'mt-8 h-10 px-8')}>
             Começar grátis

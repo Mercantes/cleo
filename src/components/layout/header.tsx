@@ -31,7 +31,11 @@ const pageTitles: Record<string, string> = {
   '/chat': 'Chat',
   '/transactions': 'Transações',
   '/projections': 'Projeções',
+  '/retirement': 'Aposentadoria',
+  '/subscriptions': 'Assinaturas',
   '/settings': 'Configurações',
+  '/onboarding': 'Configuração Inicial',
+  '/upgrade': 'Upgrade',
 };
 
 export function Header({ userName }: HeaderProps) {
