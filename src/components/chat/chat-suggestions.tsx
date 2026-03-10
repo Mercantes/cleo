@@ -15,7 +15,7 @@ export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
   return (
     <div className="flex flex-col items-center gap-4 py-8">
       <div className="text-center">
-        <p className="text-4xl">🤖</p>
+        <p className="text-4xl" role="img" aria-label="Cleo">🤖</p>
         <h2 className="mt-2 text-lg font-semibold">Olá! Sou a Cleo</h2>
         <p className="text-sm text-muted-foreground">Sua assistente financeira. Como posso ajudar?</p>
       </div>
