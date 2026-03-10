@@ -2,11 +2,13 @@ import { RetirementContent } from '@/components/retirement/retirement-content';
 
 export default function RetirementPage() {
   return (
-    <div className="space-y-4 p-4 md:p-6">
-      <h1 className="text-xl font-semibold">Aposentadoria FIRE</h1>
-      <p className="text-sm text-muted-foreground">
-        Calcule quanto tempo falta para sua independência financeira
-      </p>
+    <div className="mx-auto max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Aposentadoria FIRE</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Calcule quanto tempo falta para sua independência financeira
+        </p>
+      </div>
       <RetirementContent />
     </div>
   );
