@@ -8,7 +8,7 @@ export function OnboardingComplete() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/');
+      router.push('/dashboard');
     }, 5000);
     return () => clearTimeout(timer);
   }, [router]);
@@ -21,7 +21,7 @@ export function OnboardingComplete() {
         Sua conta está configurada. A Cleo já está pronta para ajudar com suas finanças.
       </p>
       <button
-        onClick={() => router.push('/')}
+        onClick={() => router.push('/dashboard')}
         className="mt-6 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
       >
         Ir para o Dashboard

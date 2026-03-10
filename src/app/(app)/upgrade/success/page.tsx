@@ -8,7 +8,7 @@ export default function UpgradeSuccessPage() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/');
+      router.push('/dashboard');
     }, 4000);
     return () => clearTimeout(timer);
   }, [router]);

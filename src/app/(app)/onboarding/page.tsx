@@ -21,7 +21,7 @@ export default function OnboardingPage() {
       .then((r) => r.json())
       .then((data) => {
         if (data.completed) {
-          router.push('/');
+          router.push('/dashboard');
           return;
         }
         setCurrentStep(data.step || 0);
