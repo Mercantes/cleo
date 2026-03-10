@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Landmark, Trash2 } from 'lucide-react';
+import { ConnectBankButton } from '@/components/bank/connect-bank-button';
 
 interface BankConnection {
   id: string;
@@ -20,15 +21,24 @@ export function BankList({ connections, onDisconnect }: BankListProps) {
 
   if (connections.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed p-6 text-center">
-        <Landmark className="mx-auto h-8 w-8 text-muted-foreground" />
-        <p className="mt-2 text-sm text-muted-foreground">Nenhum banco conectado</p>
+      <div className="flex flex-col items-center gap-4 rounded-lg border border-dashed p-8 text-center">
+        <Landmark className="h-8 w-8 text-muted-foreground" />
+        <div>
+          <p className="font-medium">Nenhum banco conectado</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Conecte seu banco para importar transações automaticamente.
+          </p>
+        </div>
+        <ConnectBankButton />
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      <div className="flex justify-end">
+        <ConnectBankButton />
+      </div>
       {connections.map((conn) => (
         <div key={conn.id} className="flex items-center justify-between rounded-lg border p-3">
           <div className="flex items-center gap-3">

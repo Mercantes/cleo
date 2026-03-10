@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface HeaderProps {
   userName: string;
@@ -89,6 +90,8 @@ export function Header({ userName }: HeaderProps) {
         <h1 className="text-lg font-semibold">{pageTitle}</h1>
       </div>
 
+      <div className="flex items-center gap-1">
+      <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={<Button variant="ghost" className="flex items-center gap-2" />}
@@ -114,6 +117,7 @@ export function Header({ userName }: HeaderProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      </div>
     </header>
   );
 }
