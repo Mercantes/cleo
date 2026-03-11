@@ -9,9 +9,7 @@ import type {
 } from './types';
 import { PluggyError } from './types';
 
-const BASE_URL = process.env.PLUGGY_SANDBOX === 'true'
-  ? 'https://api.pluggy.ai/sandbox'
-  : 'https://api.pluggy.ai';
+const BASE_URL = 'https://api.pluggy.ai';
 const TOKEN_RENEWAL_BUFFER_MS = 5 * 60 * 1000; // 5 minutes before expiry
 const TOKEN_LIFETIME_MS = 2 * 60 * 60 * 1000; // 2 hours
 const MAX_RETRIES = 3;
@@ -87,10 +85,14 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
   return response.json() as Promise<T>;
 }
 
-export async function createConnectToken(itemId?: string): Promise<PluggyConnectToken> {
+export async function createConnectToken(itemId?: string, clientUserId?: string): Promise<PluggyConnectToken> {
+  const body: Record<string, string> = {};
+  if (itemId) body.itemId = itemId;
+  if (clientUserId) body.clientUserId = clientUserId;
+
   return apiRequest<PluggyConnectToken>('/connect_token', {
     method: 'POST',
-    body: JSON.stringify(itemId ? { itemId } : {}),
+    body: JSON.stringify(body),
   });
 }
 

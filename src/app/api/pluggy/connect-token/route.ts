@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       }
     }
 
-    const token = await createConnectToken(body.itemId);
+    const token = await createConnectToken(body.itemId, user.id);
 
     return NextResponse.json({ accessToken: token.accessToken });
   } catch (error) {

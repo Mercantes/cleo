@@ -80,7 +80,7 @@ describe('POST /api/pluggy/connect-token', () => {
 
     await POST(createRequest({ itemId: 'item-123' }));
 
-    expect(mockCreateConnectToken).toHaveBeenCalledWith('item-123');
+    expect(mockCreateConnectToken).toHaveBeenCalledWith('item-123', 'user-1');
   });
 
   it('should handle Pluggy errors', async () => {
