@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { X, MessageSquare } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
 interface Insight {
@@ -42,6 +43,7 @@ function saveDismissed(ids: Set<string>) {
 }
 
 export function InsightsBar() {
+  const router = useRouter();
   const [insights, setInsights] = useState<Insight[]>([]);
   const [dismissed, setDismissed] = useState<Set<string>>(() => getDismissedFromStorage());
   const [loading, setLoading] = useState(true);
@@ -83,13 +85,23 @@ export function InsightsBar() {
             <p className="text-sm font-medium">{insight.title}</p>
             <p className="mt-0.5 text-xs opacity-80">{insight.message}</p>
           </div>
-          <button
-            onClick={() => dismiss(insight.id)}
-            aria-label={`Dispensar: ${insight.title}`}
-            className="shrink-0 rounded-md p-2 opacity-50 transition-opacity hover:opacity-100"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              onClick={() => router.push(`/chat?q=${encodeURIComponent(insight.title)}`)}
+              aria-label={`Perguntar sobre: ${insight.title}`}
+              className="rounded-md p-2 opacity-50 transition-opacity hover:opacity-100"
+              title="Perguntar para a Cleo"
+            >
+              <MessageSquare className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => dismiss(insight.id)}
+              aria-label={`Dispensar: ${insight.title}`}
+              className="rounded-md p-2 opacity-50 transition-opacity hover:opacity-100"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       ))}
     </div>

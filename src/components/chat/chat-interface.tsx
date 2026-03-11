@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { RotateCcw, Trash2 } from 'lucide-react';
 import { ChatMessage } from './chat-message';
 import { ChatInput } from './chat-input';
@@ -16,11 +17,13 @@ interface Message {
 }
 
 export function ChatInterface() {
+  const searchParams = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [autoSent, setAutoSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -45,6 +48,16 @@ export function ChatInterface() {
     }
     loadHistory();
   }, []);
+
+  // Auto-send message from query param (e.g. from insights bar)
+  useEffect(() => {
+    if (!isHistoryLoaded || autoSent) return;
+    const q = searchParams.get('q');
+    if (q) {
+      setAutoSent(true);
+      sendMessage(q);
+    }
+  }, [isHistoryLoaded, searchParams, autoSent]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function sendMessage(text?: string) {
     const messageText = text || input.trim();

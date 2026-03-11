@@ -1,11 +1,20 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+
+interface HealthFactor {
+  label: string;
+  status: 'good' | 'warning' | 'bad';
+  detail: string;
+  tip: string;
+}
 
 interface HealthData {
   score: number;
-  factors: { label: string; status: 'good' | 'warning' | 'bad'; detail: string }[];
+  factors: HealthFactor[];
 }
 
 function calculateHealth(summary: {
@@ -20,44 +29,44 @@ function calculateHealth(summary: {
   // Savings rate (0-30 points)
   if (summary.savingsRate >= 20) {
     score += 30;
-    factors.push({ label: 'Taxa de economia', status: 'good', detail: `${Math.round(summary.savingsRate)}% da renda` });
+    factors.push({ label: 'Taxa de economia', status: 'good', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Parabéns! Você está economizando acima da meta de 20%. Continue assim!' });
   } else if (summary.savingsRate >= 10) {
     score += 15;
-    factors.push({ label: 'Taxa de economia', status: 'warning', detail: `${Math.round(summary.savingsRate)}% da renda` });
+    factors.push({ label: 'Taxa de economia', status: 'warning', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Tente aumentar para 20% revisando assinaturas e gastos variáveis.' });
   } else {
-    factors.push({ label: 'Taxa de economia', status: 'bad', detail: `${Math.round(summary.savingsRate)}% da renda` });
+    factors.push({ label: 'Taxa de economia', status: 'bad', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Identifique 2-3 gastos que podem ser cortados. Use o chat da Cleo para sugestões personalizadas.' });
   }
 
   // Spending trend (-10 to +10 points)
   if (summary.percentChange < -5) {
     score += 10;
-    factors.push({ label: 'Tendência de gastos', status: 'good', detail: `${Math.abs(Math.round(summary.percentChange))}% menor que mês anterior` });
+    factors.push({ label: 'Tendência de gastos', status: 'good', detail: `${Math.abs(Math.round(summary.percentChange))}% menor que mês anterior`, tip: 'Seus gastos estão diminuindo. Ótimo progresso!' });
   } else if (summary.percentChange > 15) {
     score -= 10;
-    factors.push({ label: 'Tendência de gastos', status: 'bad', detail: `${Math.round(summary.percentChange)}% maior que mês anterior` });
+    factors.push({ label: 'Tendência de gastos', status: 'bad', detail: `${Math.round(summary.percentChange)}% maior que mês anterior`, tip: 'Gastos aumentaram significativamente. Verifique suas categorias para identificar o motivo.' });
   } else {
-    factors.push({ label: 'Tendência de gastos', status: 'warning', detail: 'Estável' });
+    factors.push({ label: 'Tendência de gastos', status: 'warning', detail: 'Estável', tip: 'Seus gastos estão estáveis. Procure oportunidades de redução para melhorar a economia.' });
   }
 
   // Recurring expenses ratio (-5 to +5)
   if (recurringPercent <= 30) {
     score += 5;
-    factors.push({ label: 'Gastos fixos', status: 'good', detail: `${recurringPercent}% da renda` });
+    factors.push({ label: 'Gastos fixos', status: 'good', detail: `${recurringPercent}% da renda`, tip: 'Seus gastos fixos estão em nível saudável. Boa gestão!' });
   } else if (recurringPercent <= 50) {
-    factors.push({ label: 'Gastos fixos', status: 'warning', detail: `${recurringPercent}% da renda` });
+    factors.push({ label: 'Gastos fixos', status: 'warning', detail: `${recurringPercent}% da renda`, tip: 'Revise assinaturas e serviços. O ideal é manter gastos fixos abaixo de 30% da renda.' });
   } else {
     score -= 5;
-    factors.push({ label: 'Gastos fixos', status: 'bad', detail: `${recurringPercent}% da renda` });
+    factors.push({ label: 'Gastos fixos', status: 'bad', detail: `${recurringPercent}% da renda`, tip: 'Gastos fixos muito altos. Considere renegociar contratos ou cancelar serviços não essenciais.' });
   }
 
   // Goal progress (0-5 points)
   if (goalsProgress >= 75) {
     score += 5;
-    factors.push({ label: 'Progresso da meta', status: 'good', detail: `${goalsProgress}% atingido` });
+    factors.push({ label: 'Progresso da meta', status: 'good', detail: `${goalsProgress}% atingido`, tip: 'Quase lá! Mantenha o ritmo para atingir sua meta este mês.' });
   } else if (goalsProgress >= 40) {
-    factors.push({ label: 'Progresso da meta', status: 'warning', detail: `${goalsProgress}% atingido` });
+    factors.push({ label: 'Progresso da meta', status: 'warning', detail: `${goalsProgress}% atingido`, tip: 'Progresso moderado. Tente reservar um valor fixo no início do mês.' });
   } else if (goalsProgress > 0) {
-    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido` });
+    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido`, tip: 'Meta em risco. Configure uma transferência automática para sua poupança.' });
   }
 
   return { score: Math.max(0, Math.min(100, score)), factors };
@@ -86,6 +95,7 @@ function getScoreLabel(score: number) {
 
 export function FinancialHealthCard() {
   const [health, setHealth] = useState<HealthData | null>(null);
+  const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -126,16 +136,33 @@ export function FinancialHealthCard() {
         />
       </div>
 
-      <div className="mt-3 space-y-1.5">
-        {health.factors.map((f) => (
-          <div key={f.label} className="flex items-center justify-between text-xs">
-            <span className="flex items-center gap-1.5">
-              <span className={statusColors[f.status]}>{statusIcons[f.status]}</span>
-              {f.label}
-            </span>
-            <span className="text-muted-foreground">{f.detail}</span>
-          </div>
-        ))}
+      <div className="mt-3 space-y-1">
+        {health.factors.map((f) => {
+          const isExpanded = expandedFactor === f.label;
+          return (
+            <div key={f.label}>
+              <button
+                onClick={() => setExpandedFactor(isExpanded ? null : f.label)}
+                className="flex w-full items-center justify-between rounded-md px-1 py-1 text-xs transition-colors hover:bg-muted/50"
+                aria-expanded={isExpanded}
+              >
+                <span className="flex items-center gap-1.5">
+                  <span className={statusColors[f.status]}>{statusIcons[f.status]}</span>
+                  {f.label}
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="text-muted-foreground">{f.detail}</span>
+                  <ChevronDown className={cn('h-3 w-3 text-muted-foreground transition-transform', isExpanded && 'rotate-180')} />
+                </span>
+              </button>
+              {isExpanded && (
+                <p className="ml-5 mt-0.5 rounded-md bg-muted/50 px-2 py-1.5 text-[11px] text-muted-foreground">
+                  {f.tip}
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

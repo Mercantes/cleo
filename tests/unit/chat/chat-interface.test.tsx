@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { ChatInterface } from '@/components/chat/chat-interface';
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/chat',
+}));
+
 // jsdom doesn't have scrollIntoView
 Element.prototype.scrollIntoView = vi.fn();
 
