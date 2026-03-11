@@ -40,6 +40,7 @@ export const metadata: Metadata = {
     title: 'Cleo - Sua Assistente Financeira com IA',
     description:
       'Conecte seu banco, converse com IA sobre suas finanças e tome decisões mais inteligentes.',
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Cleo - Assistente Financeiro com IA' }],
   },
   twitter: {
     card: 'summary_large_image',
