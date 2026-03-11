@@ -88,12 +88,20 @@ export async function PUT(request: Request) {
   const body = await request.json();
   const { monthlySavingsTarget, retirementAgeTarget } = body;
 
+  const savings = monthlySavingsTarget != null ? Number(monthlySavingsTarget) : null;
+  const retAge = retirementAgeTarget != null ? Number(retirementAgeTarget) : null;
+
+  if ((savings != null && (isNaN(savings) || savings < 0 || savings > 1_000_000)) ||
+      (retAge != null && (isNaN(retAge) || retAge < 18 || retAge > 120))) {
+    return NextResponse.json({ error: 'Invalid goal values' }, { status: 400 });
+  }
+
   const db = getServiceClient();
   const { error } = await db.from('goals').upsert(
     {
       user_id: user.id,
-      monthly_savings_target: monthlySavingsTarget || null,
-      retirement_age_target: retirementAgeTarget || null,
+      monthly_savings_target: savings,
+      retirement_age_target: retAge,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },

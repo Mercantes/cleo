@@ -42,7 +42,8 @@ export async function POST(request: Request) {
       .single();
 
     if (connError) {
-      return NextResponse.json({ error: connError.message }, { status: 500 });
+      console.error('[pluggy-import] connection error:', connError.message);
+      return NextResponse.json({ error: 'Failed to save bank connection' }, { status: 500 });
     }
 
     // Fetch and save accounts
@@ -100,8 +101,9 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof PluggyError) {
+      console.error('[pluggy-import] Pluggy error:', error.message);
       return NextResponse.json(
-        { error: `Pluggy error: ${error.message}` },
+        { error: 'Bank sync failed. Please try again.' },
         { status: error.statusCode || 500 },
       );
     }

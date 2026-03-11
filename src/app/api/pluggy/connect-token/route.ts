@@ -40,8 +40,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ accessToken: token.accessToken });
   } catch (error) {
     if (error instanceof PluggyError) {
+      console.error('[pluggy-connect] Pluggy error:', error.message);
       return NextResponse.json(
-        { error: `Pluggy error: ${error.message}` },
+        { error: 'Failed to connect to bank. Please try again.' },
         { status: error.statusCode || 500 },
       );
     }

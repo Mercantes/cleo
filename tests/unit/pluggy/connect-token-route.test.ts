@@ -81,6 +81,6 @@ describe('POST /api/pluggy/connect-token', () => {
     const data = await response.json();
 
     expect(response.status).toBe(502);
-    expect(data.error).toContain('Pluggy error');
+    expect(data.error).toContain('Failed to connect to bank');
   });
 });
