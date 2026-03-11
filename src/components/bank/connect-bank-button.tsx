@@ -109,6 +109,7 @@ export function ConnectBankButton() {
       {connectToken && (
         <PluggyConnect
           connectToken={connectToken}
+          includeSandbox={process.env.NEXT_PUBLIC_PLUGGY_SANDBOX === 'true'}
           onSuccess={handleSuccess}
           onError={handleError}
           onClose={() => {
