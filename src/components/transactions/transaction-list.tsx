@@ -6,7 +6,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
 import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatDateGroupLabel } from '@/lib/utils/format';
 
 interface Transaction {
   id: string;
@@ -167,18 +167,39 @@ export function TransactionList() {
         />
       ) : (
         <>
-          <div className="space-y-2">
-            {transactions.map((tx) => (
-              <TransactionItem
-                key={tx.id}
-                description={tx.description}
-                amount={tx.amount}
-                date={tx.date}
-                type={tx.type}
-                category={tx.categories}
-                merchant={tx.merchant}
-              />
-            ))}
+          <div className="space-y-4">
+            {(() => {
+              const groups: { label: string; items: Transaction[] }[] = [];
+              for (const tx of transactions) {
+                const label = formatDateGroupLabel(tx.date);
+                const last = groups[groups.length - 1];
+                if (last && last.label === label) {
+                  last.items.push(tx);
+                } else {
+                  groups.push({ label, items: [tx] });
+                }
+              }
+              return groups.map((group) => (
+                <div key={group.label}>
+                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {group.label}
+                  </h3>
+                  <div className="space-y-2">
+                    {group.items.map((tx) => (
+                      <TransactionItem
+                        key={tx.id}
+                        description={tx.description}
+                        amount={tx.amount}
+                        date={tx.date}
+                        type={tx.type}
+                        category={tx.categories}
+                        merchant={tx.merchant}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ));
+            })()}
           </div>
 
           {hasMore && (

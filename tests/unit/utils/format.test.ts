@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCurrency, formatDate, formatRelativeDate } from '@/lib/utils/format';
+import { formatCurrency, formatDate, formatRelativeDate, formatDateGroupLabel } from '@/lib/utils/format';
 
 describe('formatCurrency', () => {
   it('should format positive amount in BRL', () => {
@@ -37,5 +37,32 @@ describe('formatRelativeDate', () => {
   it('should return formatted date for older dates', () => {
     const result = formatRelativeDate('2026-01-15');
     expect(result).toBe('15/01/2026');
+  });
+});
+
+describe('formatDateGroupLabel', () => {
+  it('should return "Hoje" for today', () => {
+    const today = new Date().toISOString().split('T')[0];
+    expect(formatDateGroupLabel(today)).toBe('Hoje');
+  });
+
+  it('should return "Ontem" for yesterday', () => {
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    expect(formatDateGroupLabel(yesterday)).toBe('Ontem');
+  });
+
+  it('should return weekday name for dates within last 7 days', () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 86400000);
+    const dateStr = threeDaysAgo.toISOString().split('T')[0];
+    const result = formatDateGroupLabel(dateStr);
+    const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+    expect(weekdays).toContain(result);
+  });
+
+  it('should return full date for older dates', () => {
+    const result = formatDateGroupLabel('2025-06-15');
+    expect(result).toContain('15');
+    expect(result).toContain('junho');
+    expect(result).toContain('2025');
   });
 });
