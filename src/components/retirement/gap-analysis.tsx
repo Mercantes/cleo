@@ -41,7 +41,7 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
             {data.scenarios.map((s) => (
               <div key={s.extraMonthly} className="flex items-center justify-between text-sm">
                 <span>+{formatCurrency(s.extraMonthly)}/mês</span>
-                <span className="text-green-600">
+                <span className="text-green-600 dark:text-green-400">
                   {s.yearsSaved > 0 ? `${s.yearsSaved} anos antes` : '—'}
                 </span>
               </div>

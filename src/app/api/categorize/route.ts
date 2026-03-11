@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -11,6 +12,18 @@ export async function POST(request: Request) {
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Rate limit: 20 requests/min per user (AI-powered route)
+  const rl = rateLimit(`categorize:${user.id}`, RATE_LIMITS.chat);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
   }
 
   try {
@@ -48,7 +61,8 @@ export async function POST(request: Request) {
     const { data: txs, error } = await query.limit(500);
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      console.error('[categorize] query failed:', error.message);
+      return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
     }
 
     if (!txs?.length) {
@@ -57,7 +71,8 @@ export async function POST(request: Request) {
 
     const categorized = await categorizeTransactions(txs);
     return NextResponse.json({ categorized, total: txs.length });
-  } catch {
+  } catch (error) {
+    console.error('[categorize] categorization failed:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

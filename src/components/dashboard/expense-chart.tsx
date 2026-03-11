@@ -15,7 +15,7 @@ export function ExpenseChart({ data }: { data: MonthData[] }) {
   return (
     <div className="rounded-lg border bg-card p-4">
       <h3 className="mb-4 text-sm font-semibold">Receita vs Despesas</h3>
-      <div className="h-[250px] w-full">
+      <div className="h-[250px] w-full" role="img" aria-label="Gráfico de barras comparando receita e despesas mensais">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
             <XAxis dataKey="label" fontSize={12} />

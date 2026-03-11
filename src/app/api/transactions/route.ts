@@ -33,13 +33,16 @@ export async function GET(request: NextRequest) {
   if (from) query = query.gte('date', from);
   if (to) query = query.lte('date', to);
   if (search) {
-    query = query.or(`description.ilike.%${search}%,merchant.ilike.%${search}%`);
+    // Escape SQL wildcards and limit length to prevent pattern abuse
+    const sanitized = search.slice(0, 100).replace(/[%_\\]/g, '\\$&');
+    query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
   }
 
   const { data, error, count } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[transactions] query failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   return NextResponse.json({

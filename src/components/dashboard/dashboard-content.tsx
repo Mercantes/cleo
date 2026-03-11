@@ -5,11 +5,24 @@ import Link from 'next/link';
 import { AlertTriangle, Landmark } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import dynamic from 'next/dynamic';
 import { MonthSelector } from './month-selector';
 import { SummaryCards } from './summary-cards';
-import { ExpenseChart } from './expense-chart';
-import { CategoryChart } from './category-chart';
 import { SubscriptionsCard } from './subscriptions-card';
+import { GoalProgressCard } from './goal-progress-card';
+import { ChallengesCard } from './challenges-card';
+import { SpendingForecast } from './spending-forecast';
+import { InsightsBar } from './insights-bar';
+
+const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />,
+});
+
+const CategoryChart = dynamic(() => import('./category-chart').then((m) => m.CategoryChart), {
+  ssr: false,
+  loading: () => <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />,
+});
 
 interface SummaryData {
   income: number;
@@ -119,6 +132,8 @@ export function DashboardContent() {
 
       {summary && <SummaryCards data={summary} />}
 
+      <InsightsBar />
+
       {!hasData ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-16 text-center">
           <div className="rounded-full bg-primary/10 p-4">
@@ -141,6 +156,13 @@ export function DashboardContent() {
             <ExpenseChart data={trends} />
             <CategoryChart data={categories} />
           </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            <GoalProgressCard />
+            <ChallengesCard />
+          </div>
+
+          <SpendingForecast />
 
           <SubscriptionsCard />
         </>

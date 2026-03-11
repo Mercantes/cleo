@@ -43,6 +43,7 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
           placeholder="Buscar transações..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          aria-label="Buscar transações"
           className="pl-10"
         />
       </div>
@@ -51,14 +52,14 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
           type="date"
           value={from}
           onChange={(e) => setFrom(e.target.value)}
-          className="w-auto"
+          className="min-w-[140px] sm:w-auto"
           aria-label="Data inicial"
         />
         <Input
           type="date"
           value={to}
           onChange={(e) => setTo(e.target.value)}
-          className="w-auto"
+          className="min-w-[140px] sm:w-auto"
           aria-label="Data final"
         />
         {hasFilters && (

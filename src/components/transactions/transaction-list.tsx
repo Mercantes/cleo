@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { AlertTriangle, ArrowLeftRight, Loader2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AlertTriangle, ArrowLeftRight, Download, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface Transaction {
   id: string;
@@ -77,6 +78,37 @@ export function TransactionList() {
 
   const hasMore = transactions.length < total;
 
+  const summary = useMemo(() => {
+    let income = 0;
+    let expenses = 0;
+    for (const tx of transactions) {
+      if (tx.type === 'credit') income += tx.amount;
+      else expenses += Math.abs(tx.amount);
+    }
+    return { income, expenses };
+  }, [transactions]);
+
+  function exportCSV() {
+    const header = 'Data,Descrição,Categoria,Tipo,Valor\n';
+    const rows = transactions
+      .map((tx) => {
+        const date = tx.date;
+        const desc = tx.description.replace(/"/g, '""');
+        const cat = tx.categories?.name || 'Sem categoria';
+        const type = tx.type === 'credit' ? 'Receita' : 'Despesa';
+        const amount = tx.amount.toFixed(2);
+        return `${date},"${desc}","${cat}",${type},${amount}`;
+      })
+      .join('\n');
+    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `cleo-transacoes-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -105,6 +137,23 @@ export function TransactionList() {
   return (
     <div className="space-y-4">
       <TransactionFilters onFiltersChange={setFilters} />
+
+      {transactions.length > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-card p-3">
+          <div className="flex gap-4 text-sm">
+            <span>
+              Receitas: <strong className="text-green-600 dark:text-green-400">{formatCurrency(summary.income)}</strong>
+            </span>
+            <span>
+              Despesas: <strong className="text-red-500 dark:text-red-400">{formatCurrency(summary.expenses)}</strong>
+            </span>
+          </div>
+          <Button variant="ghost" size="sm" onClick={exportCSV} className="gap-1 text-xs">
+            <Download className="h-3 w-3" />
+            CSV
+          </Button>
+        </div>
+      )}
 
       {transactions.length === 0 ? (
         <EmptyState

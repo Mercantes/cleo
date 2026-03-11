@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Landmark, Tags, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
 const STEP_CONFIG: Record<string, { icon: typeof Landmark; label: string; description: string }> = {
   'connect-bank': {
@@ -28,7 +29,7 @@ export function OnboardingReminders() {
   const [dismissed, setDismissed] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch('/api/onboarding')
+    fetchWithTimeout('/api/onboarding')
       .then((r) => {
         if (!r.ok) return null;
         return r.json();

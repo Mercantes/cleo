@@ -1,9 +1,14 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { RetirementForm } from './retirement-form';
-import { RetirementChart } from './retirement-chart';
 import { GapAnalysis } from './gap-analysis';
+
+const RetirementChart = dynamic(() => import('./retirement-chart').then((m) => m.RetirementChart), {
+  ssr: false,
+  loading: () => <div className="h-[350px] animate-pulse rounded-lg border bg-muted" />,
+});
 import type { RetirementResult } from '@/lib/finance/retirement-engine';
 
 export function RetirementContent() {

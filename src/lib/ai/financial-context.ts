@@ -18,7 +18,7 @@ export async function buildFinancialContext(userId: string): Promise<string> {
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-  const [profileResult, transactionsResult, recurringResult, accountsResult] = await Promise.all([
+  const [profileResult, transactionsResult, recurringResult, accountsResult, goalsResult, challengesResult] = await Promise.all([
     supabase.from('profiles').select('full_name').eq('id', userId).single(),
     supabase
       .from('transactions')
@@ -32,12 +32,16 @@ export async function buildFinancialContext(userId: string): Promise<string> {
       .eq('user_id', userId)
       .eq('status', 'active'),
     supabase.from('accounts').select('name, balance, type').eq('user_id', userId),
+    supabase.from('goals').select('monthly_savings_target, retirement_age_target, streak_months, level, xp, total_challenges_completed').eq('user_id', userId).single(),
+    supabase.from('challenges').select('title, status, end_date').eq('user_id', userId).eq('status', 'active'),
   ]);
 
   const name = profileResult.data?.full_name || 'Usuário';
   const transactions = transactionsResult.data || [];
   const recurring = recurringResult.data || [];
   const accounts = accountsResult.data || [];
+  const goals = goalsResult.data;
+  const activeChallenges = challengesResult.data || [];
 
   // Calculate summary
   const income = transactions
@@ -89,6 +93,27 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     lines.push('', '--- Contas ---');
     for (const acc of accounts) {
       lines.push(`- ${acc.name} (${acc.type}): R$ ${Number(acc.balance).toFixed(2)}`);
+    }
+  }
+
+  // Goals & Gamification
+  if (goals?.monthly_savings_target) {
+    const savingsTarget = Number(goals.monthly_savings_target);
+    const currentSavings = Math.max(0, balance);
+    const savingsProgress = savingsTarget > 0 ? Math.round((currentSavings / savingsTarget) * 100) : 0;
+    lines.push('', '--- Metas e Gamificação ---');
+    lines.push(`Meta mensal de economia: R$ ${savingsTarget.toFixed(2)}`);
+    lines.push(`Economia atual no mês: R$ ${currentSavings.toFixed(2)} (${Math.min(savingsProgress, 100)}%)`);
+    if (goals.level) lines.push(`Nível: ${goals.level} (${goals.xp || 0} XP)`);
+    if (goals.streak_months) lines.push(`Sequência: ${goals.streak_months} meses consecutivos atingindo a meta`);
+    if (goals.total_challenges_completed) lines.push(`Desafios completados: ${goals.total_challenges_completed}`);
+  }
+
+  if (activeChallenges.length > 0) {
+    lines.push('', '--- Desafios Ativos ---');
+    for (const c of activeChallenges) {
+      const daysLeft = Math.max(0, Math.ceil((new Date(c.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+      lines.push(`- ${c.title} (${daysLeft} dias restantes)`);
     }
   }
 

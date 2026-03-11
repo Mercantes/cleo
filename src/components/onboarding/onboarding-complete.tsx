@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 
 export function OnboardingComplete() {
@@ -24,9 +25,13 @@ export function OnboardingComplete() {
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-      <div className="text-6xl" role="img" aria-label="Celebração">
-        🎉
-      </div>
+      <Image
+        src="/favicon.png"
+        alt="Cleo"
+        width={80}
+        height={80}
+        className="rounded-2xl"
+      />
       <h1 className="mt-4 text-2xl font-bold">Tudo pronto!</h1>
       <p className="mt-2 text-muted-foreground">
         Sua conta está configurada. A Cleo já está pronta para ajudar com suas finanças.

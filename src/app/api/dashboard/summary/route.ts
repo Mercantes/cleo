@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
   ]);
 
   if (currentResult.error) {
-    return NextResponse.json({ error: currentResult.error.message }, { status: 500 });
+    console.error('[dashboard/summary] query failed:', currentResult.error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   const current = currentResult.data || [];
@@ -63,5 +64,7 @@ export async function GET(request: NextRequest) {
     savingsRate,
     percentChange,
     month: monthParam,
+  }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },
   });
 }

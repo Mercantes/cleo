@@ -1,5 +1,7 @@
 'use client';
 
+import { memo } from 'react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { parseVisuals } from '@/lib/ai/visual-types';
 import { ChatVisual } from './chat-visual';
@@ -10,20 +12,20 @@ interface ChatMessageProps {
   createdAt?: string;
 }
 
-export function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
+export const ChatMessage = memo(function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
   const isUser = role === 'user';
   const { text, visuals } = isUser ? { text: content, visuals: [] } : parseVisuals(content);
 
   return (
     <div className={cn('group flex gap-2 px-4 py-2', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser && (
-        <div
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm"
-          role="img"
-          aria-label="Cleo"
-        >
-          🤖
-        </div>
+        <Image
+          src="/favicon.svg"
+          alt="Cleo"
+          width={32}
+          height={32}
+          className="h-8 w-8 shrink-0 rounded-full"
+        />
       )}
       <div
         className={cn(
@@ -36,11 +38,14 @@ export function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
           <ChatVisual key={`${visual.type}-${visual.title}-${i}`} visual={visual} />
         ))}
         {createdAt && (
-          <p className="mt-1 text-[10px] opacity-50">
+          <time
+            dateTime={createdAt}
+            className="mt-1 block text-[10px] opacity-50"
+          >
             {new Date(createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-          </p>
+          </time>
         )}
       </div>
     </div>
   );
-}
+});

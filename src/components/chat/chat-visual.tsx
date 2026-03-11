@@ -1,17 +1,20 @@
 'use client';
 
+import { memo } from 'react';
+import dynamic from 'next/dynamic';
 import { type VisualMetadata, isBarChartData, isPieChartData, isTableData } from '@/lib/ai/visual-types';
 import type { BarChartData, LineChartData, PieChartData, TableData } from '@/lib/ai/visual-types';
-import { ChatBarChart } from './visuals/chat-bar-chart';
-import { ChatPieChart } from './visuals/chat-pie-chart';
-import { ChatLineChart } from './visuals/chat-line-chart';
 import { ChatTable } from './visuals/chat-table';
+
+const ChatBarChart = dynamic(() => import('./visuals/chat-bar-chart').then((m) => m.ChatBarChart), { ssr: false });
+const ChatPieChart = dynamic(() => import('./visuals/chat-pie-chart').then((m) => m.ChatPieChart), { ssr: false });
+const ChatLineChart = dynamic(() => import('./visuals/chat-line-chart').then((m) => m.ChatLineChart), { ssr: false });
 
 interface ChatVisualProps {
   visual: VisualMetadata;
 }
 
-export function ChatVisual({ visual }: ChatVisualProps) {
+export const ChatVisual = memo(function ChatVisual({ visual }: ChatVisualProps) {
   if (visual.type === 'bar' && Array.isArray(visual.data) && isBarChartData(visual.data)) {
     return <ChatBarChart data={visual.data as BarChartData[]} title={visual.title} />;
   }
@@ -35,4 +38,4 @@ export function ChatVisual({ visual }: ChatVisualProps) {
       <pre className="mt-1 overflow-x-auto whitespace-pre-wrap">{JSON.stringify(visual.data, null, 2)}</pre>
     </div>
   );
-}
+});

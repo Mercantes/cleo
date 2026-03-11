@@ -45,7 +45,7 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
             onClick={() => setActiveScenario(activeScenario === s.label ? null : s.label)}
             aria-label={`Filtrar cenário ${SCENARIO_LABELS[s.label]}`}
             aria-pressed={activeScenario === s.label}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition-opacity ${
+            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               activeScenario && activeScenario !== s.label ? 'opacity-40' : 'opacity-100'
             }`}
             style={{ backgroundColor: `${SCENARIO_COLORS[s.label]}20`, color: SCENARIO_COLORS[s.label] }}
@@ -54,6 +54,7 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
           </button>
         ))}
       </div>
+      <div role="img" aria-label="Gráfico de projeção financeira com cenários otimista, realista e pessimista">
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData}>
           <XAxis dataKey="month" fontSize={11} />
@@ -73,6 +74,7 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
           ))}
         </LineChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

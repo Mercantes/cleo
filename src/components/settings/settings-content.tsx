@@ -5,8 +5,10 @@ import { ProfileForm } from './profile-form';
 import { BankList } from './bank-list';
 import { NotificationPreferences } from './notification-preferences';
 import { TierStatus } from '@/components/layout/tier-status';
+import { GoalsEditor } from './goals-editor';
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
-type Tab = 'profile' | 'banks' | 'notifications' | 'plan';
+type Tab = 'profile' | 'banks' | 'goals' | 'notifications' | 'plan';
 
 interface ProfileData {
   full_name: string | null;
@@ -28,11 +30,11 @@ export function SettingsContent() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/settings/profile').then((r) => {
+      fetchWithTimeout('/api/settings/profile').then((r) => {
         if (!r.ok) throw new Error('Profile fetch failed');
         return r.json();
       }),
-      fetch('/api/settings/banks').then((r) => {
+      fetchWithTimeout('/api/settings/banks').then((r) => {
         if (!r.ok) throw new Error('Banks fetch failed');
         return r.json();
       }),
@@ -49,13 +51,20 @@ export function SettingsContent() {
   }, []);
 
   const handleDisconnect = async (id: string) => {
+    const previous = banks;
     setBanks((prev) => prev.filter((b) => b.id !== id));
-    await fetch(`/api/settings/banks?id=${id}`, { method: 'DELETE' });
+    try {
+      const res = await fetchWithTimeout(`/api/settings/banks?id=${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+    } catch {
+      setBanks(previous);
+    }
   };
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'profile', label: 'Perfil' },
     { key: 'banks', label: 'Bancos' },
+    { key: 'goals', label: 'Metas' },
     { key: 'notifications', label: 'Notificações' },
     { key: 'plan', label: 'Plano' },
   ];
@@ -93,6 +102,7 @@ export function SettingsContent() {
       {activeTab === 'banks' && (
         <BankList connections={banks} onDisconnect={handleDisconnect} />
       )}
+      {activeTab === 'goals' && <GoalsEditor />}
       {activeTab === 'notifications' && <NotificationPreferences />}
       {activeTab === 'plan' && <TierStatus />}
     </div>

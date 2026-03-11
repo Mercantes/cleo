@@ -24,6 +24,13 @@ vi.mock('@/lib/stripe/client', () => ({
   },
 }));
 
+function makeRequest(origin?: string) {
+  return new Request('http://localhost:3000/api/stripe/checkout', {
+    method: 'POST',
+    headers: origin ? { origin } : {},
+  }) as unknown as import('next/server').NextRequest;
+}
+
 describe('POST /api/stripe/checkout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,9 +42,16 @@ describe('POST /api/stripe/checkout', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { POST } = await import('@/app/api/stripe/checkout/route');
-    const response = await POST();
+    const response = await POST(makeRequest('http://localhost:3000'));
 
     expect(response.status).toBe(401);
+  });
+
+  it('returns 403 for invalid origin', async () => {
+    const { POST } = await import('@/app/api/stripe/checkout/route');
+    const response = await POST(makeRequest('http://evil.com'));
+
+    expect(response.status).toBe(403);
   });
 
   it('creates checkout session and returns URL', async () => {
@@ -48,7 +62,7 @@ describe('POST /api/stripe/checkout', () => {
     mockCheckoutCreate.mockResolvedValue({ url: 'https://checkout.stripe.com/session' });
 
     const { POST } = await import('@/app/api/stripe/checkout/route');
-    const response = await POST();
+    const response = await POST(makeRequest('http://localhost:3000'));
     const data = await response.json();
 
     expect(response.status).toBe(200);

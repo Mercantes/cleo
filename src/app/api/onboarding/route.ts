@@ -1,6 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod/v4';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/server';
+
+const onboardingPatchSchema = z.object({
+  step: z.number().int().min(0).max(10).optional(),
+  completed: z.boolean().optional(),
+  skippedSteps: z.array(z.string()).optional(),
+});
+
+const onboardingPostSchema = z.object({
+  monthlySavingsTarget: z.number().min(0).max(10_000_000).optional(),
+  retirementAgeTarget: z.number().int().min(18).max(120).optional(),
+});
 
 function getServiceClient() {
   return createServiceClient(
@@ -43,18 +55,23 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = onboardingPatchSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+  }
+
   const serviceClient = getServiceClient();
   const update: Record<string, unknown> = {};
 
-  if (typeof body.step === 'number') {
-    update.onboarding_step = body.step;
+  if (parsed.data.step !== undefined) {
+    update.onboarding_step = parsed.data.step;
   }
-  if (typeof body.completed === 'boolean') {
-    update.onboarding_completed = body.completed;
+  if (parsed.data.completed !== undefined) {
+    update.onboarding_completed = parsed.data.completed;
   }
-  if (Array.isArray(body.skippedSteps)) {
-    update.onboarding_skipped_steps = body.skippedSteps;
+  if (parsed.data.skippedSteps !== undefined) {
+    update.onboarding_skipped_steps = parsed.data.skippedSteps;
   }
 
   await serviceClient
@@ -75,17 +92,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  const raw = await request.json();
+  const parsed = onboardingPostSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Dados inválidos' }, { status: 400 });
+  }
+
   const serviceClient = getServiceClient();
 
   // Save goals if provided
-  if (body.monthlySavingsTarget || body.retirementAgeTarget) {
+  if (parsed.data.monthlySavingsTarget || parsed.data.retirementAgeTarget) {
     await serviceClient
       .from('goals')
       .upsert({
         user_id: user.id,
-        monthly_savings_target: body.monthlySavingsTarget || null,
-        retirement_age_target: body.retirementAgeTarget || null,
+        monthly_savings_target: parsed.data.monthlySavingsTarget || null,
+        retirement_age_target: parsed.data.retirementAgeTarget || null,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'user_id' });
   }

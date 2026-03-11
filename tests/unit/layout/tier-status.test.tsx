@@ -5,6 +5,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 const mockFetchResponse = vi.fn();
 global.fetch = vi.fn().mockImplementation(() =>
   Promise.resolve({
+    ok: true,
     json: () => mockFetchResponse(),
   }),
 );

@@ -19,7 +19,8 @@ export async function GET() {
     .order('amount', { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[recurring] query failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   const subscriptions = (data || []).filter((r) => r.type === 'subscription');

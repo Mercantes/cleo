@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
     .lte('date', endDate);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[dashboard/categories] query failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   const categoryMap = new Map<string, number>();
@@ -64,5 +65,7 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  return NextResponse.json({ categories });
+  return NextResponse.json({ categories }, {
+    headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' },
+  });
 }

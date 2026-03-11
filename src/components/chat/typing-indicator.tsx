@@ -2,7 +2,7 @@
 
 export function TypingIndicator() {
   return (
-    <div className="flex items-center gap-2 px-4 py-2" aria-live="polite">
+    <div className="flex items-center gap-2 px-4 py-2">
       <div className="flex items-center gap-1 rounded-lg bg-muted px-3 py-2">
         <span className="text-xs text-muted-foreground">Cleo está digitando</span>
         <span className="flex gap-0.5">

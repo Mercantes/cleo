@@ -126,7 +126,8 @@ describe('AI Categorization', () => {
       );
     });
 
-    it('should log token usage when available', async () => {
+    it('should log token usage in development mode', async () => {
+      vi.stubEnv('NODE_ENV', 'development');
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       mockFetch.mockResolvedValueOnce({
@@ -146,6 +147,7 @@ describe('AI Categorization', () => {
         expect.stringContaining('[categorize] batch=0'),
       );
       consoleSpy.mockRestore();
+      vi.unstubAllEnvs();
     });
 
     it('should handle API errors gracefully', async () => {

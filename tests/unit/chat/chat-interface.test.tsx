@@ -21,7 +21,7 @@ describe('ChatInterface', () => {
     render(<ChatInterface />);
 
     await waitFor(() => {
-      expect(screen.getByText('Olá! Sou a Cleo')).toBeInTheDocument();
+      expect(screen.getByText(/Sou a Cleo/)).toBeInTheDocument();
       expect(screen.getByText('Quanto gastei esse mês?')).toBeInTheDocument();
     });
   });

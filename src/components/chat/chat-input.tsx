@@ -42,6 +42,7 @@ export function ChatInput({ value, onChange, onSend, disabled }: ChatInputProps)
         }}
         onKeyDown={handleKeyDown}
         placeholder="Pergunte algo sobre suas finanças..."
+        aria-label="Mensagem para a Cleo"
         disabled={disabled}
         rows={1}
         className="flex-1 resize-none rounded-lg border bg-muted/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"

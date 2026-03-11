@@ -16,15 +16,16 @@ interface BankConnection {
 
 const statusConfig: Record<string, { label: string; icon: typeof CheckCircle; className: string }> =
   {
-    active: { label: 'Ativo', icon: CheckCircle, className: 'text-green-600' },
+    active: { label: 'Ativo', icon: CheckCircle, className: 'text-green-600 dark:text-green-400' },
     error: { label: 'Erro', icon: AlertCircle, className: 'text-destructive' },
-    outdated: { label: 'Desatualizado', icon: Clock, className: 'text-yellow-600' },
-    updating: { label: 'Atualizando', icon: RefreshCw, className: 'text-blue-600' },
+    outdated: { label: 'Desatualizado', icon: Clock, className: 'text-yellow-600 dark:text-yellow-400' },
+    updating: { label: 'Atualizando', icon: RefreshCw, className: 'text-blue-600 dark:text-blue-400' },
   };
 
 export function BankConnectionList() {
   const [connections, setConnections] = useState<BankConnection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -33,16 +34,20 @@ export function BankConnectionList() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       );
 
-      const { data } = await supabase
+      const { data, error: queryError } = await supabase
         .from('bank_connections')
         .select('id, connector_name, status, last_sync_at, accounts(id, name, type, balance)')
         .order('created_at', { ascending: false });
 
-      setConnections((data as unknown as BankConnection[]) || []);
+      if (queryError) {
+        setError(true);
+      } else {
+        setConnections((data as unknown as BankConnection[]) || []);
+      }
       setIsLoading(false);
     }
 
-    load();
+    load().catch(() => { setError(true); setIsLoading(false); });
   }, []);
 
   if (isLoading) {
@@ -51,6 +56,15 @@ export function BankConnectionList() {
         {[1, 2].map((i) => (
           <div key={i} className="h-20 animate-pulse rounded-lg border bg-muted" />
         ))}
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-center dark:border-red-800 dark:bg-red-950">
+        <AlertCircle className="mx-auto mb-2 h-6 w-6 text-red-500" />
+        <p className="text-sm text-red-700 dark:text-red-300">Não foi possível carregar seus bancos conectados.</p>
       </div>
     );
   }

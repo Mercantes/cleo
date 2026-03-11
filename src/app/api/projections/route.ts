@@ -38,5 +38,7 @@ export async function GET() {
 
   const result = calculateProjections(transactions || [], currentBalance, 12);
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, {
+    headers: { 'Cache-Control': 'private, max-age=1800, stale-while-revalidate=300' },
+  });
 }

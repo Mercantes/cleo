@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Smartphone,
   Brain,
@@ -19,10 +20,100 @@ const btnOutline =
   'inline-flex items-center justify-center rounded-lg border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground';
 
 export default function LandingPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Cleo',
+    applicationCategory: 'FinanceApplication',
+    operatingSystem: 'Web',
+    description:
+      'Assistente financeira com inteligência artificial. Conecte seu banco, converse com IA e tome decisões financeiras mais inteligentes.',
+    offers: [
+      {
+        '@type': 'Offer',
+        price: '0',
+        priceCurrency: 'BRL',
+        name: 'Gratuito',
+      },
+      {
+        '@type': 'Offer',
+        price: '19.90',
+        priceCurrency: 'BRL',
+        name: 'Pro',
+        billingPeriod: 'P1M',
+      },
+    ],
+    aggregateRating: undefined,
+  };
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: 'A Cleo é realmente gratuita?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Sim! O plano gratuito inclui 1 conta bancária, 100 transações por mês e 30 perguntas ao chat. Para uso ilimitado, oferecemos o plano Pro por R$19,90/mês.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Como funciona a conexão com o banco?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Usamos o Open Finance, regulado pelo Banco Central do Brasil. A conexão é feita diretamente pelo seu banco — nunca pedimos ou armazenamos sua senha bancária.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Meus dados estão seguros?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Absolutamente. Seus dados são criptografados em trânsito e em repouso. Usamos Row Level Security para garantir que cada usuário acesse apenas seus próprios dados.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'Posso cancelar o plano Pro a qualquer momento?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Sim, sem multa ou carência. Você pode cancelar pelo próprio painel de configurações e continuará com acesso até o fim do período pago.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: 'A IA da Cleo substitui um consultor financeiro?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Não. A Cleo ajuda a organizar suas finanças e oferece insights baseados nos seus dados, mas não substitui aconselhamento financeiro profissional.',
+        },
+      },
+    ],
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 py-20 text-center md:px-6 md:py-32">
+        <Image
+          src="/favicon.png"
+          alt="Cleo"
+          width={80}
+          height={80}
+          className="mx-auto mb-6 rounded-2xl"
+          priority
+        />
         <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-6xl">
           Sua assistente financeira com{' '}
           <span className="text-primary">inteligência artificial</span>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { Trash2 } from 'lucide-react';
 import { ChatMessage } from './chat-message';
 import { ChatInput } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
@@ -150,16 +151,39 @@ export function ChatInterface() {
     sendMessage(text);
   }
 
+  async function clearChat() {
+    try {
+      await fetch('/api/chat/history', { method: 'DELETE' });
+    } catch {
+      // best effort
+    }
+    setMessages([]);
+  }
+
   const showSuggestions = isHistoryLoaded && messages.length === 0;
 
   return (
     <div className="flex h-full flex-col">
+      {messages.length > 0 && (
+        <div className="flex items-center justify-end border-b px-4 py-2">
+          <button
+            onClick={clearChat}
+            aria-label="Iniciar novo chat"
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Trash2 className="h-3 w-3" />
+            Novo chat
+          </button>
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto">
         {showSuggestions && <ChatSuggestions onSelect={handleSuggestionSelect} />}
         {messages.map((msg) => (
           <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} />
         ))}
-        {isLoading && <TypingIndicator />}
+        <div aria-live="polite" aria-atomic="true">
+          {isLoading && <TypingIndicator />}
+        </div>
         <div ref={messagesEndRef} />
       </div>
       <ChatInput

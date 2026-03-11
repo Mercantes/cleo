@@ -1,9 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { stripe } from '@/lib/stripe/client';
 import { getOrCreateCustomer } from '@/lib/stripe/subscription';
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  // Validate origin to prevent CSRF
+  const origin = request.headers.get('origin');
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (appUrl && origin && origin !== appUrl) {
+    return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+  }
   const supabase = await createClient();
   const {
     data: { user },

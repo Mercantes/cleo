@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,14 +29,46 @@ interface PaywallModalProps {
 
 export function PaywallModal({ feature, current, limit, onClose }: PaywallModalProps) {
   const router = useRouter();
+  const dialogRef = useRef<HTMLDivElement>(null);
   const message = FEATURE_MESSAGES[feature] || {
     title: 'Limite atingido',
     description: 'Faça upgrade para o plano Pro e desbloqueie recursos ilimitados.',
   };
 
+  // Trap focus and handle Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+    dialogRef.current?.querySelector<HTMLElement>('button')?.focus();
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-md rounded-xl bg-background p-6 shadow-2xl sm:p-8">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="paywall-title">
+      <div ref={dialogRef} className="relative w-full max-w-md rounded-xl bg-background p-6 shadow-2xl sm:p-8">
         <Button
           variant="ghost"
           size="icon"
@@ -52,7 +84,7 @@ export function PaywallModal({ feature, current, limit, onClose }: PaywallModalP
             <span className="text-2xl" role="img" aria-label="Bloqueado">🔒</span>
           </div>
 
-          <h2 className="text-lg font-bold">{message.title}</h2>
+          <h2 id="paywall-title" className="text-lg font-bold">{message.title}</h2>
           <p className="mt-2 text-sm text-muted-foreground">{message.description}</p>
 
           <div className="mt-4 rounded-lg bg-muted p-3">

@@ -17,7 +17,7 @@ export function CategoryChart({ data }: { data: CategoryData[] }) {
     <div className="rounded-lg border bg-card p-4">
       <h3 className="mb-4 text-sm font-semibold">Despesas por Categoria</h3>
       <div className="flex flex-col items-center gap-4 sm:flex-row">
-        <div className="h-[200px] w-[200px]">
+        <div className="h-[200px] w-[200px]" role="img" aria-label="Gráfico de pizza mostrando distribuição de despesas por categoria">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie

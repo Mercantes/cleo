@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { buildFinancialContext } from '@/lib/ai/financial-context';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { checkTierLimit, incrementUsage } from '@/lib/finance/tier-check';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
@@ -17,6 +18,18 @@ export async function POST(request: NextRequest) {
 
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Rate limit: 20 requests/min per user
+  const rl = rateLimit(`chat:${user.id}`, RATE_LIMITS.chat);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
   }
 
   const body = await request.json();

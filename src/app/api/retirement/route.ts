@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod/v4';
 import { createClient } from '@/lib/supabase/server';
 import { calculateProjections } from '@/lib/finance/projection-engine';
 import { calculateRetirement } from '@/lib/finance/retirement-engine';
+
+const retirementSchema = z.object({
+  targetMonthlyIncome: z.coerce.number().min(0).max(1_000_000).default(5000),
+  annualReturnRate: z.coerce.number().min(0).max(1).default(0.08),
+  currentPortfolio: z.coerce.number().min(0).max(1_000_000_000).default(0),
+});
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -13,10 +20,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
-  const targetMonthlyIncome = Number(body.targetMonthlyIncome) || 5000;
-  const annualReturnRate = Number(body.annualReturnRate) || 0.08;
-  const currentPortfolio = Number(body.currentPortfolio) || 0;
+  const raw = await request.json();
+  const parsed = retirementSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Parâmetros inválidos', details: parsed.error.issues }, { status: 400 });
+  }
+  const { targetMonthlyIncome, annualReturnRate, currentPortfolio } = parsed.data;
 
   // Get savings rate from projection engine
   const sixMonthsAgo = new Date();

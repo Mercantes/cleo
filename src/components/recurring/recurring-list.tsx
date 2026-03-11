@@ -23,6 +23,7 @@ export function RecurringList() {
   const [monthlyTotal, setMonthlyTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isDetecting, setIsDetecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRecurring();
@@ -36,7 +37,7 @@ export function RecurringList() {
       setInstallments(data.installments || []);
       setMonthlyTotal(data.monthlyTotal || 0);
     } catch {
-      // Keep empty state
+      setError('Não foi possível carregar suas recorrências.');
     } finally {
       setIsLoading(false);
     }
@@ -44,11 +45,13 @@ export function RecurringList() {
 
   async function handleDetect() {
     setIsDetecting(true);
+    setError(null);
     try {
-      await fetch('/api/recurring/detect', { method: 'POST' });
+      const res = await fetch('/api/recurring/detect', { method: 'POST' });
+      if (!res.ok) throw new Error();
       await fetchRecurring();
     } catch {
-      // Silently fail
+      setError('Não foi possível detectar recorrências. Tente novamente.');
     } finally {
       setIsDetecting(false);
     }
@@ -72,6 +75,12 @@ export function RecurringList() {
         <div className="rounded-lg border bg-card p-4">
           <p className="text-sm text-muted-foreground">Total mensal comprometido</p>
           <p className="text-2xl font-bold">{formatCurrency(monthlyTotal)}</p>
+        </div>
+      )}
+
+      {error && (
+        <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+          {error}
         </div>
       )}
 

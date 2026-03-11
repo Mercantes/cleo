@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Check } from 'lucide-react';
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
 interface UsageItem {
   feature: string;
@@ -28,9 +30,13 @@ export function TierStatus() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/tier')
-      .then((r) => r.json())
+    fetchWithTimeout('/api/tier')
+      .then((r) => {
+        if (!r.ok) return { usage: [] };
+        return r.json();
+      })
       .then((data) => setUsage(data.usage || []))
+      .catch(() => setUsage([]))
       .finally(() => setLoading(false));
   }, []);
 
@@ -74,7 +80,16 @@ export function TierStatus() {
         )}
       </div>
 
-      {!isPro && (
+      {isPro ? (
+        <div className="space-y-2 rounded-lg border bg-violet-50 p-3 dark:bg-violet-950">
+          {['Transações ilimitadas', 'Chat ilimitado', 'Bancos ilimitados', 'Projeções avançadas'].map((f) => (
+            <div key={f} className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-300">
+              <Check className="h-3.5 w-3.5" />
+              {f}
+            </div>
+          ))}
+        </div>
+      ) : (
         <div className="space-y-3">
           {usage.map((item) => {
             const percentage = item.limit === Infinity ? 0 : Math.min(100, (item.current / item.limit) * 100);
@@ -86,13 +101,13 @@ export function TierStatus() {
                   <span className="text-muted-foreground">
                     {FEATURE_LABELS[item.feature] || item.feature}
                   </span>
-                  <span className={isNearLimit ? 'font-medium text-orange-600' : 'text-muted-foreground'}>
+                  <span className={isNearLimit ? 'font-medium text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}>
                     {item.current}/{item.limit} {FEATURE_PERIOD[item.feature] || ''}
                   </span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div
-                    className={`h-full rounded-full transition-all ${
+                    className={`h-full rounded-full transition-all duration-500 ${
                       isNearLimit ? 'bg-orange-500' : 'bg-primary'
                     }`}
                     style={{ width: `${percentage}%` }}

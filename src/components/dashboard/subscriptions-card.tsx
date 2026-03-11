@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import Link from 'next/link';
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
 interface RecurringItem {
   merchant: string;
@@ -24,7 +25,7 @@ export function SubscriptionsCard() {
   const [data, setData] = useState<RecurringData | null>(null);
 
   useEffect(() => {
-    fetch('/api/recurring')
+    fetchWithTimeout('/api/recurring')
       .then((res) => {
         if (!res.ok) return null;
         return res.json();

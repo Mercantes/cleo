@@ -28,9 +28,33 @@ export async function GET(request: NextRequest) {
   const { data, error } = await query;
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[chat/history] query failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   // Reverse to get chronological order
   return NextResponse.json({ messages: (data || []).reverse() });
+}
+
+export async function DELETE() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const { error } = await supabase
+    .from('chat_messages')
+    .delete()
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('[chat/history] delete failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }

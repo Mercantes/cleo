@@ -20,7 +20,8 @@ export async function POST() {
       subscriptions: results.filter((r) => r.type === 'subscription').length,
       installments: results.filter((r) => r.type === 'installment').length,
     });
-  } catch {
+  } catch (error) {
+    console.error('[recurring/detect] detection failed:', error);
     return NextResponse.json({ error: 'Detection failed' }, { status: 500 });
   }
 }

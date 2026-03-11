@@ -58,8 +58,10 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
         <Button onClick={handleSave} disabled={saving}>
           {saving ? 'Salvando...' : 'Salvar'}
         </Button>
-        {feedback === 'saved' && <span className="text-sm text-green-600">Salvo com sucesso!</span>}
-        {feedback === 'error' && <span className="text-sm text-red-600">Erro ao salvar. Tente novamente.</span>}
+        <span aria-live="polite" className="text-sm">
+          {feedback === 'saved' && <span className="text-green-600 dark:text-green-400">Salvo com sucesso!</span>}
+          {feedback === 'error' && <span className="text-red-600 dark:text-red-400">Erro ao salvar. Tente novamente.</span>}
+        </span>
       </div>
     </div>
   );

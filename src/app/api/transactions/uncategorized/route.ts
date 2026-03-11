@@ -25,7 +25,8 @@ export async function GET(request: NextRequest) {
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error('[transactions/uncategorized] query failed:', error.message);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
   return NextResponse.json({

@@ -6,6 +6,8 @@ interface NotificationPrefs {
   weeklySummary: boolean;
   unusualSpending: boolean;
   subscriptionReminders: boolean;
+  goalAlerts: boolean;
+  challengeReminders: boolean;
 }
 
 const STORAGE_KEY = 'cleo_notification_prefs';
@@ -14,6 +16,8 @@ const defaultPrefs: NotificationPrefs = {
   weeklySummary: true,
   unusualSpending: true,
   subscriptionReminders: true,
+  goalAlerts: true,
+  challengeReminders: true,
 };
 
 function getStoredPrefs(): NotificationPrefs {
@@ -43,6 +47,8 @@ export function NotificationPreferences() {
     { key: 'weeklySummary' as const, label: 'Resumo semanal', desc: 'Receba um resumo dos seus gastos toda segunda-feira' },
     { key: 'unusualSpending' as const, label: 'Gastos incomuns', desc: 'Alertas quando detectamos gastos fora do padrão' },
     { key: 'subscriptionReminders' as const, label: 'Lembrete de assinaturas', desc: 'Aviso antes de cobranças recorrentes' },
+    { key: 'goalAlerts' as const, label: 'Alertas de metas', desc: 'Acompanhe o progresso das suas metas de economia' },
+    { key: 'challengeReminders' as const, label: 'Lembretes de desafios', desc: 'Notificações sobre desafios ativos e conquistas' },
   ];
 
   return (
@@ -58,12 +64,12 @@ export function NotificationPreferences() {
             aria-checked={prefs[item.key]}
             aria-label={item.label}
             onClick={() => toggle(item.key)}
-            className={`relative h-6 w-11 rounded-full transition-colors ${
+            className={`relative h-7 w-12 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               prefs[item.key] ? 'bg-primary' : 'bg-muted'
             }`}
           >
             <span
-              className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+              className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-white shadow-sm transition-transform ${
                 prefs[item.key] ? 'translate-x-5' : 'translate-x-0'
               }`}
             />

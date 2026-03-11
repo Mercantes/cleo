@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { EmptyState } from '@/components/ui/empty-state';
-import { ProjectionChart } from './projection-chart';
 import { ProjectionCards, ProjectionCardsSkeleton } from './projection-cards';
+import { SpendingForecast } from '@/components/dashboard/spending-forecast';
+
+const ProjectionChart = dynamic(() => import('./projection-chart').then((m) => m.ProjectionChart), {
+  ssr: false,
+  loading: () => <div className="h-[350px] animate-pulse rounded-lg border bg-muted" />,
+});
 import type { ProjectionResult } from '@/lib/finance/projection-engine';
 
 export function ProjectionsContent() {
@@ -69,13 +75,16 @@ export function ProjectionsContent() {
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="flex-1">
-        <ProjectionChart scenarios={data.scenarios} />
+    <div className="space-y-6">
+      <div className="flex flex-col gap-6 lg:flex-row">
+        <div className="flex-1">
+          <ProjectionChart scenarios={data.scenarios} />
+        </div>
+        <div className="w-full lg:w-64">
+          <ProjectionCards data={data} />
+        </div>
       </div>
-      <div className="w-full lg:w-64">
-        <ProjectionCards data={data} />
-      </div>
+      <SpendingForecast />
     </div>
   );
 }
