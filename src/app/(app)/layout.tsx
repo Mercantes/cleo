@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { Header } from '@/components/layout/header';
 import { BottomNav } from '@/components/layout/bottom-nav';
+import { Toaster } from '@/components/ui/toast';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -41,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         <main id="main-content" className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">{children}</main>
       </div>
       <BottomNav />
+      <Toaster />
     </div>
   );
 }

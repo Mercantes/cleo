@@ -6,6 +6,7 @@ import { ChatMessage } from './chat-message';
 import { ChatInput } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
 import { TypingIndicator } from './typing-indicator';
+import { toast } from '@/components/ui/toast';
 
 interface Message {
   id: string;
@@ -180,6 +181,7 @@ export function ChatInterface() {
       // best effort
     }
     setMessages([]);
+    toast('Chat limpo');
   }
 
   const showSuggestions = isHistoryLoaded && messages.length === 0;

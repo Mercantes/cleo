@@ -40,7 +40,7 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt 
         {createdAt && (
           <time
             dateTime={createdAt}
-            className="mt-1 block text-[10px] opacity-50"
+            className="mt-1 block text-[10px] opacity-0 transition-opacity group-hover:opacity-50"
           >
             {new Date(createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </time>
