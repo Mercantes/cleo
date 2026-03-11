@@ -69,7 +69,9 @@ export function GoalProgressCard() {
 
   const { progress, gamification } = data;
   const isGoalMet = progress.percentage >= 100;
-  const xpProgress = Math.round((gamification.xp % 100) / gamification.xpToNextLevel * 100);
+  const xpProgress = gamification.xpToNextLevel > 0
+    ? Math.round((gamification.xp / gamification.xpToNextLevel) * 100)
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -102,6 +104,12 @@ export function GoalProgressCard() {
             style={{ width: `${Math.min(100, progress.percentage)}%` }}
           />
         </div>
+
+        {data.goals?.retirement_age_target && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Meta de aposentadoria: {data.goals.retirement_age_target} anos
+          </p>
+        )}
       </div>
 
       {/* Gamification stats */}

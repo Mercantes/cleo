@@ -14,6 +14,7 @@ const DEFAULT_SUGGESTIONS = [
 
 interface Insight {
   type: string;
+  title: string;
   message: string;
 }
 
@@ -24,8 +25,16 @@ function getGreeting(): string {
   return 'Boa noite! Sou a Cleo';
 }
 
+function getSubtext(insights: Insight[]): string {
+  const warning = insights.find((i) => i.type === 'warning');
+  if (warning) return warning.title;
+  const celebration = insights.find((i) => i.type === 'celebration');
+  if (celebration) return celebration.title;
+  return 'Sua assistente financeira. Como posso ajudar?';
+}
+
 function insightToSuggestion(insight: Insight): string {
-  if (insight.type === 'warning') return 'Estou gastando rápido demais?';
+  if (insight.type === 'warning') return `Analise: ${insight.title.toLowerCase()}`;
   if (insight.type === 'tip') return 'Me dê dicas para economizar';
   if (insight.type === 'celebration') return 'Como estou indo com minhas metas?';
   if (insight.type === 'suggestion') return 'O que posso melhorar nas finanças?';
@@ -38,17 +47,20 @@ interface ChatSuggestionsProps {
 
 export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
+  const [subtext, setSubtext] = useState('Sua assistente financeira. Como posso ajudar?');
 
   useEffect(() => {
     fetchWithTimeout('/api/insights')
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.insights?.length > 0) {
-          const dynamic = data.insights
+          const insights = data.insights as Insight[];
+          const dynamic = insights
             .slice(0, 2)
-            .map((i: Insight) => insightToSuggestion(i));
+            .map((i) => insightToSuggestion(i));
           const unique = [...new Set([...dynamic, ...DEFAULT_SUGGESTIONS])].slice(0, 4);
           setSuggestions(unique);
+          setSubtext(getSubtext(insights));
         }
       })
       .catch(() => {});
@@ -65,7 +77,7 @@ export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
           className="mx-auto rounded-xl"
         />
         <h2 className="mt-2 text-lg font-semibold">{getGreeting()}</h2>
-        <p className="text-sm text-muted-foreground">Sua assistente financeira. Como posso ajudar?</p>
+        <p className="text-sm text-muted-foreground">{subtext}</p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {suggestions.map((suggestion) => (

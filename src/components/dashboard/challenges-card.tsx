@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Zap, CheckCircle2, Plus, X } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { toast } from '@/components/ui/toast';
 
 interface Challenge {
   id: string;
@@ -64,6 +65,7 @@ export function ChallengesCard() {
       if (!res.ok) throw new Error();
       setShowPicker(false);
       fetchChallenges();
+      toast('Desafio iniciado!');
     } catch {
       setError('Não foi possível iniciar o desafio.');
     } finally {
@@ -82,6 +84,7 @@ export function ChallengesCard() {
       });
       if (!res.ok) throw new Error();
       fetchChallenges();
+      toast('Desafio completado! XP ganho');
     } catch {
       setError('Não foi possível completar o desafio.');
     } finally {
@@ -100,6 +103,7 @@ export function ChallengesCard() {
       });
       if (!res.ok) throw new Error();
       fetchChallenges();
+      toast('Desafio cancelado');
     } catch {
       setError('Não foi possível cancelar o desafio.');
     } finally {
@@ -145,34 +149,47 @@ export function ChallengesCard() {
           {active.map((challenge) => {
             const days = daysLeft(challenge.end_date);
             const isExpired = days === 0;
+            const totalDays = Math.ceil(
+              (new Date(challenge.end_date).getTime() - new Date(challenge.start_date).getTime()) / (1000 * 60 * 60 * 24),
+            );
+            const elapsed = totalDays - days;
+            const daysPct = totalDays > 0 ? Math.min((elapsed / totalDays) * 100, 100) : 100;
             return (
               <div
                 key={challenge.id}
-                className="flex items-center justify-between rounded-md border p-3"
+                className={`rounded-md border p-3 ${isExpired ? 'opacity-60' : ''}`}
               >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{challenge.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {isExpired ? 'Expirado' : `${days} ${days === 1 ? 'dia' : 'dias'} restantes`}
-                  </p>
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium">{challenge.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {isExpired ? 'Expirado' : `${days} ${days === 1 ? 'dia' : 'dias'} restantes`}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => completeChallenge(challenge.id)}
+                      disabled={actionLoading === challenge.id || isExpired}
+                      className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950 disabled:opacity-50"
+                      aria-label={`Completar desafio ${challenge.title}`}
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => cancelChallenge(challenge.id)}
+                      disabled={actionLoading === challenge.id}
+                      className="rounded-md p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-50"
+                      aria-label={`Cancelar desafio ${challenge.title}`}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => completeChallenge(challenge.id)}
-                    disabled={actionLoading === challenge.id}
-                    className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950 disabled:opacity-50"
-                    aria-label={`Completar desafio ${challenge.title}`}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => cancelChallenge(challenge.id)}
-                    disabled={actionLoading === challenge.id}
-                    className="rounded-md p-1.5 text-muted-foreground hover:bg-muted disabled:opacity-50"
-                    aria-label={`Cancelar desafio ${challenge.title}`}
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                <div className="mt-2 h-1 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full transition-all ${isExpired ? 'bg-red-400' : 'bg-yellow-500'}`}
+                    style={{ width: `${daysPct}%` }}
+                  />
                 </div>
               </div>
             );
