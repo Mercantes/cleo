@@ -126,13 +126,30 @@ export async function POST(request: NextRequest) {
           );
           controller.close();
         } catch (error) {
+          console.error('[chat] streaming error:', error);
+
+          let errorMessage = 'Erro ao processar resposta. Tente novamente.';
+          if (error instanceof Anthropic.APIError) {
+            if (error.status === 429) {
+              errorMessage = 'Serviço temporariamente sobrecarregado. Tente em alguns segundos.';
+            } else if (error.status === 401) {
+              errorMessage = 'Erro de configuração do serviço de IA.';
+            } else if (error.status === 529) {
+              errorMessage = 'Serviço de IA temporariamente indisponível. Tente novamente.';
+            }
+          }
+
+          // Remove orphaned user message if no response was generated
+          if (!fullResponse && userMessage?.id) {
+            await supabase.from('chat_messages').delete().eq('id', userMessage.id);
+          }
+
           controller.enqueue(
             encoder.encode(
-              `data: ${JSON.stringify({ error: 'Stream error' })}\n\n`,
+              `data: ${JSON.stringify({ error: errorMessage })}\n\n`,
             ),
           );
           controller.close();
-          console.error('[chat] streaming error:', error);
         }
       },
     });
