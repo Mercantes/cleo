@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
+import { UsageMeter } from './usage-meter';
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -35,6 +36,7 @@ export function AppSidebar() {
           );
         })}
       </nav>
+      <UsageMeter />
     </aside>
   );
 }

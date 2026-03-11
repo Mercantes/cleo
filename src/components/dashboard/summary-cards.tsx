@@ -1,6 +1,7 @@
 'use client';
 
 import { memo } from 'react';
+import Link from 'next/link';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -19,37 +20,45 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
       value: formatCurrency(data.income),
       icon: TrendingUp,
       color: 'text-green-600 dark:text-green-400',
+      href: '/transactions',
     },
     {
       label: 'Despesas',
       value: formatCurrency(data.expenses),
       icon: TrendingDown,
       color: 'text-red-600 dark:text-red-400',
+      href: '/transactions',
     },
     {
       label: 'Saldo',
       value: formatCurrency(data.balance),
       icon: Wallet,
       color: data.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+      href: '/transactions',
     },
     {
       label: 'Taxa de poupança',
       value: `${data.savingsRate}%`,
       icon: PiggyBank,
       color: data.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+      href: '/projections',
     },
   ];
 
   return (
     <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       {cards.map((card) => (
-        <div key={card.label} className="rounded-lg border bg-card p-4">
+        <Link
+          key={card.label}
+          href={card.href}
+          className="rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50"
+        >
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">{card.label}</p>
             <card.icon className={`h-4 w-4 ${card.color}`} />
           </div>
           <p className={`mt-1 text-lg font-bold ${card.color}`}>{card.value}</p>
-        </div>
+        </Link>
       ))}
       {data.percentChange !== 0 && (
         <div className="col-span-2 rounded-lg border bg-card p-3 lg:col-span-4">
