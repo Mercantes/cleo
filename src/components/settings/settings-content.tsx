@@ -7,9 +7,11 @@ import { NotificationPreferences } from './notification-preferences';
 import { TierStatus } from '@/components/layout/tier-status';
 import { GoalsEditor } from './goals-editor';
 import { AppearanceSettings } from './appearance-settings';
+import { DangerZone } from './danger-zone';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { toast } from '@/components/ui/toast';
 
-type Tab = 'profile' | 'banks' | 'goals' | 'appearance' | 'notifications' | 'plan';
+type Tab = 'profile' | 'banks' | 'goals' | 'appearance' | 'notifications' | 'plan' | 'account';
 
 interface ProfileData {
   full_name: string | null;
@@ -57,8 +59,10 @@ export function SettingsContent() {
     try {
       const res = await fetchWithTimeout(`/api/settings/banks?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
+      toast('Banco desconectado com sucesso');
     } catch {
       setBanks(previous);
+      toast('Erro ao desconectar banco. Tente novamente.');
     }
   };
 
@@ -69,6 +73,7 @@ export function SettingsContent() {
     { key: 'appearance', label: 'Aparência' },
     { key: 'notifications', label: 'Notificações' },
     { key: 'plan', label: 'Plano' },
+    { key: 'account', label: 'Conta' },
   ];
 
   if (loading) {
@@ -108,6 +113,7 @@ export function SettingsContent() {
       {activeTab === 'appearance' && <AppearanceSettings />}
       {activeTab === 'notifications' && <NotificationPreferences />}
       {activeTab === 'plan' && <TierStatus />}
+      {activeTab === 'account' && <DangerZone />}
     </div>
   );
 }

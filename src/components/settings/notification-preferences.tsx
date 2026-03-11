@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useSyncExternalStore } from 'react';
+import { toast } from '@/components/ui/toast';
 
 interface NotificationPrefs {
   weeklySummary: boolean;
@@ -41,6 +42,7 @@ export function NotificationPreferences() {
     const updated = { ...prefs, [key]: !prefs[key] };
     setPrefs(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    toast(updated[key] ? 'Notificação ativada' : 'Notificação desativada');
   };
 
   const items = [

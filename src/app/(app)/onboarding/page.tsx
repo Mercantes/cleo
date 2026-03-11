@@ -16,6 +16,7 @@ export default function OnboardingPage() {
   const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [isComplete, setIsComplete] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     fetch('/api/onboarding')
@@ -40,52 +41,66 @@ export default function OnboardingPage() {
   };
 
   const goToNextStep = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     const newCompleted = [...completedSteps, currentStep];
     setCompletedSteps(newCompleted);
 
-    if (currentStep >= 2) {
-      setIsComplete(true);
-      await fetch('/api/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      });
-      return;
-    }
+    try {
+      if (currentStep >= 2) {
+        setIsComplete(true);
+        await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        return;
+      }
 
-    const nextStep = currentStep + 1;
-    setCurrentStep(nextStep);
-    await fetch('/api/onboarding', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ step: nextStep }),
-    });
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      await fetch('/api/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: nextStep }),
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const skipStep = async () => {
+    if (isSaving) return;
+    setIsSaving(true);
     const newSkipped = [...skippedSteps, stepNames[currentStep]];
     setSkippedSteps(newSkipped);
 
-    if (currentStep >= 2) {
-      setIsComplete(true);
-      await fetch('/api/onboarding', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skippedSteps: newSkipped }),
-      });
-      return;
-    }
+    try {
+      if (currentStep >= 2) {
+        setIsComplete(true);
+        await fetch('/api/onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ skippedSteps: newSkipped }),
+        });
+        return;
+      }
 
-    const nextStep = currentStep + 1;
-    setCurrentStep(nextStep);
-    await fetch('/api/onboarding', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ step: nextStep, skippedSteps: newSkipped }),
-    });
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      await fetch('/api/onboarding', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ step: nextStep, skippedSteps: newSkipped }),
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleGoalsComplete = async (goals: { monthlySavingsTarget?: number; retirementAgeTarget?: number }) => {
+    if (isSaving) return;
+    setIsSaving(true);
     setIsComplete(true);
     setCompletedSteps([...completedSteps, currentStep]);
     await fetch('/api/onboarding', {
