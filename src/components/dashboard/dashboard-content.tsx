@@ -13,6 +13,7 @@ import { GoalProgressCard } from './goal-progress-card';
 import { ChallengesCard } from './challenges-card';
 import { SpendingForecast } from './spending-forecast';
 import { InsightsBar } from './insights-bar';
+import { FinancialHealthCard } from './financial-health-card';
 
 const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
   ssr: false,
@@ -157,9 +158,10 @@ export function DashboardContent() {
             <CategoryChart data={categories} />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-4 lg:grid-cols-3">
             <GoalProgressCard />
             <ChallengesCard />
+            <FinancialHealthCard />
           </div>
 
           <SpendingForecast />
