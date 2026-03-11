@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Target, Save, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { toast } from '@/components/ui/toast';
 
 export function GoalsEditor() {
   const [savingsTarget, setSavingsTarget] = useState('');
@@ -51,6 +52,7 @@ export function GoalsEditor() {
       });
       if (res.ok) {
         setSaved(true);
+        toast('Metas salvas com sucesso');
         setTimeout(() => setSaved(false), 3000);
       } else {
         setSaveError(true);

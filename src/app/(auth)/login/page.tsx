@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -109,19 +111,35 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Senha
-            </label>
-            <Input
-              id="password"
-              type="password"
-              autoComplete="current-password"
-              placeholder="Sua senha"
-              aria-describedby={errors.password ? 'password-error' : undefined}
-              aria-invalid={!!errors.password}
-              {...register('password')}
-              disabled={isSubmitting}
-            />
+            <div className="flex items-center justify-between">
+              <label htmlFor="password" className="text-sm font-medium">
+                Senha
+              </label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                Esqueceu a senha?
+              </Link>
+            </div>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Sua senha"
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                aria-invalid={!!errors.password}
+                {...register('password')}
+                disabled={isSubmitting}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
             {errors.password && (
               <p id="password-error" role="alert" className="text-sm text-destructive">{errors.password.message}</p>
             )}

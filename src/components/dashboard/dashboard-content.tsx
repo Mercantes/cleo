@@ -48,6 +48,13 @@ interface TrendMonth {
   expenses: number;
 }
 
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Bom dia';
+  if (hour < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
 export function DashboardContent() {
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -127,7 +134,12 @@ export function DashboardContent() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div>
+          <h1 className="text-2xl font-bold">{getGreeting()}</h1>
+          <p className="text-sm text-muted-foreground">
+            Aqui está o resumo das suas finanças
+          </p>
+        </div>
         <MonthSelector month={month} onChange={handleMonthChange} />
       </div>
 

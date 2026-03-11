@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from '@/components/ui/toast';
 
 interface ProfileFormProps {
   initialName: string;
@@ -23,7 +24,12 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name: name }),
       });
-      setFeedback(res.ok ? 'saved' : 'error');
+      if (res.ok) {
+        setFeedback('saved');
+        toast('Perfil salvo com sucesso');
+      } else {
+        setFeedback('error');
+      }
     } catch {
       setFeedback('error');
     } finally {
