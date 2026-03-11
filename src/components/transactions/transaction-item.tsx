@@ -80,7 +80,7 @@ export function TransactionItem({
             )}
             <div>
               <span className="font-medium text-foreground">Data</span>
-              <p>{new Date(date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+              <p>{new Date(date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
             </div>
             <div>
               <span className="font-medium text-foreground">Tipo</span>

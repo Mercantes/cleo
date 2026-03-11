@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ArrowLeftRight, Download, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
@@ -34,6 +34,7 @@ export function TransactionList() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const filtersRef = useRef<Filters>({});
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
 
   const fetchTransactions = useCallback(
     async (currentFilters: Filters, pageNum: number, append = false) => {
@@ -85,6 +86,7 @@ export function TransactionList() {
         return;
       }
       filtersRef.current = newFilters;
+      setHasActiveFilters(!!(newFilters.search || newFilters.from || newFilters.to || newFilters.type || newFilters.category));
       setPage(1);
       fetchTransactions(newFilters, 1);
     },
@@ -130,8 +132,6 @@ export function TransactionList() {
     URL.revokeObjectURL(url);
   }
 
-  const filters = filtersRef.current;
-
   if (isInitialLoad) {
     return (
       <div className="space-y-3">
@@ -159,7 +159,9 @@ export function TransactionList() {
 
   return (
     <div className="space-y-4">
-      <TransactionFilters onFiltersChange={handleFiltersChange} />
+      <Suspense fallback={<div className="h-10 animate-pulse rounded-lg bg-muted" />}>
+        <TransactionFilters onFiltersChange={handleFiltersChange} />
+      </Suspense>
 
       {transactions.length > 0 && (
         <div className="flex items-center justify-between rounded-lg border bg-card p-3">
@@ -183,7 +185,7 @@ export function TransactionList() {
           icon={ArrowLeftRight}
           title="Nenhuma transação encontrada"
           description={
-            filters.search || filters.from || filters.to
+            hasActiveFilters
               ? 'Tente ajustar os filtros para encontrar transações.'
               : 'Conecte seu banco para importar suas transações.'
           }

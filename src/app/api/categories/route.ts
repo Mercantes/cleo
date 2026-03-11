@@ -13,8 +13,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('categories')
-    .select('id, name')
-    .eq('user_id', user.id)
+    .select('id, name, icon')
     .order('name');
 
   if (error) {
