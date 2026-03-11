@@ -58,7 +58,7 @@ export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
     <div className="flex flex-col items-center gap-4 py-8">
       <div className="text-center">
         <Image
-          src="/favicon.svg"
+          src="/favicon.png"
           alt="Cleo"
           width={56}
           height={56}
