@@ -5,13 +5,8 @@
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4CB96B",
+  "theme_color": "#2563EB",
   "icons": [
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    },
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
