@@ -115,6 +115,7 @@ export default function OnboardingPage() {
         {currentStep > 0 && (
           <button
             onClick={goToPreviousStep}
+            aria-label="Voltar para etapa anterior"
             className="mb-4 flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-3 w-3" />

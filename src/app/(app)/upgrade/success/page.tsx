@@ -1,16 +1,25 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
 export default function UpgradeSuccessPage() {
   const router = useRouter();
+  const [seconds, setSeconds] = useState(5);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.push('/dashboard');
-    }, 4000);
-    return () => clearTimeout(timer);
+    const interval = setInterval(() => {
+      setSeconds((s) => {
+        if (s <= 1) {
+          clearInterval(interval);
+          router.push('/dashboard');
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
   }, [router]);
 
   return (
@@ -20,8 +29,18 @@ export default function UpgradeSuccessPage() {
       <p className="mt-2 text-muted-foreground">
         Agora você tem acesso ilimitado a todos os recursos da Cleo.
       </p>
-      <p className="mt-6 text-sm text-muted-foreground">
-        Redirecionando para o dashboard...
+      <div className="mt-4 flex flex-col items-center gap-3">
+        <ul className="space-y-1 text-sm text-muted-foreground">
+          <li>Transações ilimitadas</li>
+          <li>Chat com IA ilimitado</li>
+          <li>Conexões bancárias ilimitadas</li>
+        </ul>
+      </div>
+      <Button onClick={() => router.push('/dashboard')} className="mt-6">
+        Ir para o Dashboard
+      </Button>
+      <p className="mt-3 text-xs text-muted-foreground">
+        Redirecionando em {seconds}s...
       </p>
     </div>
   );
