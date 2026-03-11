@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { Toaster } from '@/components/ui/toast';
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts';
+import { PwaInstallPrompt } from '@/components/layout/pwa-install-prompt';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -45,6 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <BottomNav />
       <Toaster />
       <KeyboardShortcuts />
+      <PwaInstallPrompt />
     </div>
   );
 }

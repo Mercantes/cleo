@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AlertTriangle, Landmark, RefreshCw } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { toast } from '@/components/ui/toast';
 import dynamic from 'next/dynamic';
 import { MonthSelector } from './month-selector';
 import { SummaryCards } from './summary-cards';
@@ -94,6 +95,7 @@ export function DashboardContent() {
     } catch {
       setError(true);
     } finally {
+      if (refresh) toast('Dados atualizados');
       setIsLoading(false);
       setIsRefreshing(false);
     }
