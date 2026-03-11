@@ -52,24 +52,27 @@ export async function GET() {
   const target = goals?.monthly_savings_target ? Number(goals.monthly_savings_target) : 0;
   const progress = target > 0 ? Math.min(100, Math.round((currentSavings / target) * 100)) : 0;
 
-  return NextResponse.json({
-    goals: goals || null,
-    progress: {
-      currentSavings,
-      target,
-      percentage: progress,
-      income,
-      expenses,
+  return NextResponse.json(
+    {
+      goals: goals || null,
+      progress: {
+        currentSavings,
+        target,
+        percentage: progress,
+        income,
+        expenses,
+      },
+      gamification: {
+        level: goals?.level || 1,
+        xp: goals?.xp || 0,
+        xpToNextLevel: ((goals?.level || 1) + 1) * 100,
+        streak: goals?.streak_months || 0,
+        bestStreak: goals?.best_streak || 0,
+        totalChallengesCompleted: goals?.total_challenges_completed || 0,
+      },
     },
-    gamification: {
-      level: goals?.level || 1,
-      xp: goals?.xp || 0,
-      xpToNextLevel: ((goals?.level || 1) + 1) * 100,
-      streak: goals?.streak_months || 0,
-      bestStreak: goals?.best_streak || 0,
-      totalChallengesCompleted: goals?.total_challenges_completed || 0,
-    },
-  });
+    { headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' } },
+  );
 }
 
 export async function PUT(request: Request) {

@@ -27,5 +27,8 @@ export async function GET() {
   const installments = (data || []).filter((r) => r.type === 'installment');
   const monthlyTotal = (data || []).reduce((sum, r) => sum + Number(r.amount), 0);
 
-  return NextResponse.json({ subscriptions, installments, monthlyTotal });
+  return NextResponse.json(
+    { subscriptions, installments, monthlyTotal },
+    { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' } },
+  );
 }

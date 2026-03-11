@@ -185,7 +185,8 @@ export async function GET() {
   // Sort by priority and limit
   insights.sort((a, b) => b.priority - a.priority);
 
-  return NextResponse.json({
-    insights: insights.slice(0, 4),
-  });
+  return NextResponse.json(
+    { insights: insights.slice(0, 4) },
+    { headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' } },
+  );
 }
