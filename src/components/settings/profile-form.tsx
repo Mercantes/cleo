@@ -62,6 +62,7 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
           disabled
           className="mt-1"
         />
+        <p className="mt-1 text-xs text-muted-foreground">O email não pode ser alterado.</p>
       </div>
       <div className="flex items-center gap-3">
         <Button onClick={handleSave} disabled={saving}>
