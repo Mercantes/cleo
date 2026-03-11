@@ -8,6 +8,7 @@ import { TierStatus } from '@/components/layout/tier-status';
 import { GoalsEditor } from './goals-editor';
 import { AppearanceSettings } from './appearance-settings';
 import { DangerZone } from './danger-zone';
+import { ChangePassword } from './change-password';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
 
@@ -104,7 +105,12 @@ export function SettingsContent() {
       </div>
 
       {activeTab === 'profile' && profile && (
-        <ProfileForm initialName={profile.full_name || ''} email={profile.email} />
+        <div className="space-y-8">
+          <ProfileForm initialName={profile.full_name || ''} email={profile.email} />
+          <div className="border-t pt-6">
+            <ChangePassword />
+          </div>
+        </div>
       )}
       {activeTab === 'banks' && (
         <BankList connections={banks} onDisconnect={handleDisconnect} />

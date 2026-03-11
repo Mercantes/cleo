@@ -26,8 +26,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Message too long' }, { status: 400 });
     }
 
-    // Log the contact message (in production, send via email service)
-    console.log('[Contact Form]', { name, email, message: message.slice(0, 100) });
+    // In production, send via email service (e.g. Resend, SendGrid)
+    // For now, log to server logs for monitoring
+    console.info('[contact-form]', { name, email, messageLength: message.length });
 
     return NextResponse.json({ success: true });
   } catch {

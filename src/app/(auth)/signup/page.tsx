@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ import { GoogleIcon } from '@/components/ui/google-icon';
 export default function SignupPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -31,11 +32,12 @@ export default function SignupPage() {
     setError(null);
     const supabase = createClient();
 
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: { full_name: data.name },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
 
@@ -45,6 +47,12 @@ export default function SignupPage() {
       } else {
         setError(signUpError.message);
       }
+      return;
+    }
+
+    // If email confirmation is required, Supabase returns user but no session
+    if (signUpData.user && !signUpData.session) {
+      setEmailSent(data.email);
       return;
     }
 
@@ -67,6 +75,31 @@ export default function SignupPage() {
       setError('Erro ao conectar com Google. Tente novamente.');
       setIsGoogleLoading(false);
     }
+  }
+
+  if (emailSent) {
+    return (
+      <Card>
+        <CardHeader className="text-center">
+          <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+            <Mail className="h-6 w-6 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Verifique seu email</CardTitle>
+          <CardDescription>
+            Enviamos um link de confirmação para <strong>{emailSent}</strong>. Clique no link para ativar sua conta.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-sm text-muted-foreground">
+            Não recebeu? Verifique a pasta de spam ou{' '}
+            <Link href="/login" className="text-primary hover:underline">
+              tente fazer login
+            </Link>
+            .
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
