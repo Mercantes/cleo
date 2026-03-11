@@ -22,5 +22,7 @@ export async function GET() {
     }),
   );
 
-  return NextResponse.json({ usage: results });
+  return NextResponse.json({ usage: results }, {
+    headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },
+  });
 }
