@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ArrowLeftRight, Download, Loader2 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
@@ -28,24 +28,23 @@ interface Filters {
 
 export function TransactionList() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
-  const [filters, setFilters] = useState<Filters>({});
+  const filtersRef = useRef<Filters>({});
 
   const fetchTransactions = useCallback(
-    async (pageNum: number, append = false) => {
-      if (!append) setIsLoading(true);
-      else setIsLoadingMore(true);
+    async (currentFilters: Filters, pageNum: number, append = false) => {
+      if (append) setIsLoadingMore(true);
 
       const params = new URLSearchParams({ page: String(pageNum) });
-      if (filters.search) params.set('search', filters.search);
-      if (filters.from) params.set('from', filters.from);
-      if (filters.to) params.set('to', filters.to);
-      if (filters.type) params.set('type', filters.type);
-      if (filters.category) params.set('category', filters.category);
+      if (currentFilters.search) params.set('search', currentFilters.search);
+      if (currentFilters.from) params.set('from', currentFilters.from);
+      if (currentFilters.to) params.set('to', currentFilters.to);
+      if (currentFilters.type) params.set('type', currentFilters.type);
+      if (currentFilters.category) params.set('category', currentFilters.category);
 
       try {
         const response = await fetch(`/api/transactions?${params.toString()}`);
@@ -62,22 +61,40 @@ export function TransactionList() {
       } catch {
         if (!append) setError('Não foi possível carregar suas transações. Tente novamente.');
       } finally {
-        setIsLoading(false);
+        setIsInitialLoad(false);
         setIsLoadingMore(false);
       }
     },
-    [filters],
+    [],
   );
 
   useEffect(() => {
-    setPage(1);
-    fetchTransactions(1);
+    fetchTransactions({}, 1);
   }, [fetchTransactions]);
+
+  const handleFiltersChange = useCallback(
+    (newFilters: Filters) => {
+      const prev = filtersRef.current;
+      if (
+        prev.search === newFilters.search &&
+        prev.from === newFilters.from &&
+        prev.to === newFilters.to &&
+        prev.type === newFilters.type &&
+        prev.category === newFilters.category
+      ) {
+        return;
+      }
+      filtersRef.current = newFilters;
+      setPage(1);
+      fetchTransactions(newFilters, 1);
+    },
+    [fetchTransactions],
+  );
 
   function handleLoadMore() {
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchTransactions(nextPage, true);
+    fetchTransactions(filtersRef.current, nextPage, true);
   }
 
   const hasMore = transactions.length < total;
@@ -113,7 +130,9 @@ export function TransactionList() {
     URL.revokeObjectURL(url);
   }
 
-  if (isLoading) {
+  const filters = filtersRef.current;
+
+  if (isInitialLoad) {
     return (
       <div className="space-y-3">
         <div className="h-10 animate-pulse rounded-lg bg-muted" />
@@ -132,7 +151,7 @@ export function TransactionList() {
         description={error}
         action={{
           label: 'Tentar novamente',
-          onClick: () => fetchTransactions(1),
+          onClick: () => fetchTransactions(filtersRef.current, 1),
         }}
       />
     );
@@ -140,7 +159,7 @@ export function TransactionList() {
 
   return (
     <div className="space-y-4">
-      <TransactionFilters onFiltersChange={setFilters} />
+      <TransactionFilters onFiltersChange={handleFiltersChange} />
 
       {transactions.length > 0 && (
         <div className="flex items-center justify-between rounded-lg border bg-card p-3">
