@@ -66,7 +66,7 @@ export function ChatInterface() {
         body: JSON.stringify({ message: messageText }),
       });
 
-      if (res.status === 429) {
+      if (res.status === 403) {
         const data = await res.json();
         setMessages((prev) => [
           ...prev,
@@ -74,6 +74,20 @@ export function ChatInterface() {
             id: `limit-${Date.now()}`,
             role: 'assistant',
             content: `Você atingiu o limite de ${data.limit} mensagens do plano gratuito este mês. Faça upgrade para o plano Pro para mensagens ilimitadas.`,
+            created_at: new Date().toISOString(),
+          },
+        ]);
+        setIsLoading(false);
+        return;
+      }
+
+      if (res.status === 429) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `ratelimit-${Date.now()}`,
+            role: 'assistant',
+            content: 'Muitas mensagens seguidas. Aguarde alguns segundos e tente novamente.',
             created_at: new Date().toISOString(),
           },
         ]);
@@ -111,6 +125,14 @@ export function ChatInterface() {
             const jsonStr = line.slice(6);
             try {
               const event = JSON.parse(jsonStr);
+              if (event.error) {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId ? { ...m, content: event.error } : m,
+                  ),
+                );
+                break;
+              }
               if (event.token) {
                 setMessages((prev) =>
                   prev.map((m) =>
