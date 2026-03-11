@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { PluggyConnect } from 'react-pluggy-connect';
 import { Button } from '@/components/ui/button';
 import { Landmark, Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/toast';
 
 export function ConnectBankButton() {
   const router = useRouter();
@@ -49,6 +50,7 @@ export function ConnectBankButton() {
         throw new Error('Falha ao importar dados bancários');
       }
 
+      toast('Banco conectado com sucesso!');
       router.refresh();
     } catch {
       setError('Banco conectado, mas houve um erro ao importar. Tente novamente.');

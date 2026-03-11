@@ -5,6 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Landmark, RefreshCw, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConnectBankButton } from './connect-bank-button';
+import { toast } from '@/components/ui/toast';
 
 interface BankConnection {
   id: string;
@@ -22,10 +23,25 @@ const statusConfig: Record<string, { label: string; icon: typeof CheckCircle; cl
     updating: { label: 'Atualizando', icon: RefreshCw, className: 'text-blue-600 dark:text-blue-400' },
   };
 
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return 'agora';
+  if (diffMin < 60) return `há ${diffMin}min`;
+  const diffHours = Math.floor(diffMin / 60);
+  if (diffHours < 24) return `há ${diffHours}h`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return 'ontem';
+  return `há ${diffDays} dias`;
+}
+
 export function BankConnectionList() {
   const [connections, setConnections] = useState<BankConnection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [syncingId, setSyncingId] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -49,6 +65,35 @@ export function BankConnectionList() {
 
     load().catch(() => { setError(true); setIsLoading(false); });
   }, []);
+
+  async function syncConnection(connectionId: string) {
+    setSyncingId(connectionId);
+    try {
+      const res = await fetch('/api/pluggy/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connectionId }),
+      });
+      if (!res.ok) throw new Error('Sync failed');
+      toast('Sincronização iniciada');
+      // Reload connections after brief delay
+      setTimeout(async () => {
+        const supabase = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        );
+        const { data } = await supabase
+          .from('bank_connections')
+          .select('id, connector_name, status, last_sync_at, accounts(id, name, type, balance)')
+          .order('created_at', { ascending: false });
+        if (data) setConnections(data as unknown as BankConnection[]);
+        setSyncingId(null);
+      }, 2000);
+    } catch {
+      toast('Erro ao sincronizar. Tente novamente.');
+      setSyncingId(null);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -101,13 +146,20 @@ export function BankConnectionList() {
                     <span className={cn('text-xs', status.className)}>{status.label}</span>
                     {conn.last_sync_at && (
                       <span className="text-xs text-muted-foreground">
-                        · Sincronizado{' '}
-                        {new Date(conn.last_sync_at).toLocaleDateString('pt-BR')}
+                        · {formatRelativeTime(conn.last_sync_at)}
                       </span>
                     )}
                   </div>
                 </div>
               </div>
+              <button
+                onClick={() => syncConnection(conn.id)}
+                disabled={syncingId === conn.id || conn.status === 'updating'}
+                aria-label={`Sincronizar ${conn.connector_name}`}
+                className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+              >
+                <RefreshCw className={cn('h-4 w-4', syncingId === conn.id && 'animate-spin')} />
+              </button>
             </div>
             {conn.accounts.length > 0 && (
               <div className="mt-3 space-y-1 border-t pt-3">

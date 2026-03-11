@@ -1,0 +1,74 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { syncTransactions } from '@/lib/pluggy/sync';
+import { categorizeTransactions } from '@/lib/ai/categorize';
+
+export async function POST(request: Request) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const body = (await request.json()) as { connectionId: string };
+
+    if (!body.connectionId) {
+      return NextResponse.json({ error: 'connectionId is required' }, { status: 400 });
+    }
+
+    // Verify ownership and get pluggy_item_id
+    const { data: connection, error: connError } = await supabase
+      .from('bank_connections')
+      .select('id, pluggy_item_id')
+      .eq('id', body.connectionId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (connError || !connection) {
+      return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
+    }
+
+    // Update status to updating
+    await supabase
+      .from('bank_connections')
+      .update({ status: 'updating' })
+      .eq('id', connection.id);
+
+    // Sync transactions
+    const syncResult = await syncTransactions(user.id, connection.id, connection.pluggy_item_id);
+
+    // Update connection status
+    await supabase
+      .from('bank_connections')
+      .update({ status: 'active', last_sync_at: new Date().toISOString() })
+      .eq('id', connection.id);
+
+    // Categorize new transactions
+    let categorized = 0;
+    if (syncResult.imported > 0) {
+      const { data: uncategorized } = await supabase
+        .from('transactions')
+        .select('id, description, amount, type')
+        .eq('user_id', user.id)
+        .is('category_id', null)
+        .limit(200);
+
+      if (uncategorized && uncategorized.length > 0) {
+        categorized = await categorizeTransactions(uncategorized);
+      }
+    }
+
+    return NextResponse.json({
+      success: true,
+      imported: syncResult.imported,
+      categorized,
+    });
+  } catch (error) {
+    console.error('[pluggy-sync] error:', error);
+    return NextResponse.json({ error: 'Sync failed' }, { status: 500 });
+  }
+}

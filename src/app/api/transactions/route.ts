@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
   const category = searchParams.get('category');
   const bank = searchParams.get('bank');
+  const type = searchParams.get('type');
   const from = searchParams.get('from');
   const to = searchParams.get('to');
   const search = searchParams.get('search');
@@ -30,6 +31,7 @@ export async function GET(request: NextRequest) {
 
   if (category) query = query.eq('category_id', category);
   if (bank) query = query.eq('account_id', bank);
+  if (type) query = query.eq('type', type);
   if (from) query = query.gte('date', from);
   if (to) query = query.lte('date', to);
   if (search) {
