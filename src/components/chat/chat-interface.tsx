@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { Trash2 } from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
 import { ChatMessage } from './chat-message';
 import { ChatInput } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
@@ -20,6 +20,7 @@ export function ChatInterface() {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
+  const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
@@ -59,6 +60,7 @@ export function ChatInterface() {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
+    setLastFailedMessage(null);
 
     try {
       const res = await fetch('/api/chat', {
@@ -167,6 +169,7 @@ export function ChatInterface() {
         },
       ]);
       setIsLoading(false);
+      setLastFailedMessage(messageText);
     }
   }
 
@@ -210,6 +213,17 @@ export function ChatInterface() {
         </div>
         <div ref={messagesEndRef} />
       </div>
+      {lastFailedMessage && !isLoading && (
+        <div className="flex justify-center border-t px-4 py-2">
+          <button
+            onClick={() => sendMessage(lastFailedMessage)}
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+          >
+            <RotateCcw className="h-3 w-3" />
+            Tentar novamente
+          </button>
+        </div>
+      )}
       <ChatInput
         value={input}
         onChange={setInput}
