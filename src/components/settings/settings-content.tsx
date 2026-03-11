@@ -6,9 +6,10 @@ import { BankList } from './bank-list';
 import { NotificationPreferences } from './notification-preferences';
 import { TierStatus } from '@/components/layout/tier-status';
 import { GoalsEditor } from './goals-editor';
+import { AppearanceSettings } from './appearance-settings';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 
-type Tab = 'profile' | 'banks' | 'goals' | 'notifications' | 'plan';
+type Tab = 'profile' | 'banks' | 'goals' | 'appearance' | 'notifications' | 'plan';
 
 interface ProfileData {
   full_name: string | null;
@@ -65,6 +66,7 @@ export function SettingsContent() {
     { key: 'profile', label: 'Perfil' },
     { key: 'banks', label: 'Bancos' },
     { key: 'goals', label: 'Metas' },
+    { key: 'appearance', label: 'Aparência' },
     { key: 'notifications', label: 'Notificações' },
     { key: 'plan', label: 'Plano' },
   ];
@@ -103,6 +105,7 @@ export function SettingsContent() {
         <BankList connections={banks} onDisconnect={handleDisconnect} />
       )}
       {activeTab === 'goals' && <GoalsEditor />}
+      {activeTab === 'appearance' && <AppearanceSettings />}
       {activeTab === 'notifications' && <NotificationPreferences />}
       {activeTab === 'plan' && <TierStatus />}
     </div>
