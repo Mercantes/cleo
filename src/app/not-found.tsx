@@ -1,19 +1,38 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+      <Image
+        src="/favicon.png"
+        alt="Cleo"
+        width={64}
+        height={64}
+        className="rounded-xl opacity-50"
+      />
       <h1 className="text-6xl font-bold text-muted-foreground">404</h1>
       <p className="text-lg text-muted-foreground">Página não encontrada</p>
       <p className="max-w-md text-sm text-muted-foreground">
         A página que você procura não existe ou foi movida.
       </p>
       <Link
-        href="/"
-        className="inline-flex h-8 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+        href="/dashboard"
+        className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
       >
-        Voltar ao início
+        Ir para o Dashboard
       </Link>
+      <div className="flex gap-4 text-sm">
+        <Link href="/chat" className="text-muted-foreground hover:text-primary hover:underline">
+          Chat
+        </Link>
+        <Link href="/transactions" className="text-muted-foreground hover:text-primary hover:underline">
+          Transações
+        </Link>
+        <Link href="/settings" className="text-muted-foreground hover:text-primary hover:underline">
+          Configurações
+        </Link>
+      </div>
     </div>
   );
 }

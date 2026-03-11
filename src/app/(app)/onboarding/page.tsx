@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { StepIndicator } from '@/components/onboarding/step-indicator';
 import { ConnectBankStep } from '@/components/onboarding/steps/connect-bank-step';
 import { ReviewCategoriesStep } from '@/components/onboarding/steps/review-categories-step';
@@ -31,6 +32,12 @@ export default function OnboardingPage() {
   }, [router]);
 
   const stepNames = ['connect-bank', 'review-categories', 'set-goals'];
+
+  const goToPreviousStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   const goToNextStep = async () => {
     const newCompleted = [...completedSteps, currentStep];
@@ -105,6 +112,15 @@ export default function OnboardingPage() {
       <StepIndicator currentStep={currentStep} completedSteps={completedSteps} />
 
       <div className="rounded-xl border p-6 sm:p-8">
+        {currentStep > 0 && (
+          <button
+            onClick={goToPreviousStep}
+            className="mb-4 flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3 w-3" />
+            Voltar
+          </button>
+        )}
         {currentStep === 0 && (
           <ConnectBankStep onComplete={goToNextStep} onSkip={skipStep} />
         )}
