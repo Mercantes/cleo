@@ -20,7 +20,9 @@ export async function POST(request: Request) {
   const event = JSON.parse(body) as PluggyWebhookEvent;
 
   // Fire and forget — process in background
-  handleWebhookEvent(event).catch(console.error);
+  handleWebhookEvent(event).catch((error) => {
+    console.error('[pluggy-webhook] async processing error:', error);
+  });
 
   return NextResponse.json({ received: true });
 }

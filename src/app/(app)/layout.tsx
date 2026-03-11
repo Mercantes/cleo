@@ -29,10 +29,16 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
+      >
+        Ir para o conteúdo principal
+      </a>
       <AppSidebar />
       <div className="flex flex-1 flex-col">
         <Header userName={displayName} />
-        <main className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">{children}</main>
+        <main id="main-content" className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">{children}</main>
       </div>
       <BottomNav />
     </div>

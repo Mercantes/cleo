@@ -9,13 +9,13 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-background md:flex">
+    <aside aria-label="Navegação principal" className="hidden w-64 flex-col border-r bg-background md:flex">
       <div className="flex h-14 items-center border-b px-6">
         <Link href="/dashboard" className="text-xl font-bold">
           Cleo
         </Link>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      <nav aria-label="Menu do aplicativo" className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (

@@ -17,8 +17,8 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t bg-background pb-safe md:hidden">
-      <div className="flex h-16 items-center justify-around">
+    <nav aria-label="Navegação principal" className="fixed inset-x-0 bottom-0 z-50 border-t bg-background pb-safe md:hidden">
+      <div className="flex h-[4.5rem] items-center justify-around">
         {bottomNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
           return (
@@ -26,7 +26,7 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'flex flex-col items-center gap-1 px-2 py-1 text-xs transition-colors',
+                'flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isActive ? 'text-primary' : 'text-muted-foreground',
               )}
             >

@@ -40,7 +40,7 @@ export function TransactionItem({
       <span
         className={cn(
           'shrink-0 text-sm font-semibold',
-          isIncome ? 'text-green-600' : 'text-foreground',
+          isIncome ? 'text-green-600 dark:text-green-400' : 'text-foreground',
         )}
       >
         {isIncome ? '+' : ''}{formatCurrency(displayAmount)}

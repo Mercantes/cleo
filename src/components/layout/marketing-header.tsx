@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
@@ -19,10 +20,11 @@ export function MarketingHeader() {
     <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-xl font-bold">
+          <Link href="/" className="flex items-center gap-2 text-xl font-bold">
+            <Image src="/favicon.png" alt="" width={32} height={32} className="rounded-lg" />
             Cleo
           </Link>
-          <nav className="hidden items-center gap-4 text-sm text-muted-foreground md:flex">
+          <nav aria-label="Navegação do site" className="hidden items-center gap-4 text-sm text-muted-foreground md:flex">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -53,7 +55,8 @@ export function MarketingHeader() {
             size="icon"
             className="md:hidden"
             onClick={() => setOpen(!open)}
-            aria-label="Menu"
+            aria-label={open ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={open}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
@@ -62,7 +65,7 @@ export function MarketingHeader() {
 
       {open && (
         <div className="border-t md:hidden">
-          <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
+          <nav aria-label="Menu mobile" className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3">
             {navLinks.map((link) => (
               <a
                 key={link.href}

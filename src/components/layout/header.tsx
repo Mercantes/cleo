@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Menu, Settings, User } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
@@ -62,10 +63,11 @@ export function Header({ userName }: HeaderProps) {
           </SheetTrigger>
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
-            <div className="flex h-14 items-center border-b px-6">
+            <div className="flex h-14 items-center gap-2 border-b px-6">
+              <Image src="/favicon.png" alt="" width={28} height={28} className="rounded-md" />
               <span className="text-xl font-bold">Cleo</span>
             </div>
-            <nav className="space-y-1 p-3">
+            <nav aria-label="Menu principal" className="space-y-1 p-3">
               {navItems.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
                 return (
@@ -94,7 +96,7 @@ export function Header({ userName }: HeaderProps) {
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="ghost" className="flex items-center gap-2" />}
+          render={<Button variant="ghost" className="flex items-center gap-2" aria-label="Menu do usuário" />}
         >
           <Avatar className="h-8 w-8">
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>

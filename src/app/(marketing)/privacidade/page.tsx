@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Política de Privacidade',
+  description: 'Saiba como a Cleo protege seus dados financeiros e respeita sua privacidade.',
 };
 
 export default function PrivacidadePage() {

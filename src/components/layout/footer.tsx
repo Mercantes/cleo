@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function Footer() {
   return (
@@ -6,7 +7,10 @@ export function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-12 md:px-6">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <p className="text-lg font-bold">Cleo</p>
+            <div className="flex items-center gap-2">
+              <Image src="/favicon.png" alt="" width={28} height={28} className="rounded-md" />
+              <p className="text-lg font-bold">Cleo</p>
+            </div>
             <p className="mt-1 text-sm text-muted-foreground">
               Sua assistente financeira com inteligência artificial. Conecte seu banco, organize seus
               gastos e planeje seu futuro.
@@ -14,7 +18,7 @@ export function Footer() {
           </div>
           <div>
             <p className="text-sm font-semibold">Produto</p>
-            <nav className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+            <nav aria-label="Produto" className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
               <Link href="/#como-funciona" className="transition-colors hover:text-foreground">
                 Como funciona
               </Link>
@@ -28,7 +32,7 @@ export function Footer() {
           </div>
           <div>
             <p className="text-sm font-semibold">Legal</p>
-            <nav className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
+            <nav aria-label="Legal" className="mt-3 flex flex-col gap-2 text-sm text-muted-foreground">
               <Link href="/termos" className="transition-colors hover:text-foreground">
                 Termos de Uso
               </Link>

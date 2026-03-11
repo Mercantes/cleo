@@ -3,6 +3,7 @@ import { Mail } from 'lucide-react';
 
 export const metadata: Metadata = {
   title: 'Contato',
+  description: 'Entre em contato com a equipe da Cleo. Estamos aqui para ajudar.',
 };
 
 export default function ContatoPage() {

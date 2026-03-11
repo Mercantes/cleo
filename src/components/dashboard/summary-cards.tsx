@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -11,31 +12,31 @@ interface SummaryData {
   percentChange: number;
 }
 
-export function SummaryCards({ data }: { data: SummaryData }) {
+export const SummaryCards = memo(function SummaryCards({ data }: { data: SummaryData }) {
   const cards = [
     {
       label: 'Receita',
       value: formatCurrency(data.income),
       icon: TrendingUp,
-      color: 'text-green-600',
+      color: 'text-green-600 dark:text-green-400',
     },
     {
       label: 'Despesas',
       value: formatCurrency(data.expenses),
       icon: TrendingDown,
-      color: 'text-red-600',
+      color: 'text-red-600 dark:text-red-400',
     },
     {
       label: 'Saldo',
       value: formatCurrency(data.balance),
       icon: Wallet,
-      color: data.balance >= 0 ? 'text-green-600' : 'text-red-600',
+      color: data.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
     },
     {
       label: 'Taxa de poupança',
       value: `${data.savingsRate}%`,
       icon: PiggyBank,
-      color: data.savingsRate >= 0 ? 'text-green-600' : 'text-red-600',
+      color: data.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
     },
   ];
 
@@ -61,4 +62,4 @@ export function SummaryCards({ data }: { data: SummaryData }) {
       )}
     </div>
   );
-}
+});

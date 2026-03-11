@@ -98,8 +98,16 @@ export default function SignupPage() {
             <label htmlFor="name" className="text-sm font-medium">
               Nome
             </label>
-            <Input id="name" placeholder="Seu nome" {...register('name')} disabled={isSubmitting} />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+            <Input
+              id="name"
+              autoComplete="name"
+              placeholder="Seu nome"
+              aria-describedby={errors.name ? 'name-error' : undefined}
+              aria-invalid={!!errors.name}
+              {...register('name')}
+              disabled={isSubmitting}
+            />
+            {errors.name && <p id="name-error" role="alert" className="text-sm text-destructive">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -109,11 +117,14 @@ export default function SignupPage() {
             <Input
               id="email"
               type="email"
+              autoComplete="email"
               placeholder="seu@email.com"
+              aria-describedby={errors.email ? 'signup-email-error' : undefined}
+              aria-invalid={!!errors.email}
               {...register('email')}
               disabled={isSubmitting}
             />
-            {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
+            {errors.email && <p id="signup-email-error" role="alert" className="text-sm text-destructive">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -123,17 +134,20 @@ export default function SignupPage() {
             <Input
               id="password"
               type="password"
+              autoComplete="new-password"
               placeholder="Mínimo 6 caracteres"
+              aria-describedby={errors.password ? 'signup-password-error' : undefined}
+              aria-invalid={!!errors.password}
               {...register('password')}
               disabled={isSubmitting}
             />
             {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+              <p id="signup-password-error" role="alert" className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
 
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+            <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
