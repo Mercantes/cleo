@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Check } from 'lucide-react';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { Button } from '@/components/ui/button';
 
 interface UsageItem {
   feature: string;
@@ -81,13 +82,16 @@ export function TierStatus() {
       </div>
 
       {isPro ? (
-        <div className="space-y-2 rounded-lg border bg-violet-50 p-3 dark:bg-violet-950">
-          {['Transações ilimitadas', 'Chat ilimitado', 'Bancos ilimitados', 'Projeções avançadas'].map((f) => (
-            <div key={f} className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-300">
-              <Check className="h-3.5 w-3.5" />
-              {f}
-            </div>
-          ))}
+        <div className="space-y-3">
+          <div className="space-y-2 rounded-lg border bg-violet-50 p-3 dark:bg-violet-950">
+            {['Transações ilimitadas', 'Chat ilimitado', 'Bancos ilimitados', 'Projeções avançadas'].map((f) => (
+              <div key={f} className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-300">
+                <Check className="h-3.5 w-3.5" />
+                {f}
+              </div>
+            ))}
+          </div>
+          <ManageSubscriptionButton />
         </div>
       ) : (
         <div className="space-y-3">
@@ -119,5 +123,29 @@ export function TierStatus() {
         </div>
       )}
     </div>
+  );
+}
+
+function ManageSubscriptionButton() {
+  const [loading, setLoading] = useState(false);
+
+  async function openPortal() {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      if (!res.ok) throw new Error('portal_failed');
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch {
+      // Silently fail — user can retry
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button variant="outline" size="sm" className="w-full" onClick={openPortal} disabled={loading}>
+      {loading ? 'Abrindo...' : 'Gerenciar assinatura'}
+    </Button>
   );
 }

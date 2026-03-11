@@ -1,9 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PlanComparison } from '@/components/paywall/plan-comparison';
 
 export default function UpgradePage() {
+  const searchParams = useSearchParams();
+  const wasCanceled = searchParams.get('canceled') === 'true';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,6 +38,12 @@ export default function UpgradePage() {
           Desbloqueie todo o potencial da Cleo para suas finanças
         </p>
       </div>
+
+      {wasCanceled && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-center text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300">
+          Checkout cancelado. Sem problemas — você pode tentar novamente quando quiser.
+        </div>
+      )}
 
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
