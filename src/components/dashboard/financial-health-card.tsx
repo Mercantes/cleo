@@ -114,7 +114,16 @@ export function FinancialHealthCard() {
       .catch(() => {});
   }, []);
 
-  if (!health) return null;
+  if (!health) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <h3 className="text-sm font-medium">Saúde Financeira</h3>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Conecte seu banco e registre transações para ver sua pontuação de saúde financeira.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-lg border bg-card p-4">

@@ -26,7 +26,7 @@ export function OnboardingComplete() {
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
       <Image
-        src="/favicon.png"
+        src="/logo.png"
         alt="Cleo"
         width={80}
         height={80}

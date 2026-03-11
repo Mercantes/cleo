@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { AlertTriangle, Landmark } from 'lucide-react';
+import { AlertTriangle, Landmark, RefreshCw } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import dynamic from 'next/dynamic';
@@ -64,10 +64,12 @@ export function DashboardContent() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [trends, setTrends] = useState<TrendMonth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(false);
 
-  const fetchData = useCallback(async (m: string) => {
-    setIsLoading(true);
+  const fetchData = useCallback(async (m: string, refresh = false) => {
+    if (refresh) setIsRefreshing(true);
+    else setIsLoading(true);
     setError(false);
     try {
       const [summaryRes, categoriesRes, trendsRes] = await Promise.all([
@@ -93,6 +95,7 @@ export function DashboardContent() {
       setError(true);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, []);
 
@@ -134,11 +137,21 @@ export function DashboardContent() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{getGreeting()}</h1>
-          <p className="text-sm text-muted-foreground">
-            Aqui está o resumo das suas finanças
-          </p>
+        <div className="flex items-center gap-2">
+          <div>
+            <h1 className="text-2xl font-bold">{getGreeting()}</h1>
+            <p className="text-sm text-muted-foreground">
+              Aqui está o resumo das suas finanças
+            </p>
+          </div>
+          <button
+            onClick={() => fetchData(month, true)}
+            disabled={isRefreshing}
+            aria-label="Atualizar dados"
+            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </button>
         </div>
         <MonthSelector month={month} onChange={handleMonthChange} />
       </div>

@@ -51,7 +51,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
         <Link
           key={card.label}
           href={card.href}
-          className="rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50"
+          className="rounded-lg border bg-card p-4 transition-all duration-200 hover:bg-accent/50 hover:shadow-md"
         >
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">{card.label}</p>
@@ -61,8 +61,13 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
         </Link>
       ))}
       {data.percentChange !== 0 && (
-        <div className="col-span-2 rounded-lg border bg-card p-3 lg:col-span-4">
-          <p className="text-sm text-muted-foreground">
+        <div className={`col-span-2 rounded-lg border p-3 lg:col-span-4 ${
+          data.percentChange > 0
+            ? 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950'
+            : 'border-green-200 bg-green-50 dark:border-green-900 dark:bg-green-950'
+        }`}>
+          <p className="text-sm">
+            <span className="mr-1">{data.percentChange > 0 ? '📈' : '📉'}</span>
             {data.percentChange > 0
               ? `Você gastou ${data.percentChange}% a mais que o mês anterior`
               : `Você gastou ${Math.abs(data.percentChange)}% a menos que o mês anterior`}

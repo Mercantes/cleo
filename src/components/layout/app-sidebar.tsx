@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -12,8 +13,9 @@ export function AppSidebar() {
   return (
     <aside aria-label="Navegação principal" className="hidden w-64 flex-col border-r bg-background md:flex">
       <div className="flex h-14 items-center border-b px-6">
-        <Link href="/dashboard" className="text-xl font-bold">
-          Cleo
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="" width={28} height={28} className="rounded-md" />
+          <span className="text-xl font-bold">Cleo</span>
         </Link>
       </div>
       <nav aria-label="Menu do aplicativo" className="flex-1 space-y-1 p-3">

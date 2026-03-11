@@ -28,7 +28,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
         Ir para o formulário
       </a>
       <Link href="/" className="mb-8 flex flex-col items-center gap-2">
-        <Image src="/favicon.png" alt="Cleo" width={56} height={56} className="rounded-xl" />
+        <Image src="/logo.png" alt="Cleo" width={56} height={56} className="rounded-xl" />
         <span className="text-2xl font-bold">Cleo</span>
       </Link>
       <div id="auth-content" className="w-full max-w-md">{children}</div>

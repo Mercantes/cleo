@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
 
@@ -37,9 +38,13 @@ export function CategoryChart({ data }: { data: CategoryData[] }) {
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex-1 space-y-2">
+        <div className="flex-1 space-y-1">
           {data.map((cat) => (
-            <div key={cat.name} className="flex items-center justify-between text-sm">
+            <Link
+              key={cat.name}
+              href={`/transactions?category=${encodeURIComponent(cat.name)}`}
+              className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
+            >
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full" style={{ backgroundColor: cat.color }} />
                 <span>{cat.name}</span>
@@ -48,7 +53,7 @@ export function CategoryChart({ data }: { data: CategoryData[] }) {
                 <span className="font-medium">{formatCurrency(cat.amount)}</span>
                 <span className="ml-2 text-muted-foreground">{cat.percentage}%</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

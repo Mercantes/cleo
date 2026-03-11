@@ -40,7 +40,10 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
   return (
     <div className="space-y-4">
       <div>
-        <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
+        <div className="flex items-center justify-between">
+          <label htmlFor="profile-name" className="text-sm font-medium">Nome</label>
+          <span className="text-xs text-muted-foreground">{name.length}/100</span>
+        </div>
         <Input
           id="profile-name"
           type="text"

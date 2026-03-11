@@ -27,12 +27,29 @@ export function MonthSelector({ month, onChange }: MonthSelectorProps) {
     onChange(newMonth);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      navigate(-1);
+    } else if (e.key === 'ArrowRight' && !isCurrentMonth) {
+      e.preventDefault();
+      navigate(1);
+    }
+  }
+
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" onKeyDown={handleKeyDown}>
       <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Mês anterior">
         <ChevronLeft className="h-4 w-4" />
       </Button>
-      <span className="min-w-[140px] text-center text-sm font-medium">{label}</span>
+      <span
+        className="min-w-[140px] text-center text-sm font-medium"
+        tabIndex={0}
+        role="status"
+        aria-live="polite"
+      >
+        {label}
+      </span>
       <Button
         variant="ghost"
         size="icon"

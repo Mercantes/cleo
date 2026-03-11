@@ -107,7 +107,7 @@ export default function LandingPage() {
       {/* Hero */}
       <section className="mx-auto max-w-6xl px-4 py-20 text-center md:px-6 md:py-32">
         <Image
-          src="/favicon.png"
+          src="/logo.png"
           alt="Cleo"
           width={80}
           height={80}

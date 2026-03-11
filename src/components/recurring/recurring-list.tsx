@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Repeat, CreditCard, Loader2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Repeat, CreditCard, Loader2, MessageSquare } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ interface RecurringItem {
 }
 
 export function RecurringList() {
+  const router = useRouter();
   const [subscriptions, setSubscriptions] = useState<RecurringItem[]>([]);
   const [installments, setInstallments] = useState<RecurringItem[]>([]);
   const [monthlyTotal, setMonthlyTotal] = useState(0);
@@ -119,7 +121,17 @@ export function RecurringList() {
                         {formatCurrency(sub.amount * 12)}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold">{formatCurrency(sub.amount)}/mês</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${sub.merchant} de ${formatCurrency(sub.amount)}/mês?`)}`)}
+                        aria-label={`Perguntar sobre ${sub.merchant}`}
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                        title="Perguntar para a Cleo"
+                      >
+                        <MessageSquare className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="text-sm font-semibold">{formatCurrency(sub.amount)}/mês</span>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,19 +17,35 @@ interface TransactionFiltersProps {
 }
 
 export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps) {
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const initialCategoryApplied = useRef(false);
 
   useEffect(() => {
     fetch('/api/categories')
       .then((r) => r.json())
-      .then((data) => setCategories(data.categories || []))
+      .then((data) => {
+        const cats = data.categories || [];
+        setCategories(cats);
+        // Apply category from URL query param (matched by name)
+        if (!initialCategoryApplied.current) {
+          initialCategoryApplied.current = true;
+          const categoryParam = searchParams.get('category');
+          if (categoryParam) {
+            const match = cats.find((c: { id: string; name: string }) =>
+              c.name.toLowerCase() === categoryParam.toLowerCase()
+            );
+            if (match) setCategory(match.id);
+          }
+        }
+      })
       .catch(() => {});
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasFilters = search || from || to || type || category;
 

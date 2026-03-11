@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { RecurringList } from '@/components/recurring/recurring-list';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => '/recurring',
+}));
+
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 

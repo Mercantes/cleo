@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
       <Image
-        src="/favicon.png"
+        src="/logo.png"
         alt="Cleo"
         width={64}
         height={64}

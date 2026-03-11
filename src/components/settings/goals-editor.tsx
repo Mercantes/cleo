@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Target, Save, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Target, Save, Loader2, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
@@ -164,6 +165,14 @@ export function GoalsEditor() {
           </p>
         )}
       </div>
+
+      <Link
+        href="/projections"
+        className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+      >
+        <TrendingUp className="h-4 w-4" />
+        Ver projeções baseadas nas suas metas
+      </Link>
     </div>
   );
 }

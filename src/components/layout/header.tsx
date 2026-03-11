@@ -64,7 +64,7 @@ export function Header({ userName }: HeaderProps) {
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
             <div className="flex h-14 items-center gap-2 border-b px-6">
-              <Image src="/favicon.png" alt="" width={28} height={28} className="rounded-md" />
+              <Image src="/logo.png" alt="" width={28} height={28} className="rounded-md" />
               <span className="text-xl font-bold">Cleo</span>
             </div>
             <nav aria-label="Menu principal" className="space-y-1 p-3">

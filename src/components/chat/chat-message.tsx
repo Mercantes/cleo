@@ -125,7 +125,7 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt 
     <div className={cn('group flex gap-2 px-4 py-2', isUser ? 'justify-end' : 'justify-start')}>
       {!isUser && (
         <Image
-          src="/favicon.png"
+          src="/logo.png"
           alt="Cleo"
           width={32}
           height={32}
