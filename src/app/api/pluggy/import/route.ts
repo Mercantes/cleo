@@ -4,6 +4,7 @@ import { getItem, getAccounts } from '@/lib/pluggy/client';
 import { PluggyError } from '@/lib/pluggy/types';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
+import { checkTierLimit } from '@/lib/finance/tier-check';
 
 export async function POST(request: Request) {
   const supabase = await createClient();
@@ -22,10 +23,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'itemId is required' }, { status: 400 });
     }
 
+    // Check tier limit — prevent bypass by calling import directly
+    const tierCheck = await checkTierLimit(user.id, 'bank_connections');
+    // Allow if under limit OR if this is a reconnection (item already exists)
+    if (!tierCheck.allowed) {
+      const { data: existing } = await supabase
+        .from('bank_connections')
+        .select('id')
+        .eq('pluggy_item_id', body.itemId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!existing) {
+        return NextResponse.json(
+          {
+            error: 'TIER_LIMIT_REACHED',
+            feature: 'bank_connections',
+            current: tierCheck.current,
+            limit: tierCheck.limit,
+          },
+          { status: 403 },
+        );
+      }
+    }
+
     // Fetch item details from Pluggy
     const item = await getItem(body.itemId);
 
-    // Upsert bank connection (handle reconnection)
+    // Upsert bank connection — set last_sync_at to null initially (updated after sync)
     const { data: connection, error: connError } = await supabase
       .from('bank_connections')
       .upsert(
@@ -34,7 +59,6 @@ export async function POST(request: Request) {
           pluggy_item_id: body.itemId,
           connector_name: item.connector.name,
           status: item.status === 'UPDATED' ? 'active' : 'error',
-          last_sync_at: new Date().toISOString(),
         },
         { onConflict: 'pluggy_item_id' },
       )
@@ -77,6 +101,12 @@ export async function POST(request: Request) {
     // Sync transactions from Pluggy
     const syncResult = await syncTransactions(user.id, connection.id, body.itemId);
 
+    // Update last_sync_at AFTER successful sync
+    await supabase
+      .from('bank_connections')
+      .update({ last_sync_at: new Date().toISOString() })
+      .eq('id', connection.id);
+
     // Categorize newly imported transactions via AI
     let categorized = 0;
     if (syncResult.imported > 0) {
@@ -108,6 +138,7 @@ export async function POST(request: Request) {
       );
     }
 
+    console.error('[pluggy-import] unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

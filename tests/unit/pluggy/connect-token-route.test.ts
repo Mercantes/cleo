@@ -33,6 +33,8 @@ function createRequest(body?: Record<string, unknown>) {
 describe('POST /api/pluggy/connect-token', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.PLUGGY_CLIENT_ID = 'test-client-id';
+    process.env.PLUGGY_CLIENT_SECRET = 'test-client-secret';
   });
 
   it('should return 401 if not authenticated', async () => {
@@ -43,6 +45,18 @@ describe('POST /api/pluggy/connect-token', () => {
 
     expect(response.status).toBe(401);
     expect(data.error).toBe('Unauthorized');
+  });
+
+  it('should return 503 if Pluggy is not configured', async () => {
+    delete process.env.PLUGGY_CLIENT_ID;
+    delete process.env.PLUGGY_CLIENT_SECRET;
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+
+    const response = await POST(createRequest());
+    const data = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(data.error).toBe('PLUGGY_NOT_CONFIGURED');
   });
 
   it('should return accessToken on success', async () => {

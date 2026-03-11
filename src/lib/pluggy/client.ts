@@ -9,7 +9,9 @@ import type {
 } from './types';
 import { PluggyError } from './types';
 
-const BASE_URL = 'https://api.pluggy.ai';
+const BASE_URL = process.env.PLUGGY_SANDBOX === 'true'
+  ? 'https://api.pluggy.ai/sandbox'
+  : 'https://api.pluggy.ai';
 const TOKEN_RENEWAL_BUFFER_MS = 5 * 60 * 1000; // 5 minutes before expiry
 const TOKEN_LIFETIME_MS = 2 * 60 * 60 * 1000; // 2 hours
 const MAX_RETRIES = 3;

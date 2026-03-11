@@ -54,6 +54,16 @@ export function SettingsContent() {
       .finally(() => setLoading(false));
   }, []);
 
+  const refreshBanks = async () => {
+    try {
+      const res = await fetchWithTimeout('/api/settings/banks');
+      if (res.ok) {
+        const data = await res.json();
+        setBanks(data.connections || []);
+      }
+    } catch { /* ignore */ }
+  };
+
   const handleDisconnect = async (id: string) => {
     const previous = banks;
     setBanks((prev) => prev.filter((b) => b.id !== id));
@@ -113,7 +123,7 @@ export function SettingsContent() {
         </div>
       )}
       {activeTab === 'banks' && (
-        <BankList connections={banks} onDisconnect={handleDisconnect} />
+        <BankList connections={banks} onDisconnect={handleDisconnect} onRefresh={refreshBanks} />
       )}
       {activeTab === 'goals' && <GoalsEditor />}
       {activeTab === 'appearance' && <AppearanceSettings />}

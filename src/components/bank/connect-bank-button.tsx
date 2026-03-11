@@ -24,6 +24,26 @@ export function ConnectBankButton() {
       });
 
       if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+
+        if (body.error === 'TIER_LIMIT_REACHED') {
+          setError(`Você atingiu o limite de ${body.limit} conexão(ões) bancária(s) no plano gratuito.`);
+          setIsLoading(false);
+          return;
+        }
+
+        if (body.error === 'PLUGGY_NOT_CONFIGURED') {
+          setError('Conexão bancária não está disponível no momento. Tente novamente mais tarde.');
+          setIsLoading(false);
+          return;
+        }
+
+        if (response.status === 502) {
+          setError('Erro de configuração na conexão bancária. Contate o suporte.');
+          setIsLoading(false);
+          return;
+        }
+
         throw new Error('Falha ao iniciar conexão');
       }
 
@@ -47,10 +67,18 @@ export function ConnectBankButton() {
       });
 
       if (!response.ok) {
-        throw new Error('Falha ao importar dados bancários');
+        const body = await response.json().catch(() => ({}));
+        if (body.error === 'TIER_LIMIT_REACHED') {
+          setError(`Limite de conexões atingido no plano gratuito.`);
+        } else {
+          setError('Banco conectado, mas houve um erro ao importar. Tente novamente.');
+        }
+        setIsLoading(false);
+        return;
       }
 
-      toast('Banco conectado com sucesso!');
+      const result = await response.json();
+      toast(`Banco conectado! ${result.accountCount} conta(s), ${result.transactionCount} transações importadas.`);
       router.refresh();
     } catch {
       setError('Banco conectado, mas houve um erro ao importar. Tente novamente.');

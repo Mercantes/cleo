@@ -6,6 +6,8 @@ const mockUpsert = vi.fn();
 const mockSelect = vi.fn();
 const mockSingle = vi.fn();
 const mockFrom = vi.fn();
+const mockUpdate = vi.fn();
+const mockEq = vi.fn();
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: () =>
@@ -32,6 +34,11 @@ vi.mock('@/lib/ai/categorize', () => ({
   categorizeTransactions: () => Promise.resolve(3),
 }));
 
+// Mock tier check
+vi.mock('@/lib/finance/tier-check', () => ({
+  checkTierLimit: vi.fn().mockResolvedValue({ allowed: true, current: 0, limit: 1, tier: 'free' }),
+}));
+
 import { POST } from '@/app/api/pluggy/import/route';
 
 function createRequest(body: Record<string, unknown>) {
@@ -53,10 +60,22 @@ describe('POST /api/pluggy/import', () => {
     });
     mockSelect.mockReturnValue({ single: mockSingle });
     mockUpsert.mockReturnValue({ select: mockSelect });
+    mockEq.mockResolvedValue({ data: null, error: null });
+    mockUpdate.mockReturnValue({ eq: mockEq });
 
     mockFrom.mockImplementation((table: string) => {
       if (table === 'bank_connections') {
-        return { upsert: mockUpsert };
+        return {
+          upsert: mockUpsert,
+          update: mockUpdate,
+          select: () => ({
+            eq: () => ({
+              eq: () => ({
+                single: () => Promise.resolve({ data: null, error: { code: 'PGRST116' } }),
+              }),
+            }),
+          }),
+        };
       }
       if (table === 'accounts') {
         return { upsert: vi.fn().mockResolvedValue({ error: null }) };

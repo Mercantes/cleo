@@ -15,6 +15,15 @@ export async function POST(request: Request) {
   }
 
   try {
+    // Check if Pluggy is configured
+    if (!process.env.PLUGGY_CLIENT_ID || !process.env.PLUGGY_CLIENT_SECRET) {
+      console.error('[pluggy-connect] Missing PLUGGY_CLIENT_ID or PLUGGY_CLIENT_SECRET');
+      return NextResponse.json(
+        { error: 'PLUGGY_NOT_CONFIGURED' },
+        { status: 503 },
+      );
+    }
+
     const body = (await request.json().catch(() => ({}))) as { itemId?: string };
 
     // Only check tier limit for new connections (not reconnections)
@@ -40,13 +49,27 @@ export async function POST(request: Request) {
     return NextResponse.json({ accessToken: token.accessToken });
   } catch (error) {
     if (error instanceof PluggyError) {
-      console.error('[pluggy-connect] Pluggy error:', error.message);
+      const clientIdPrefix = process.env.PLUGGY_CLIENT_ID?.substring(0, 8) || 'missing';
+      console.error('[pluggy-connect] Pluggy error:', {
+        message: error.message,
+        statusCode: error.statusCode,
+        clientIdPrefix,
+      });
+
+      if (error.statusCode === 400 || error.statusCode === 401 || error.statusCode === 403) {
+        return NextResponse.json(
+          { error: 'Credenciais da Pluggy inválidas ou expiradas. Verifique as variáveis de ambiente.' },
+          { status: 502 },
+        );
+      }
+
       return NextResponse.json(
         { error: 'Failed to connect to bank. Please try again.' },
         { status: error.statusCode || 500 },
       );
     }
 
+    console.error('[pluggy-connect] unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
