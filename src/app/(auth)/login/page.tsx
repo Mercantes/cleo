@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,9 +15,12 @@ import { GoogleIcon } from '@/components/ui/google-icon';
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const authError = searchParams.get('error') === 'auth' ? 'Erro na autenticação. Tente novamente.' : null;
   const [error, setError] = useState<string | null>(null);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const displayError = error || authError;
 
   const {
     register,
@@ -145,8 +148,8 @@ export default function LoginPage() {
             )}
           </div>
 
-          {error && (
-            <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</div>
+          {displayError && (
+            <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{displayError}</div>
           )}
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>

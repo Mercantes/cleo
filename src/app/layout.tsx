@@ -18,6 +18,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cleo-app-iota.vercel.app'),
   title: {
     default: 'Cleo - Assistente Financeiro com IA',
     template: '%s | Cleo',

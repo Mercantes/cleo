@@ -6,8 +6,8 @@ import { getOrCreateCustomer } from '@/lib/stripe/subscription';
 export async function POST(request: NextRequest) {
   // Validate origin to prevent CSRF
   const origin = request.headers.get('origin');
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (appUrl && origin && origin !== appUrl) {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('host');
+  if (origin && appUrl && !origin.includes(appUrl.replace(/^https?:\/\//, ''))) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
   }
   const supabase = await createClient();

@@ -35,6 +35,10 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/chat') ||
     pathname.startsWith('/transactions') ||
     pathname.startsWith('/projections') ||
+    pathname.startsWith('/retirement') ||
+    pathname.startsWith('/subscriptions') ||
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/upgrade') ||
     pathname.startsWith('/settings');
 
   if (isProtectedRoute && !user) {

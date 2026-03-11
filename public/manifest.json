@@ -2,7 +2,7 @@
   "name": "Cleo - Assistente Financeiro com IA",
   "short_name": "Cleo",
   "description": "Conecte seu banco e use IA para entender suas finanças.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",
