@@ -29,6 +29,6 @@ export async function GET() {
 
   return NextResponse.json(
     { subscriptions, installments, monthlyTotal },
-    { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' } },
+    { headers: { 'Cache-Control': 'private, no-cache' } },
   );
 }

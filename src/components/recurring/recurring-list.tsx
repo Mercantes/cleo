@@ -33,7 +33,7 @@ export function RecurringList() {
 
   async function fetchRecurring() {
     try {
-      const res = await fetch('/api/recurring');
+      const res = await fetch('/api/recurring', { cache: 'no-store' });
       const data = await res.json();
       setSubscriptions(data.subscriptions || []);
       setInstallments(data.installments || []);
