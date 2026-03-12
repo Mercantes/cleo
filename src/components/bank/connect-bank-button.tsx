@@ -98,7 +98,14 @@ export function ConnectBankButton() {
     console.error('[pluggy-widget] onError:', JSON.stringify(err, null, 2));
     setConnectToken(null);
     setIsLoading(false);
-    const msg = err?.message || 'A conexão foi cancelada ou falhou.';
+
+    const code = err?.message || '';
+    if (code === 'TRIAL_CLIENT_ITEM_CREATE_NOT_ALLOWED') {
+      setError('Conta Pluggy em modo trial. Contate o suporte para ativar conexões bancárias.');
+      return;
+    }
+
+    const msg = code || 'A conexão foi cancelada ou falhou.';
     setError(`Erro: ${msg}`);
   }
 
