@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
-import { FlaskConical, Landmark, Loader2 } from 'lucide-react';
+import { Landmark, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
 
 // PluggyConnect uses zoid (iframe-based) which requires browser APIs.
@@ -94,34 +94,6 @@ export function ConnectBankButton() {
     }
   }
 
-  const isSandbox = process.env.NEXT_PUBLIC_PLUGGY_SANDBOX === 'true';
-
-  async function handleTestSandbox() {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const response = await fetch('/api/pluggy/test-sandbox', {
-        method: 'POST',
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error || 'Falha no teste sandbox.');
-        setIsLoading(false);
-        return;
-      }
-
-      toast(`Sandbox conectado! ${result.accountCount} conta(s), ${result.transactionCount} transações importadas.`);
-      router.refresh();
-    } catch {
-      setError('Erro ao conectar sandbox. Tente novamente.');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
   function handleError(err: { message?: string; data?: unknown } | undefined) {
     console.error('[pluggy-widget] onError:', JSON.stringify(err, null, 2));
     setConnectToken(null);
@@ -139,27 +111,14 @@ export function ConnectBankButton() {
 
   return (
     <>
-      <div className="flex gap-2">
-        <Button onClick={handleConnect} disabled={isLoading}>
-          {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Landmark className="mr-2 h-4 w-4" />
-          )}
-          {isLoading ? 'Conectando...' : 'Conectar banco'}
-        </Button>
-
-        {isSandbox && (
-          <Button variant="outline" onClick={handleTestSandbox} disabled={isLoading}>
-            {isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <FlaskConical className="mr-2 h-4 w-4" />
-            )}
-            Testar Sandbox
-          </Button>
+      <Button onClick={handleConnect} disabled={isLoading}>
+        {isLoading ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <Landmark className="mr-2 h-4 w-4" />
         )}
-      </div>
+        {isLoading ? 'Conectando...' : 'Conectar banco'}
+      </Button>
 
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
 

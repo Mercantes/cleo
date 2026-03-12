@@ -13,7 +13,7 @@ export const TIER_LIMITS: Record<Tier, Record<TierFeature, number>> = {
   free: {
     transactions: 100,
     chat: 30,
-    bank_connections: 1,
+    bank_connections: 3,
   },
   pro: {
     transactions: Infinity,
