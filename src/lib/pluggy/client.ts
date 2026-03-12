@@ -96,6 +96,24 @@ export async function createConnectToken(itemId?: string, clientUserId?: string)
   });
 }
 
+export async function createItem(
+  connectorId: number,
+  parameters: Record<string, string>,
+  clientUserId?: string,
+): Promise<PluggyItem> {
+  const body: Record<string, unknown> = { connectorId, parameters };
+  if (clientUserId) body.clientUserId = clientUserId;
+
+  return apiRequest<PluggyItem>('/items', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function deleteItem(itemId: string): Promise<void> {
+  await apiRequest<{ count: number }>(`/items/${itemId}`, { method: 'DELETE' });
+}
+
 export async function getItem(itemId: string): Promise<PluggyItem> {
   return apiRequest<PluggyItem>(`/items/${itemId}`);
 }
