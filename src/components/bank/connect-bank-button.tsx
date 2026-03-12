@@ -2,10 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PluggyConnect } from 'react-pluggy-connect';
+import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Landmark, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
+
+// PluggyConnect uses zoid (iframe-based) which requires browser APIs.
+// Must be loaded client-side only to avoid SSR issues in Next.js.
+const PluggyConnect = dynamic(
+  () => import('react-pluggy-connect').then((mod) => mod.PluggyConnect),
+  { ssr: false },
+);
 
 export function ConnectBankButton() {
   const router = useRouter();
