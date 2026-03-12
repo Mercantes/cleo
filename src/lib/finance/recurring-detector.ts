@@ -147,7 +147,7 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
 
   // Upsert results into recurring_transactions
   for (const result of results) {
-    await supabase
+    const { error } = await supabase
       .from('recurring_transactions')
       .upsert(
         {
@@ -163,6 +163,10 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
         },
         { onConflict: 'user_id,transaction_pattern', ignoreDuplicates: false },
       );
+
+    if (error) {
+      console.error('[recurring-detector] upsert error:', error.message, 'merchant:', result.merchant);
+    }
   }
 
   return results;
