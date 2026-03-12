@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Landmark, Trash2, RefreshCw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConnectBankButton } from '@/components/bank/connect-bank-button';
@@ -9,6 +10,7 @@ import { toast } from '@/components/ui/toast';
 interface BankConnection {
   id: string;
   connector_name: string;
+  connector_logo_url: string | null;
   status: string;
   last_sync_at: string | null;
 }
@@ -57,7 +59,7 @@ export function BankList({ connections, onDisconnect, onRefresh }: BankListProps
             Conecte seu banco para importar transações automaticamente.
           </p>
         </div>
-        <ConnectBankButton />
+        <ConnectBankButton onConnectionComplete={onRefresh} />
       </div>
     );
   }
@@ -83,13 +85,17 @@ export function BankList({ connections, onDisconnect, onRefresh }: BankListProps
   return (
     <div className="space-y-3">
       <div className="flex justify-end">
-        <ConnectBankButton />
+        <ConnectBankButton onConnectionComplete={onRefresh} />
       </div>
       {connections.map((conn) => (
         <div key={conn.id} className="flex items-center justify-between rounded-lg border p-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <Landmark className="h-5 w-5 text-primary" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 overflow-hidden">
+              {conn.connector_logo_url ? (
+                <Image src={conn.connector_logo_url} alt={conn.connector_name} width={40} height={40} className="rounded-full object-cover" unoptimized />
+              ) : (
+                <Landmark className="h-5 w-5 text-primary" />
+              )}
             </div>
             <div>
               <p className="text-sm font-medium">{conn.connector_name}</p>

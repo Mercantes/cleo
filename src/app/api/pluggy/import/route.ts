@@ -58,6 +58,7 @@ export async function POST(request: Request) {
           user_id: user.id,
           pluggy_item_id: body.itemId,
           connector_name: item.connector.name,
+          connector_logo_url: item.connector.imageUrl || null,
           status: item.status === 'UPDATED' ? 'active' : 'error',
         },
         { onConflict: 'pluggy_item_id' },

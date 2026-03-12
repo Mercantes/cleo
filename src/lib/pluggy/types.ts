@@ -11,6 +11,7 @@ export interface PluggyItem {
   connector: {
     id: number;
     name: string;
+    imageUrl?: string;
   };
   status: 'UPDATED' | 'UPDATING' | 'WAITING_USER_INPUT' | 'LOGIN_ERROR' | 'OUTDATED';
   executionStatus: string;

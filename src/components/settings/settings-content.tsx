@@ -22,6 +22,7 @@ interface ProfileData {
 interface BankConnection {
   id: string;
   connector_name: string;
+  connector_logo_url: string | null;
   status: string;
   last_sync_at: string | null;
 }

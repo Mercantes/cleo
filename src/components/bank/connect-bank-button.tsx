@@ -14,7 +14,11 @@ const PluggyConnect = dynamic(
   { ssr: false },
 );
 
-export function ConnectBankButton() {
+interface ConnectBankButtonProps {
+  onConnectionComplete?: () => void;
+}
+
+export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonProps = {}) {
   const router = useRouter();
   const [connectToken, setConnectToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,6 +91,7 @@ export function ConnectBankButton() {
       const result = await response.json();
       toast(`Banco conectado! ${result.accountCount} conta(s), ${result.transactionCount} transações importadas.`);
       router.refresh();
+      onConnectionComplete?.();
     } catch {
       setError('Banco conectado, mas houve um erro ao importar. Tente novamente.');
     } finally {
