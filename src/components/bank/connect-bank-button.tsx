@@ -94,10 +94,12 @@ export function ConnectBankButton() {
     }
   }
 
-  function handleError() {
+  function handleError(err: { message?: string; data?: unknown } | undefined) {
+    console.error('[pluggy-widget] onError:', JSON.stringify(err, null, 2));
     setConnectToken(null);
     setIsLoading(false);
-    setError('A conexão foi cancelada ou falhou. Tente novamente.');
+    const msg = err?.message || 'A conexão foi cancelada ou falhou.';
+    setError(`Erro: ${msg}`);
   }
 
   return (
@@ -119,7 +121,16 @@ export function ConnectBankButton() {
           includeSandbox={process.env.NEXT_PUBLIC_PLUGGY_SANDBOX === 'true'}
           onSuccess={handleSuccess}
           onError={handleError}
+          onLoadError={(err: unknown) => {
+            console.error('[pluggy-widget] onLoadError:', err);
+            setConnectToken(null);
+            setIsLoading(false);
+            setError('Erro ao carregar widget bancário. Tente novamente.');
+          }}
+          onEvent={(event: unknown) => console.log('[pluggy-widget] onEvent:', event)}
+          onOpen={() => console.log('[pluggy-widget] onOpen: widget opened')}
           onClose={() => {
+            console.log('[pluggy-widget] onClose: widget closed');
             setConnectToken(null);
             setIsLoading(false);
           }}
