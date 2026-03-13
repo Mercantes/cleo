@@ -8,6 +8,7 @@ import { LogOut, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { UsageMeter } from './usage-meter';
+import { SidebarBalance } from './sidebar-balance';
 import { signOut } from '@/lib/actions/auth';
 
 const STORAGE_KEY = 'cleo-sidebar-collapsed';
@@ -76,6 +77,7 @@ export function AppSidebar() {
           );
         })}
       </nav>
+      {!collapsed && <SidebarBalance />}
       {!collapsed && <UsageMeter />}
       <div className="border-t p-3">
         {collapsed ? (

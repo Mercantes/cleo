@@ -36,6 +36,7 @@ export function TransactionList() {
   const [total, setTotal] = useState(0);
   const filtersRef = useRef<Filters>({});
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchTransactions = useCallback(
     async (currentFilters: Filters, pageNum: number, append = false) => {
@@ -88,6 +89,7 @@ export function TransactionList() {
       }
       filtersRef.current = newFilters;
       setHasActiveFilters(!!(newFilters.search || newFilters.from || newFilters.to || newFilters.type || newFilters.category));
+      setSearchQuery(newFilters.search || '');
       setPage(1);
       fetchTransactions(newFilters, 1);
     },
@@ -222,6 +224,7 @@ export function TransactionList() {
                         category={tx.categories}
                         categoryId={tx.category_id}
                         merchant={tx.merchant}
+                        searchQuery={searchQuery}
                         onCategoryChange={(txId, _catId, cat) => {
                           setTransactions((prev) =>
                             prev.map((t) =>

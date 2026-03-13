@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { ChevronDown, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatRelativeDate } from '@/lib/utils/format';
+import { HighlightText } from '@/components/ui/highlight-text';
 
 interface CategoryOption {
   id: string;
@@ -23,6 +24,7 @@ interface TransactionItemProps {
   } | null;
   categoryId?: string | null;
   merchant?: string | null;
+  searchQuery?: string;
   onCategoryChange?: (id: string, categoryId: string, category: { name: string; icon: string }) => void;
 }
 
@@ -37,6 +39,7 @@ export function TransactionItem({
   category,
   categoryId,
   merchant,
+  searchQuery,
   onCategoryChange,
 }: TransactionItemProps) {
   const [expanded, setExpanded] = useState(false);
@@ -99,7 +102,9 @@ export function TransactionItem({
             {category?.icon || '📦'}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium">{merchant || description}</p>
+            <p className="truncate text-sm font-medium">
+              <HighlightText text={merchant || description} query={searchQuery || ''} />
+            </p>
             <p className="text-xs text-muted-foreground">
               {category?.name || 'Sem categoria'} · {formatRelativeDate(date)}
             </p>
