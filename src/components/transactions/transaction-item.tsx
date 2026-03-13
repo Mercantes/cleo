@@ -1,11 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ChevronDown, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatRelativeDate } from '@/lib/utils/format';
 
+interface CategoryOption {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 interface TransactionItemProps {
+  id: string;
   description: string;
   amount: number;
   date: string;
@@ -14,21 +21,69 @@ interface TransactionItemProps {
     name: string;
     icon: string;
   } | null;
+  categoryId?: string | null;
   merchant?: string | null;
+  onCategoryChange?: (id: string, categoryId: string, category: { name: string; icon: string }) => void;
 }
 
+let categoriesCache: CategoryOption[] | null = null;
+
 export function TransactionItem({
+  id,
   description,
   amount,
   date,
   type,
   category,
+  categoryId,
   merchant,
+  onCategoryChange,
 }: TransactionItemProps) {
   const [expanded, setExpanded] = useState(false);
+  const [categories, setCategories] = useState<CategoryOption[]>(categoriesCache || []);
+  const [isSaving, setIsSaving] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId || '');
   const displayAmount = type === 'credit' ? amount : -amount;
   const isIncome = type === 'credit';
   const hasMerchantDetail = merchant && merchant !== description;
+
+  useEffect(() => {
+    if (expanded && categories.length === 0 && !categoriesCache) {
+      fetch('/api/categories')
+        .then((r) => r.json())
+        .then((data) => {
+          const cats: CategoryOption[] = data.categories || [];
+          categoriesCache = cats;
+          setCategories(cats);
+        })
+        .catch(() => {});
+    } else if (expanded && categoriesCache && categories.length === 0) {
+      setCategories(categoriesCache);
+    }
+  }, [expanded, categories.length]);
+
+  async function handleCategoryChange(newCategoryId: string) {
+    if (newCategoryId === selectedCategoryId || isSaving) return;
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/transactions/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category_id: newCategoryId }),
+      });
+      if (res.ok) {
+        setSelectedCategoryId(newCategoryId);
+        const cat = categories.find((c) => c.id === newCategoryId);
+        if (cat && onCategoryChange) {
+          onCategoryChange(id, newCategoryId, { name: cat.name, icon: cat.icon });
+        }
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setIsSaving(false);
+    }
+  }
 
   return (
     <div
@@ -87,6 +142,34 @@ export function TransactionItem({
               <p>{isIncome ? 'Receita' : 'Despesa'}</p>
             </div>
           </div>
+          {categories.length > 0 && (
+            <div className="mt-3 border-t pt-2">
+              <span className="font-medium text-foreground">Categoria</span>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {categories.map((cat) => {
+                  const isSelected = cat.id === selectedCategoryId;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => handleCategoryChange(cat.id)}
+                      disabled={isSaving}
+                      className={cn(
+                        'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                        isSelected
+                          ? 'border-primary bg-primary/10 text-primary font-medium'
+                          : 'border-muted hover:border-primary/50 hover:bg-accent',
+                      )}
+                    >
+                      <span>{cat.icon}</span>
+                      <span>{cat.name}</span>
+                      {isSelected && !isSaving && <Check className="h-3 w-3" />}
+                      {isSelected && isSaving && <Loader2 className="h-3 w-3 animate-spin" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

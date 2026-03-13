@@ -15,6 +15,7 @@ interface Transaction {
   date: string;
   type: 'debit' | 'credit';
   merchant: string | null;
+  category_id: string | null;
   categories: { name: string; icon: string } | null;
 }
 
@@ -213,12 +214,21 @@ export function TransactionList() {
                     {group.items.map((tx) => (
                       <TransactionItem
                         key={tx.id}
+                        id={tx.id}
                         description={tx.description}
                         amount={tx.amount}
                         date={tx.date}
                         type={tx.type}
                         category={tx.categories}
+                        categoryId={tx.category_id}
                         merchant={tx.merchant}
+                        onCategoryChange={(txId, _catId, cat) => {
+                          setTransactions((prev) =>
+                            prev.map((t) =>
+                              t.id === txId ? { ...t, categories: cat } : t,
+                            ),
+                          );
+                        }}
                       />
                     ))}
                   </div>
