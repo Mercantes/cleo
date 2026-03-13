@@ -7,6 +7,7 @@ import { BottomNav } from '@/components/layout/bottom-nav';
 import { Toaster } from '@/components/ui/toast';
 import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts';
 import { PwaInstallPrompt } from '@/components/layout/pwa-install-prompt';
+import { QuickChatFab } from '@/components/chat/quick-chat-fab';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -47,6 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <Toaster />
       <KeyboardShortcuts />
       <PwaInstallPrompt />
+      <QuickChatFab />
     </div>
   );
 }
