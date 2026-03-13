@@ -130,7 +130,7 @@ export function RecurringList() {
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
                       </button>
-                      <span className="text-sm font-semibold">{formatCurrency(sub.amount)}/mês</span>
+                      <span className="text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(sub.amount)}/mês</span>
                     </div>
                   </div>
                 ))}
@@ -158,7 +158,7 @@ export function RecurringList() {
                           : 'Em andamento'}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold">{formatCurrency(inst.amount)}/mês</span>
+                    <span className="text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(inst.amount)}/mês</span>
                   </div>
                 ))}
               </div>
