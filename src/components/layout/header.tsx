@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { NotificationBell } from '@/components/layout/notification-bell';
 import { toggleSidebar, useSidebarCollapsed } from '@/components/layout/app-sidebar';
 
 interface HeaderProps {
@@ -102,6 +103,7 @@ export function Header({ userName }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1">
+      <NotificationBell />
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
