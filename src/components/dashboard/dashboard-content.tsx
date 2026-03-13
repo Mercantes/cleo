@@ -38,6 +38,7 @@ interface SummaryData {
 interface CategoryData {
   name: string;
   amount: number;
+  categoryId: string | null;
   percentage: number;
   color: string;
 }

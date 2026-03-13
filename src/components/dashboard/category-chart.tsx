@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils/format';
 interface CategoryData {
   name: string;
   amount: number;
+  categoryId: string | null;
   percentage: number;
   color: string;
 }
@@ -39,10 +40,16 @@ export function CategoryChart({ data }: { data: CategoryData[] }) {
           </ResponsiveContainer>
         </div>
         <div className="flex-1 space-y-1">
-          {data.map((cat) => (
+          {data.map((cat) => {
+            const href = cat.categoryId === null
+              ? '/transactions?category=uncategorized'
+              : cat.categoryId === '_others'
+                ? '/transactions'
+                : `/transactions?category=${encodeURIComponent(cat.categoryId)}`;
+            return (
             <Link
               key={cat.name}
-              href={`/transactions?category=${encodeURIComponent(cat.name)}`}
+              href={href}
               className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-accent"
             >
               <div className="flex items-center gap-2">
@@ -54,7 +61,8 @@ export function CategoryChart({ data }: { data: CategoryData[] }) {
                 <span className="ml-2 text-muted-foreground">{cat.percentage}%</span>
               </div>
             </Link>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

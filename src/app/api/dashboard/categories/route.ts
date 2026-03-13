@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabase
     .from('transactions')
-    .select('amount, categories(name)')
+    .select('amount, category_id, categories(name)')
     .eq('user_id', user.id)
     .eq('type', 'debit')
     .gte('date', startDate)
@@ -32,26 +32,35 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  const categoryMap = new Map<string, number>();
+  const categoryMap = new Map<string, { amount: number; id: string | null }>();
   for (const tx of data || []) {
-    const catObj = tx.categories as { name: string } | null;
-    const cat = catObj?.name || 'Outros';
-    categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(tx.amount));
+    const catObj = tx.categories as { name: string; id?: string } | null;
+    const catName = catObj?.name || 'Sem categoria';
+    const existing = categoryMap.get(catName);
+    if (existing) {
+      existing.amount += Number(tx.amount);
+    } else {
+      categoryMap.set(catName, {
+        amount: Number(tx.amount),
+        id: catObj ? (tx.category_id as string) : null,
+      });
+    }
   }
 
   const sorted = [...categoryMap.entries()]
-    .sort((a, b) => b[1] - a[1]);
+    .sort((a, b) => b[1].amount - a[1].amount);
 
-  const totalExpenses = sorted.reduce((s, [, v]) => s + v, 0);
+  const totalExpenses = sorted.reduce((s, [, v]) => s + v.amount, 0);
 
   const COLORS = ['#EF4444', '#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#6B7280'];
 
   const top5 = sorted.slice(0, 5);
-  const othersSum = sorted.slice(5).reduce((s, [, v]) => s + v, 0);
+  const othersSum = sorted.slice(5).reduce((s, [, v]) => s + v.amount, 0);
 
-  const categories = top5.map(([name, amount], i) => ({
+  const categories = top5.map(([name, { amount, id }], i) => ({
     name,
     amount,
+    categoryId: id,
     percentage: totalExpenses > 0 ? Number((amount / totalExpenses * 100).toFixed(1)) : 0,
     color: COLORS[i],
   }));
@@ -60,6 +69,7 @@ export async function GET(request: NextRequest) {
     categories.push({
       name: 'Outros',
       amount: othersSum,
+      categoryId: '_others',
       percentage: totalExpenses > 0 ? Number((othersSum / totalExpenses * 100).toFixed(1)) : 0,
       color: COLORS[5],
     });

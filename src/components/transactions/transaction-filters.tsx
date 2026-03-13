@@ -32,14 +32,19 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
       .then((data) => {
         const cats = data.categories || [];
         setCategories(cats);
-        // Apply category from URL query param (matched by name)
+        // Apply category from URL query param
         if (!initialCategoryApplied.current) {
           initialCategoryApplied.current = true;
           const categoryParam = searchParams.get('category');
-          if (categoryParam) {
-            const match = cats.find((c: { id: string; name: string }) =>
+          if (categoryParam === 'uncategorized') {
+            setCategory('uncategorized');
+          } else if (categoryParam) {
+            // Try matching by ID first, then by name
+            const matchById = cats.find((c: { id: string; name: string }) => c.id === categoryParam);
+            const matchByName = !matchById && cats.find((c: { id: string; name: string }) =>
               c.name.toLowerCase() === categoryParam.toLowerCase()
             );
+            const match = matchById || matchByName;
             if (match) setCategory(match.id);
           }
         }
@@ -102,6 +107,7 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
             className="h-9 max-w-[180px] rounded-md border border-input bg-background px-3 text-sm text-foreground"
           >
             <option value="">Todas as categorias</option>
+            <option value="uncategorized">Sem categoria</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
                 {cat.name}

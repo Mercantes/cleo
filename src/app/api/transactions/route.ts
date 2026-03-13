@@ -29,7 +29,11 @@ export async function GET(request: NextRequest) {
     .order('date', { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
-  if (category) query = query.eq('category_id', category);
+  if (category === 'uncategorized') {
+    query = query.is('category_id', null);
+  } else if (category) {
+    query = query.eq('category_id', category);
+  }
   if (bank) query = query.eq('account_id', bank);
   if (type) query = query.eq('type', type);
   if (from) query = query.gte('date', from);
