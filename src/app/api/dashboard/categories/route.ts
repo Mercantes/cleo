@@ -55,7 +55,8 @@ export async function GET(request: NextRequest) {
   const COLORS = ['#EF4444', '#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#6B7280'];
 
   const top5 = sorted.slice(0, 5);
-  const othersSum = sorted.slice(5).reduce((s, [, v]) => s + v.amount, 0);
+  const rest = sorted.slice(5);
+  const othersSum = rest.reduce((s, [, v]) => s + v.amount, 0);
 
   const categories = top5.map(([name, { amount, id }], i) => ({
     name,
@@ -66,13 +67,22 @@ export async function GET(request: NextRequest) {
   }));
 
   if (othersSum > 0) {
-    categories.push({
-      name: 'Outros',
-      amount: othersSum,
-      categoryId: '_others',
-      percentage: totalExpenses > 0 ? Number((othersSum / totalExpenses * 100).toFixed(1)) : 0,
-      color: COLORS[5],
-    });
+    // If "Outros" is already in top 5, merge the rest into it instead of duplicating
+    const existingOutros = categories.find((c) => c.name === 'Outros');
+    if (existingOutros) {
+      existingOutros.amount += othersSum;
+      existingOutros.percentage = totalExpenses > 0
+        ? Number((existingOutros.amount / totalExpenses * 100).toFixed(1))
+        : 0;
+    } else {
+      categories.push({
+        name: 'Demais',
+        amount: othersSum,
+        categoryId: '_others',
+        percentage: totalExpenses > 0 ? Number((othersSum / totalExpenses * 100).toFixed(1)) : 0,
+        color: COLORS[5],
+      });
+    }
   }
 
   return NextResponse.json({ categories }, {
