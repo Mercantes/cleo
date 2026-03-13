@@ -108,6 +108,14 @@ export function DashboardContent() {
     fetchData(month);
   }, [month, fetchData]);
 
+  useEffect(() => {
+    function handleRefresh() {
+      fetchData(month, true);
+    }
+    window.addEventListener('cleo:refresh-dashboard', handleRefresh);
+    return () => window.removeEventListener('cleo:refresh-dashboard', handleRefresh);
+  }, [month, fetchData]);
+
   function handleMonthChange(newMonth: string) {
     setMonth(newMonth);
   }
