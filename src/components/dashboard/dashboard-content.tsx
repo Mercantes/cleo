@@ -17,6 +17,7 @@ import { InsightsBar } from './insights-bar';
 import { FinancialHealthCard } from './financial-health-card';
 import { AccountsCard } from './accounts-card';
 import { RecentTransactionsCard } from './recent-transactions-card';
+import { SetupChecklist } from './setup-checklist';
 
 const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
   ssr: false,
@@ -168,6 +169,8 @@ export function DashboardContent() {
         </div>
         <MonthSelector month={month} onChange={handleMonthChange} />
       </div>
+
+      <SetupChecklist />
 
       {summary && <SummaryCards data={summary} />}
 
