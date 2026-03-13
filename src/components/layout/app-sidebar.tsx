@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Keyboard, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { LogOut, Keyboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { UsageMeter } from './usage-meter';
@@ -21,23 +21,24 @@ function getServerSnapshot(): boolean {
 }
 
 function subscribe(callback: () => void): () => void {
-  const handler = (e: StorageEvent) => {
-    if (e.key === STORAGE_KEY) callback();
-  };
-  window.addEventListener('storage', handler);
-  return () => window.removeEventListener('storage', handler);
+  const handler = () => callback();
+  window.addEventListener('sidebar-toggle', handler);
+  return () => window.removeEventListener('sidebar-toggle', handler);
+}
+
+export function toggleSidebar() {
+  const current = localStorage.getItem(STORAGE_KEY) === 'true';
+  localStorage.setItem(STORAGE_KEY, String(!current));
+  window.dispatchEvent(new Event('sidebar-toggle'));
+}
+
+export function useSidebarCollapsed(): boolean {
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 export function AppSidebar() {
   const pathname = usePathname();
-  const collapsed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
-  const [, forceRender] = useState(0);
-
-  function toggleCollapsed() {
-    const next = !collapsed;
-    localStorage.setItem(STORAGE_KEY, String(next));
-    forceRender((n) => n + 1);
-  }
+  const collapsed = useSidebarCollapsed();
 
   return (
     <aside
@@ -47,21 +48,11 @@ export function AppSidebar() {
         collapsed ? 'w-16' : 'w-64',
       )}
     >
-      <div className="flex h-14 items-center border-b px-3">
+      <div className={cn('flex h-14 items-center border-b', collapsed ? 'justify-center px-2' : 'px-6')}>
         <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
           <Image src="/logo.png" alt="" width={28} height={28} className="shrink-0 rounded-md" />
           {!collapsed && <span className="text-xl font-bold">Cleo</span>}
         </Link>
-        <button
-          onClick={toggleCollapsed}
-          className={cn(
-            'shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
-            collapsed ? 'mx-auto mt-0' : 'ml-auto',
-          )}
-          aria-label={collapsed ? 'Expandir menu' : 'Minimizar menu'}
-        >
-          {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
-        </button>
       </div>
       <nav aria-label="Menu do aplicativo" className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Menu, Settings, User } from 'lucide-react';
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings, User } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,6 +23,7 @@ import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { toggleSidebar, useSidebarCollapsed } from '@/components/layout/app-sidebar';
 
 interface HeaderProps {
   userName: string;
@@ -43,6 +44,7 @@ const pageTitles: Record<string, string> = {
 export function Header({ userName }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const sidebarCollapsed = useSidebarCollapsed();
   const pageTitle = pageTitles[pathname] || 'Cleo';
   const initials = userName
     .split(' ')
@@ -89,6 +91,13 @@ export function Header({ userName }: HeaderProps) {
             </nav>
           </SheetContent>
         </Sheet>
+        <button
+          onClick={toggleSidebar}
+          className="hidden rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex"
+          aria-label={sidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
+        >
+          {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+        </button>
         <h1 className="text-lg font-semibold">{pageTitle}</h1>
       </div>
 
