@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Circle, Landmark, Target, Sparkles, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface SetupStep {
   id: string;
@@ -21,56 +21,45 @@ function getInitialDismissed(): boolean {
 }
 
 export function SetupChecklist() {
-  const [steps, setSteps] = useState<SetupStep[] | null>(null);
   const [dismissed, setDismissed] = useState(getInitialDismissed);
 
-  useEffect(() => {
-    if (dismissed) return;
+  // Pass null to skip fetching when dismissed
+  const { data: accounts } = useApi<{ accounts: { id: string }[] }>(dismissed ? null : '/api/dashboard/accounts');
+  const { data: goals } = useApi<{ goals: { monthly_savings_target: number | null } | null }>(dismissed ? null : '/api/goals');
+  const { data: chatHistory } = useApi<{ messages: { id: string }[] }>(dismissed ? null : '/api/chat/history');
 
-    Promise.all([
-      fetchWithTimeout('/api/dashboard/accounts').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/goals').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/chat/history').then((r) => r.ok ? r.json() : null),
-    ].map((p) => p.catch(() => null)))
-      .then(([accounts, goals, chatHistory]) => {
-        const hasBank = (accounts?.accounts?.length || 0) > 0;
-        const hasGoals = !!goals?.goals?.monthly_savings_target;
-        const hasChatted = (chatHistory?.messages?.length || 0) > 0;
+  const steps = useMemo<SetupStep[] | null>(() => {
+    if (dismissed || !accounts || !goals || !chatHistory) return null;
 
-        const setupSteps: SetupStep[] = [
-          {
-            id: 'bank',
-            label: 'Conectar banco',
-            description: 'Importe transações automaticamente',
-            href: '/settings?tab=banks',
-            icon: Landmark,
-            completed: hasBank,
-          },
-          {
-            id: 'goals',
-            label: 'Definir meta de economia',
-            description: 'Acompanhe seu progresso mensal',
-            href: '/settings?tab=goals',
-            icon: Target,
-            completed: hasGoals,
-          },
-          {
-            id: 'chat',
-            label: 'Conversar com a Cleo',
-            description: 'Peça dicas personalizadas',
-            href: '/chat',
-            icon: Sparkles,
-            completed: hasChatted,
-          },
-        ];
+    const setupSteps: SetupStep[] = [
+      {
+        id: 'bank',
+        label: 'Conectar banco',
+        description: 'Importe transações automaticamente',
+        href: '/settings?tab=banks',
+        icon: Landmark,
+        completed: (accounts.accounts?.length || 0) > 0,
+      },
+      {
+        id: 'goals',
+        label: 'Definir meta de economia',
+        description: 'Acompanhe seu progresso mensal',
+        href: '/settings?tab=goals',
+        icon: Target,
+        completed: !!goals.goals?.monthly_savings_target,
+      },
+      {
+        id: 'chat',
+        label: 'Conversar com a Cleo',
+        description: 'Peça dicas personalizadas',
+        href: '/chat',
+        icon: Sparkles,
+        completed: (chatHistory.messages?.length || 0) > 0,
+      },
+    ];
 
-        // Only show if not everything is done
-        const allDone = setupSteps.every((s) => s.completed);
-        if (!allDone) {
-          setSteps(setupSteps);
-        }
-      });
-  }, [dismissed]);
+    return setupSteps.every((s) => s.completed) ? null : setupSteps;
+  }, [dismissed, accounts, goals, chatHistory]);
 
   if (dismissed || !steps) return null;
 

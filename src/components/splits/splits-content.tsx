@@ -3,7 +3,6 @@
 import { useState, useCallback } from 'react';
 import { Plus, Trash2, Check, Users, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
 
 interface Participant {
@@ -35,7 +34,7 @@ export function SplitsContent() {
     const prev = data;
     mutate({ splits: (data?.splits || []).filter(s => s.id !== id) }, false);
     try {
-      const res = await fetchWithTimeout(`/api/splits?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/splits?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error();
       toast.success('Divisão removida');
     } catch {
@@ -58,7 +57,7 @@ export function SplitsContent() {
       }, false);
     }
     try {
-      const res = await fetchWithTimeout('/api/splits', {
+      const res = await fetch('/api/splits', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ participantId, isPaid }),
@@ -226,7 +225,7 @@ function NewSplitForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
 
     setSaving(true);
     try {
-      const res = await fetchWithTimeout('/api/splits', {
+      const res = await fetch('/api/splits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

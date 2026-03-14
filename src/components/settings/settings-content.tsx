@@ -7,10 +7,9 @@ import { BankList } from './bank-list';
 import { NotificationPreferences } from './notification-preferences';
 import { TierStatus } from '@/components/layout/tier-status';
 import { GoalsEditor } from './goals-editor';
-
 import { DangerZone } from './danger-zone';
 import { ChangePassword } from './change-password';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
 
 type Tab = 'profile' | 'banks' | 'goals' | 'notifications' | 'plan' | 'account';
@@ -39,9 +38,12 @@ function getInitialTab(searchParams: URLSearchParams): Tab {
 export function SettingsContent() {
   const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<Tab>(() => getInitialTab(searchParams));
-  const [profile, setProfile] = useState<ProfileData | null>(null);
-  const [banks, setBanks] = useState<BankConnection[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: profileData, isLoading: profileLoading } = useApi<{ profile: ProfileData }>('/api/settings/profile');
+  const { data: banksData, isLoading: banksLoading, mutate: mutateBanks } = useApi<{ connections: BankConnection[] }>('/api/settings/banks');
+
+  const profile = profileData?.profile ?? null;
+  const banks = banksData?.connections ?? [];
+  const loading = profileLoading || banksLoading;
 
   // Sync tab when URL search params change (e.g. navigating from another page)
   useEffect(() => {
@@ -49,47 +51,17 @@ export function SettingsContent() {
     setActiveTab(tabFromUrl);
   }, [searchParams]);
 
-  useEffect(() => {
-    Promise.all([
-      fetchWithTimeout('/api/settings/profile').then((r) => {
-        if (!r.ok) throw new Error('Profile fetch failed');
-        return r.json();
-      }),
-      fetchWithTimeout('/api/settings/banks').then((r) => {
-        if (!r.ok) throw new Error('Banks fetch failed');
-        return r.json();
-      }),
-    ])
-      .then(([profileRes, banksRes]) => {
-        setProfile(profileRes.profile);
-        setBanks(banksRes.connections || []);
-      })
-      .catch(() => {
-        setProfile({ full_name: null, email: '' });
-        setBanks([]);
-      })
-      .finally(() => setLoading(false));
-  }, []);
-
-  const refreshBanks = async () => {
-    try {
-      const res = await fetchWithTimeout('/api/settings/banks');
-      if (res.ok) {
-        const data = await res.json();
-        setBanks(data.connections || []);
-      }
-    } catch { /* ignore */ }
-  };
+  const refreshBanks = () => { mutateBanks(); };
 
   const handleDisconnect = async (id: string) => {
-    const previous = banks;
-    setBanks((prev) => prev.filter((b) => b.id !== id));
+    const previous = banksData;
+    mutateBanks({ connections: banks.filter((b) => b.id !== id) }, false);
     try {
-      const res = await fetchWithTimeout(`/api/settings/banks?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/settings/banks?id=${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       toast.success('Banco desconectado com sucesso');
     } catch {
-      setBanks(previous);
+      mutateBanks(previous);
       toast.error('Erro ao desconectar banco. Tente novamente.');
     }
   };
