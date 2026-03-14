@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useMemo } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Search,
@@ -18,6 +18,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface Command {
   id: string;
@@ -28,13 +29,53 @@ interface Command {
   action: () => void;
 }
 
+interface SearchResult {
+  id: string;
+  description: string;
+  merchant: string | null;
+  amount: number;
+  type: 'debit' | 'credit';
+  date: string;
+}
+
 export function KeyboardShortcuts() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const searchAbort = useRef<AbortController | null>(null);
+
+  const searchTransactions = useCallback((q: string) => {
+    if (q.length < 2) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+    searchAbort.current?.abort();
+    const controller = new AbortController();
+    searchAbort.current = controller;
+    setIsSearching(true);
+
+    fetch(`/api/transactions?search=${encodeURIComponent(q)}&page=1`, { signal: controller.signal })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => {
+        if (data?.data) setSearchResults(data.data.slice(0, 5));
+        setIsSearching(false);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setIsSearching(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const timeout = setTimeout(() => searchTransactions(query), 250);
+    return () => clearTimeout(timeout);
+  }, [query, open, searchTransactions]);
 
   const commands = useMemo<Command[]>(() => {
     function navigate(path: string) {
@@ -94,7 +135,7 @@ export function KeyboardShortcuts() {
     ];
   }, [router]);
 
-  const filtered = useMemo(() => {
+  const filteredCommands = useMemo(() => {
     if (!query.trim()) return commands;
     const q = query.toLowerCase();
     return commands.filter(
@@ -103,6 +144,31 @@ export function KeyboardShortcuts() {
         cmd.section.toLowerCase().includes(q),
     );
   }, [commands, query]);
+
+  const transactionCommands = useMemo<Command[]>(() => {
+    return searchResults.map((tx) => {
+      const displayName = tx.merchant || tx.description;
+      const amount = formatCurrency(Math.abs(tx.amount));
+      const sign = tx.type === 'credit' ? '+' : '-';
+      return {
+        id: `tx-${tx.id}`,
+        label: `${displayName}  ${sign}${amount}`,
+        section: 'Transações',
+        icon: ArrowLeftRight,
+        action: () => {
+          router.push(`/transactions?search=${encodeURIComponent(displayName)}`);
+          setOpen(false);
+        },
+      };
+    });
+  }, [searchResults, router]);
+
+  const filtered = useMemo(() => {
+    if (query.length >= 2 && transactionCommands.length > 0) {
+      return [...filteredCommands, ...transactionCommands];
+    }
+    return filteredCommands;
+  }, [filteredCommands, transactionCommands, query]);
 
   // Group by section
   const grouped = useMemo(() => {
@@ -225,7 +291,7 @@ export function KeyboardShortcuts() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleInputKeyDown}
-            placeholder="Buscar comandos..."
+            placeholder="Buscar comandos ou transações..."
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             autoComplete="off"
             spellCheck={false}
@@ -237,9 +303,9 @@ export function KeyboardShortcuts() {
 
         {/* Results */}
         <div ref={listRef} className="max-h-[320px] overflow-y-auto p-2">
-          {filtered.length === 0 ? (
+          {filtered.length === 0 && !isSearching ? (
             <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-              Nenhum comando encontrado
+              Nenhum resultado encontrado
             </p>
           ) : (
             [...grouped.entries()].map(([section, cmds]) => (

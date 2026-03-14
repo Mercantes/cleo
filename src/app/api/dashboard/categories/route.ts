@@ -19,17 +19,40 @@ export async function GET(request: NextRequest) {
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
   const endDate = new Date(year, month, 0).toISOString().split('T')[0];
 
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('amount, category_id, categories(name)')
-    .eq('user_id', user.id)
-    .eq('type', 'debit')
-    .gte('date', startDate)
-    .lte('date', endDate);
+  // Previous month for comparison
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const prevYear = month === 1 ? year - 1 : year;
+  const prevStartDate = `${prevYear}-${String(prevMonth).padStart(2, '0')}-01`;
+  const prevEndDate = new Date(prevYear, prevMonth, 0).toISOString().split('T')[0];
+
+  const [{ data, error }, { data: prevData }] = await Promise.all([
+    supabase
+      .from('transactions')
+      .select('amount, category_id, categories(name)')
+      .eq('user_id', user.id)
+      .eq('type', 'debit')
+      .gte('date', startDate)
+      .lte('date', endDate),
+    supabase
+      .from('transactions')
+      .select('amount, category_id, categories(name)')
+      .eq('user_id', user.id)
+      .eq('type', 'debit')
+      .gte('date', prevStartDate)
+      .lte('date', prevEndDate),
+  ]);
 
   if (error) {
     console.error('[dashboard/categories] query failed:', error.message);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+
+  // Build previous month map
+  const prevCategoryMap = new Map<string, number>();
+  for (const tx of prevData || []) {
+    const catObj = tx.categories as { name: string } | null;
+    const catName = catObj?.name || 'Sem categoria';
+    prevCategoryMap.set(catName, (prevCategoryMap.get(catName) || 0) + Number(tx.amount));
   }
 
   const categoryMap = new Map<string, { amount: number; id: string | null }>();
@@ -58,13 +81,18 @@ export async function GET(request: NextRequest) {
   const rest = sorted.slice(5);
   const othersSum = rest.reduce((s, [, v]) => s + v.amount, 0);
 
-  const categories = top5.map(([name, { amount, id }], i) => ({
-    name,
-    amount,
-    categoryId: id,
-    percentage: totalExpenses > 0 ? Number((amount / totalExpenses * 100).toFixed(1)) : 0,
-    color: COLORS[i],
-  }));
+  const categories = top5.map(([name, { amount, id }], i) => {
+    const prevAmount = prevCategoryMap.get(name) || 0;
+    const change = prevAmount > 0 ? Math.round(((amount - prevAmount) / prevAmount) * 100) : null;
+    return {
+      name,
+      amount,
+      categoryId: id,
+      percentage: totalExpenses > 0 ? Number((amount / totalExpenses * 100).toFixed(1)) : 0,
+      color: COLORS[i],
+      change,
+    };
+  });
 
   if (othersSum > 0) {
     // If "Outros" is already in top 5, merge the rest into it instead of duplicating
@@ -81,6 +109,7 @@ export async function GET(request: NextRequest) {
         categoryId: '_others',
         percentage: totalExpenses > 0 ? Number((othersSum / totalExpenses * 100).toFixed(1)) : 0,
         color: COLORS[5],
+        change: null,
       });
     }
   }

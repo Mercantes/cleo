@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import { BankList } from './bank-list';
 import { NotificationPreferences } from './notification-preferences';
@@ -27,11 +28,26 @@ interface BankConnection {
   last_sync_at: string | null;
 }
 
+const VALID_TABS: Tab[] = ['profile', 'banks', 'goals', 'appearance', 'notifications', 'plan', 'account'];
+
+function getInitialTab(searchParams: URLSearchParams): Tab {
+  const param = searchParams.get('tab');
+  if (param && VALID_TABS.includes(param as Tab)) return param as Tab;
+  return 'profile';
+}
+
 export function SettingsContent() {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<Tab>(() => getInitialTab(searchParams));
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [banks, setBanks] = useState<BankConnection[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Sync tab when URL search params change (e.g. navigating from another page)
+  useEffect(() => {
+    const tabFromUrl = getInitialTab(searchParams);
+    setActiveTab(tabFromUrl);
+  }, [searchParams]);
 
   useEffect(() => {
     Promise.all([

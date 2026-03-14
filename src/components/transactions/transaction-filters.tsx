@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { Calendar, Search, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 interface TransactionFiltersProps {
   onFiltersChange: (filters: {
@@ -18,7 +19,7 @@ interface TransactionFiltersProps {
 
 export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps) {
   const searchParams = useSearchParams();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [type, setType] = useState('');
@@ -53,6 +54,42 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasFilters = search || from || to || type || category;
+  const [activePreset, setActivePreset] = useState<string | null>(null);
+
+  const datePresets = useMemo(() => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    const firstOfMonth = new Date(year, month, 1);
+    const lastOfMonth = new Date(year, month + 1, 0);
+    const firstOfLastMonth = new Date(year, month - 1, 1);
+    const lastOfLastMonth = new Date(year, month, 0);
+    const last7 = new Date(now); last7.setDate(now.getDate() - 6);
+    const last30 = new Date(now); last30.setDate(now.getDate() - 29);
+
+    return [
+      { id: 'this_month', label: 'Este mês', from: fmt(firstOfMonth), to: fmt(lastOfMonth) },
+      { id: 'last_month', label: 'Mês passado', from: fmt(firstOfLastMonth), to: fmt(lastOfLastMonth) },
+      { id: 'last_7', label: '7 dias', from: fmt(last7), to: fmt(now) },
+      { id: 'last_30', label: '30 dias', from: fmt(last30), to: fmt(now) },
+    ];
+  }, []);
+
+  function applyPreset(presetId: string) {
+    if (activePreset === presetId) {
+      setActivePreset(null);
+      setFrom('');
+      setTo('');
+      return;
+    }
+    const preset = datePresets.find((p) => p.id === presetId);
+    if (!preset) return;
+    setActivePreset(presetId);
+    setFrom(preset.from);
+    setTo(preset.to);
+  }
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -74,6 +111,7 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
     setTo('');
     setType('');
     setCategory('');
+    setActivePreset(null);
   }, []);
 
   return (
@@ -87,6 +125,23 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
           aria-label="Buscar transações"
           className="pl-10"
         />
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+        {datePresets.map((preset) => (
+          <button
+            key={preset.id}
+            onClick={() => applyPreset(preset.id)}
+            className={cn(
+              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+              activePreset === preset.id
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
+            )}
+          >
+            {preset.label}
+          </button>
+        ))}
       </div>
       <div className="flex flex-wrap gap-2">
         <select
@@ -118,14 +173,14 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
         <Input
           type="date"
           value={from}
-          onChange={(e) => setFrom(e.target.value)}
+          onChange={(e) => { setFrom(e.target.value); setActivePreset(null); }}
           className="min-w-[140px] sm:w-auto"
           aria-label="Data inicial"
         />
         <Input
           type="date"
           value={to}
-          onChange={(e) => setTo(e.target.value)}
+          onChange={(e) => { setTo(e.target.value); setActivePreset(null); }}
           className="min-w-[140px] sm:w-auto"
           aria-label="Data final"
         />

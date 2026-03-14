@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Target, Flame, Trophy, Star } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import Link from 'next/link';
+import { useApi } from '@/hooks/use-api';
 
 interface GoalData {
   goals: {
@@ -29,19 +28,7 @@ interface GoalData {
 }
 
 export function GoalProgressCard() {
-  const [data, setData] = useState<GoalData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/goals')
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((d) => setData(d))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useApi<GoalData>('/api/goals');
 
   if (loading) {
     return <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />;
@@ -58,7 +45,7 @@ export function GoalProgressCard() {
           Defina uma meta mensal de economia para acompanhar seu progresso.
         </p>
         <Link
-          href="/settings"
+          href="/settings?tab=goals"
           className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
         >
           Definir meta

@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
+import { useApi } from '@/hooks/use-api';
 
 interface Transaction {
   id: string;
@@ -14,6 +14,10 @@ interface Transaction {
   type: 'debit' | 'credit';
   merchant: string | null;
   categories: { name: string; icon: string } | null;
+}
+
+interface RecentData {
+  transactions: Transaction[];
 }
 
 function formatShortDate(dateStr: string): string {
@@ -28,16 +32,9 @@ function formatShortDate(dateStr: string): string {
 }
 
 export function RecentTransactionsCard() {
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useApi<RecentData>('/api/dashboard/recent');
 
-  useEffect(() => {
-    fetch('/api/dashboard/recent')
-      .then((r) => r.json())
-      .then((data) => setTransactions(data.transactions || []))
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
+  const transactions = data?.transactions || [];
 
   if (isLoading) {
     return <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />;
@@ -60,9 +57,11 @@ export function RecentTransactionsCard() {
       <div className="space-y-1">
         {transactions.map((tx) => {
           const isIncome = tx.type === 'credit';
+          const searchTerm = tx.merchant || tx.description;
           return (
-            <div
+            <Link
               key={tx.id}
+              href={`/transactions?search=${encodeURIComponent(searchTerm)}`}
               className="flex items-center justify-between rounded-md px-2 py-2 transition-colors hover:bg-accent/50"
             >
               <div className="flex items-center gap-2.5">
@@ -97,7 +96,7 @@ export function RecentTransactionsCard() {
               >
                 {isIncome ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
               </span>
-            </div>
+            </Link>
           );
         })}
       </div>

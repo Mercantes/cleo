@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut, Keyboard } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { UsageMeter } from './usage-meter';
@@ -92,26 +92,14 @@ export function AppSidebar() {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={() => {
-                window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }));
-              }}
-              className="flex flex-1 items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              aria-label="Atalhos do teclado"
-            >
-              <Keyboard className="h-3.5 w-3.5" />
-              <span>Atalhos</span>
-              <kbd className="ml-auto rounded border bg-muted px-1 py-0.5 text-[10px] font-mono">⌘K</kbd>
-            </button>
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-red-500"
-              aria-label="Sair da conta"
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </button>
-          </div>
+          <button
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-red-500"
+            aria-label="Sair da conta"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            <span>Sair</span>
+          </button>
         )}
       </div>
     </aside>

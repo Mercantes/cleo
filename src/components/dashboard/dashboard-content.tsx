@@ -18,6 +18,10 @@ import { FinancialHealthCard } from './financial-health-card';
 import { AccountsCard } from './accounts-card';
 import { RecentTransactionsCard } from './recent-transactions-card';
 import { SetupChecklist } from './setup-checklist';
+import { CategoryBudgetsCard } from './category-budgets-card';
+import { StreakCard } from './streak-card';
+import { AnimateIn } from '@/components/ui/animate-in';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
   ssr: false,
@@ -117,20 +121,64 @@ export function DashboardContent() {
     return () => window.removeEventListener('cleo:refresh-dashboard', handleRefresh);
   }, [month, fetchData]);
 
+  const { indicatorRef } = usePullToRefresh({
+    onRefresh: () => fetchData(month, true),
+  });
+
   function handleMonthChange(newMonth: string) {
     setMonth(newMonth);
   }
 
   if (isLoading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="h-7 w-32 animate-pulse rounded bg-muted" />
+            <div className="mt-1.5 h-4 w-56 animate-pulse rounded bg-muted" />
+          </div>
+          <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
+        </div>
+        {/* Summary cards skeleton */}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-20 animate-pulse rounded-lg border bg-muted" />
+            <div key={i} className="rounded-lg border p-4">
+              <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+              <div className="mt-2 h-6 w-24 animate-pulse rounded bg-muted" />
+              <div className="mt-1.5 h-3 w-20 animate-pulse rounded bg-muted" />
+            </div>
           ))}
         </div>
-        <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />
-        <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />
+        {/* Charts skeleton */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-lg border p-4">
+              <div className="h-4 w-36 animate-pulse rounded bg-muted" />
+              <div className="mt-4 h-[200px] animate-pulse rounded bg-muted/50" />
+            </div>
+          ))}
+        </div>
+        {/* Bottom cards skeleton */}
+        <div className="grid gap-4 lg:grid-cols-2">
+          {[1, 2].map((i) => (
+            <div key={i} className="rounded-lg border p-4">
+              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+              <div className="mt-3 space-y-2">
+                {[1, 2, 3].map((j) => (
+                  <div key={j} className="flex items-center gap-3">
+                    <div className="h-7 w-7 animate-pulse rounded-full bg-muted" />
+                    <div className="flex-1">
+                      <div className="h-3.5 w-28 animate-pulse rounded bg-muted" />
+                      <div className="mt-1 h-3 w-20 animate-pulse rounded bg-muted" />
+                    </div>
+                    <div className="h-4 w-16 animate-pulse rounded bg-muted" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -150,69 +198,93 @@ export function DashboardContent() {
 
   return (
     <div className="space-y-6">
+      {/* Pull-to-refresh indicator (mobile) */}
+      <div
+        ref={indicatorRef}
+        className="pointer-events-none flex justify-center opacity-0 md:hidden"
+        style={{ transform: 'translateY(0)' }}
+      >
+        <RefreshCw className="h-5 w-5 text-primary" />
+      </div>
+
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div>
+        <div>
+          <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">{getGreeting()}</h1>
-            <p className="text-sm text-muted-foreground">
-              Aqui está o resumo das suas finanças
-            </p>
+            <button
+              onClick={() => fetchData(month, true)}
+              disabled={isRefreshing}
+              aria-label="Atualizar dados"
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
-          <button
-            onClick={() => fetchData(month, true)}
-            disabled={isRefreshing}
-            aria-label="Atualizar dados"
-            className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </button>
+          <p className="text-sm text-muted-foreground">
+            Aqui está o resumo das suas finanças
+          </p>
         </div>
         <MonthSelector month={month} onChange={handleMonthChange} />
       </div>
 
       <SetupChecklist />
 
-      {summary && <SummaryCards data={summary} />}
+      <AnimateIn>{summary && <SummaryCards data={summary} />}</AnimateIn>
 
-      <InsightsBar />
+      <AnimateIn delay={50}><InsightsBar /></AnimateIn>
 
       {!hasData ? (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed py-16 text-center">
-          <div className="rounded-full bg-primary/10 p-4">
-            <Landmark className="h-8 w-8 text-primary" />
+        <AnimateIn delay={100}>
+          <div className="flex flex-col items-center justify-center gap-6 rounded-lg border border-dashed py-20 text-center">
+            <div className="rounded-full bg-primary/10 p-6">
+              <Landmark className="h-12 w-12 text-primary" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-semibold">Conecte seu banco para começar</h2>
+              <p className="max-w-md text-sm text-muted-foreground">
+                Importe suas transações automaticamente via Open Finance e veja seus gráficos e
+                análises aqui.
+              </p>
+            </div>
+            <Link href="/settings?tab=banks" className={buttonVariants({ size: 'lg' })}>
+              <Landmark className="mr-2 h-4 w-4" />
+              Conectar banco
+            </Link>
           </div>
-          <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Conecte seu banco para começar</h2>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Importe suas transações automaticamente via Open Finance e veja seus gráficos e
-              análises aqui.
-            </p>
-          </div>
-          <Link href="/settings" className={buttonVariants()}>
-            Conectar banco
-          </Link>
-        </div>
+        </AnimateIn>
       ) : (
         <>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ExpenseChart data={trends} />
-            <CategoryChart data={categories} />
-          </div>
+          <AnimateIn delay={100}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ExpenseChart data={trends} />
+              <CategoryChart data={categories} />
+            </div>
+          </AnimateIn>
 
-          <div className="grid gap-4 lg:grid-cols-2">
-            <AccountsCard />
-            <RecentTransactionsCard />
-          </div>
+          <AnimateIn delay={150}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <AccountsCard />
+              <RecentTransactionsCard />
+            </div>
+          </AnimateIn>
 
-          <div className="grid gap-4 lg:grid-cols-3">
-            <GoalProgressCard />
-            <ChallengesCard />
-            <FinancialHealthCard />
-          </div>
+          <AnimateIn delay={200}>
+            <div className="grid gap-4 lg:grid-cols-3">
+              <GoalProgressCard />
+              <ChallengesCard />
+              <FinancialHealthCard />
+            </div>
+          </AnimateIn>
 
-          <SpendingForecast />
+          <AnimateIn delay={225}>
+            <StreakCard />
+          </AnimateIn>
 
-          <SubscriptionsCard />
+          <AnimateIn delay={250}><CategoryBudgetsCard /></AnimateIn>
+
+          <AnimateIn delay={300}><SpendingForecast /></AnimateIn>
+
+          <AnimateIn delay={350}><SubscriptionsCard /></AnimateIn>
         </>
       )}
     </div>

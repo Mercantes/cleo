@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, ArrowLeftRight, Download, Loader2 } from 'lucide-react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionItem } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
@@ -25,6 +26,134 @@ interface Filters {
   to?: string;
   type?: string;
   category?: string;
+}
+
+type FlatItem =
+  | { kind: 'header'; label: string }
+  | { kind: 'tx'; tx: Transaction };
+
+function VirtualizedTransactionList({
+  transactions,
+  searchQuery,
+  onCategoryChange,
+}: {
+  transactions: Transaction[];
+  searchQuery: string;
+  onCategoryChange: (txId: string, catId: string, cat: { name: string; icon: string }) => void;
+}) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const flatItems = useMemo<FlatItem[]>(() => {
+    const items: FlatItem[] = [];
+    let lastLabel = '';
+    for (const tx of transactions) {
+      const label = formatDateGroupLabel(tx.date);
+      if (label !== lastLabel) {
+        items.push({ kind: 'header', label });
+        lastLabel = label;
+      }
+      items.push({ kind: 'tx', tx });
+    }
+    return items;
+  }, [transactions]);
+
+  const virtualizer = useVirtualizer({
+    count: flatItems.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: (index) => (flatItems[index].kind === 'header' ? 32 : 68),
+    overscan: 10,
+  });
+
+  // Only use virtualization for large lists (100+)
+  if (transactions.length < 100) {
+    return (
+      <div className="space-y-4">
+        {(() => {
+          const groups: { label: string; items: Transaction[] }[] = [];
+          for (const tx of transactions) {
+            const label = formatDateGroupLabel(tx.date);
+            const last = groups[groups.length - 1];
+            if (last && last.label === label) {
+              last.items.push(tx);
+            } else {
+              groups.push({ label, items: [tx] });
+            }
+          }
+          return groups.map((group) => (
+            <div key={group.label}>
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </h3>
+              <div className="space-y-2">
+                {group.items.map((tx) => (
+                  <TransactionItem
+                    key={tx.id}
+                    id={tx.id}
+                    description={tx.description}
+                    amount={tx.amount}
+                    date={tx.date}
+                    type={tx.type}
+                    category={tx.categories}
+                    categoryId={tx.category_id}
+                    merchant={tx.merchant}
+                    searchQuery={searchQuery}
+                    onCategoryChange={onCategoryChange}
+                  />
+                ))}
+              </div>
+            </div>
+          ));
+        })()}
+      </div>
+    );
+  }
+
+  return (
+    <div ref={parentRef} className="max-h-[70vh] overflow-auto">
+      <div
+        style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}
+      >
+        {virtualizer.getVirtualItems().map((vItem) => {
+          const item = flatItems[vItem.index];
+          return (
+            <div
+              key={vItem.key}
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                transform: `translateY(${vItem.start}px)`,
+              }}
+              data-index={vItem.index}
+              ref={virtualizer.measureElement}
+            >
+              {item.kind === 'header' ? (
+                <h3 className="pb-2 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground first:pt-0">
+                  {item.label}
+                </h3>
+              ) : (
+                <div className="pb-2">
+                  <TransactionItem
+                    id={item.tx.id}
+                    description={item.tx.description}
+                    amount={item.tx.amount}
+                    date={item.tx.date}
+                    type={item.tx.type}
+                    category={item.tx.categories}
+                    categoryId={item.tx.category_id}
+                    merchant={item.tx.merchant}
+                    searchQuery={searchQuery}
+                    onCategoryChange={onCategoryChange}
+                  />
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function TransactionList() {
@@ -195,50 +324,17 @@ export function TransactionList() {
         />
       ) : (
         <>
-          <div className="space-y-4">
-            {(() => {
-              const groups: { label: string; items: Transaction[] }[] = [];
-              for (const tx of transactions) {
-                const label = formatDateGroupLabel(tx.date);
-                const last = groups[groups.length - 1];
-                if (last && last.label === label) {
-                  last.items.push(tx);
-                } else {
-                  groups.push({ label, items: [tx] });
-                }
-              }
-              return groups.map((group) => (
-                <div key={group.label}>
-                  <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {group.label}
-                  </h3>
-                  <div className="space-y-2">
-                    {group.items.map((tx) => (
-                      <TransactionItem
-                        key={tx.id}
-                        id={tx.id}
-                        description={tx.description}
-                        amount={tx.amount}
-                        date={tx.date}
-                        type={tx.type}
-                        category={tx.categories}
-                        categoryId={tx.category_id}
-                        merchant={tx.merchant}
-                        searchQuery={searchQuery}
-                        onCategoryChange={(txId, _catId, cat) => {
-                          setTransactions((prev) =>
-                            prev.map((t) =>
-                              t.id === txId ? { ...t, categories: cat } : t,
-                            ),
-                          );
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              ));
-            })()}
-          </div>
+          <VirtualizedTransactionList
+            transactions={transactions}
+            searchQuery={searchQuery}
+            onCategoryChange={(txId, _catId, cat) => {
+              setTransactions((prev) =>
+                prev.map((t) =>
+                  t.id === txId ? { ...t, categories: cat } : t,
+                ),
+              );
+            }}
+          />
 
           {hasMore && (
             <div className="flex justify-center pt-2">

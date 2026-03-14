@@ -10,23 +10,37 @@ interface EmptyStateProps {
     onClick?: () => void;
     disabled?: boolean;
   };
+  secondaryAction?: {
+    label: string;
+    onClick?: () => void;
+  };
 }
 
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+export function EmptyState({ icon: Icon, title, description, action, secondaryAction }: EmptyStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
-      <div className="rounded-full bg-muted p-4">
-        <Icon className="h-8 w-8 text-muted-foreground" />
+    <div className="flex flex-col items-center justify-center gap-5 py-20 text-center">
+      <div className="relative">
+        <div className="absolute -inset-3 rounded-full bg-primary/5" />
+        <div className="relative rounded-full bg-muted p-5">
+          <Icon className="h-10 w-10 text-muted-foreground" />
+        </div>
       </div>
-      <div className="space-y-2">
+      <div className="max-w-sm space-y-2">
         <h2 className="text-xl font-semibold">{title}</h2>
-        <p className="max-w-md text-muted-foreground">{description}</p>
+        <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
-      {action && (
-        <Button onClick={action.onClick} disabled={action.disabled}>
-          {action.label}
-        </Button>
-      )}
+      <div className="flex items-center gap-3">
+        {action && (
+          <Button onClick={action.onClick} disabled={action.disabled}>
+            {action.label}
+          </Button>
+        )}
+        {secondaryAction && (
+          <Button variant="outline" onClick={secondaryAction.onClick}>
+            {secondaryAction.label}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

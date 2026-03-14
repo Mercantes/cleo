@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Landmark, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
+import { useApi } from '@/hooks/use-api';
 
 interface Account {
   id: string;
@@ -14,6 +14,11 @@ interface Account {
   bankName: string;
 }
 
+interface AccountsData {
+  accounts: Account[];
+  totalBalance: number;
+}
+
 const TYPE_LABELS: Record<string, string> = {
   checking: 'Conta Corrente',
   savings: 'Poupança',
@@ -21,20 +26,10 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function AccountsCard() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [totalBalance, setTotalBalance] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useApi<AccountsData>('/api/dashboard/accounts');
 
-  useEffect(() => {
-    fetch('/api/dashboard/accounts')
-      .then((r) => r.json())
-      .then((data) => {
-        setAccounts(data.accounts || []);
-        setTotalBalance(data.totalBalance || 0);
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
+  const accounts = data?.accounts || [];
+  const totalBalance = data?.totalBalance || 0;
 
   if (isLoading) {
     return <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />;

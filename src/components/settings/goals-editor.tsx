@@ -2,10 +2,148 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Target, Save, Loader2, TrendingUp } from 'lucide-react';
+import { Target, Save, Loader2, TrendingUp, Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
+
+interface BudgetItem {
+  id: string;
+  categoryId: string;
+  categoryName: string;
+  categoryIcon: string;
+  monthlyLimit: number;
+  spent: number;
+  percentage: number;
+  status: string;
+}
+
+function CategoryBudgetsEditor() {
+  const [budgets, setBudgets] = useState<BudgetItem[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCat, setSelectedCat] = useState('');
+  const [limitValue, setLimitValue] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetchWithTimeout('/api/budgets').then((r) => r.ok ? r.json() : null),
+      fetchWithTimeout('/api/categories').then((r) => r.ok ? r.json() : null),
+    ]).then(([budgetsData, catsData]) => {
+      if (budgetsData?.budgets) setBudgets(budgetsData.budgets);
+      if (catsData?.categories) setCategories(catsData.categories);
+    }).catch(() => {});
+  }, []);
+
+  const availableCategories = categories.filter(
+    (c) => !budgets.some((b) => b.categoryId === c.id),
+  );
+
+  async function handleAdd() {
+    if (!selectedCat || !limitValue || Number(limitValue) <= 0) return;
+    setSaving(true);
+    try {
+      const res = await fetchWithTimeout('/api/budgets', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categoryId: selectedCat, monthlyLimit: Number(limitValue) }),
+      });
+      if (res.ok) {
+        const refreshRes = await fetchWithTimeout('/api/budgets');
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          setBudgets(data.budgets || []);
+        }
+        setSelectedCat('');
+        setLimitValue('');
+        toast('Limite adicionado');
+      }
+    } catch { /* ignore */ }
+    setSaving(false);
+  }
+
+  async function handleDelete(budgetId: string) {
+    const res = await fetchWithTimeout(`/api/budgets?id=${budgetId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setBudgets((prev) => prev.filter((b) => b.id !== budgetId));
+      toast('Limite removido');
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-sm font-medium">Limites por categoria</h3>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Defina quanto quer gastar no máximo em cada categoria por mês
+        </p>
+      </div>
+
+      {budgets.length > 0 && (
+        <div className="space-y-2">
+          {budgets.map((b) => (
+            <div key={b.id} className="flex items-center justify-between rounded-md border px-3 py-2">
+              <div className="flex items-center gap-2">
+                <span>{b.categoryIcon}</span>
+                <span className="text-sm font-medium">{b.categoryName}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">
+                  R$ {b.monthlyLimit.toFixed(0)}/mês
+                </span>
+                <button
+                  onClick={() => handleDelete(b.id)}
+                  className="rounded p-1 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                  aria-label={`Remover limite de ${b.categoryName}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {availableCategories.length > 0 && (
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="flex-1">
+            <select
+              value={selectedCat}
+              onChange={(e) => setSelectedCat(e.target.value)}
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              aria-label="Selecionar categoria"
+            >
+              <option value="">Selecionar categoria...</option>
+              {availableCategories.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="w-28">
+            <input
+              type="number"
+              min="1"
+              step="50"
+              value={limitValue}
+              onChange={(e) => setLimitValue(e.target.value)}
+              placeholder="R$ limite"
+              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+              aria-label="Valor do limite mensal"
+            />
+          </div>
+          <button
+            onClick={handleAdd}
+            disabled={saving || !selectedCat || !limitValue}
+            className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Adicionar
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function GoalsEditor() {
   const [savingsTarget, setSavingsTarget] = useState('');
@@ -165,6 +303,8 @@ export function GoalsEditor() {
           </p>
         )}
       </div>
+
+      <CategoryBudgetsEditor />
 
       <Link
         href="/projections"

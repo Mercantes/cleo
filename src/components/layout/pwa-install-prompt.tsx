@@ -23,8 +23,12 @@ export function PwaInstallPrompt() {
     if (checkedRef.current) return;
     checkedRef.current = true;
 
+    // Register service worker for push notifications
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
     if (isDismissedOrInstalled()) {
-      // Don't call setState — just skip the event listener
       return;
     }
 

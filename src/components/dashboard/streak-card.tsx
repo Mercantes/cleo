@@ -1,0 +1,118 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { Flame, TrendingUp } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils/format';
+import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+
+interface MonthData {
+  month: string;
+  income: number;
+  expenses: number;
+  savings: number;
+  metGoal: boolean;
+}
+
+interface StreakData {
+  months: MonthData[];
+  currentStreak: number;
+  bestStreak: number;
+  target: number;
+}
+
+export function StreakCard() {
+  const [data, setData] = useState<StreakData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchWithTimeout('/api/goals/streak')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setData(d))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return <div className="h-[160px] animate-pulse rounded-lg border bg-muted" />;
+  }
+
+  if (!data || data.target <= 0 || data.months.length === 0) {
+    return null;
+  }
+
+  const { months, currentStreak, bestStreak } = data;
+  // Show last 6 months for compact display
+  const displayMonths = months.slice(-6);
+
+  return (
+    <div className="rounded-lg border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Flame className={cn('h-4 w-4', currentStreak >= 2 ? 'text-orange-500' : 'text-muted-foreground')} />
+          Sequência de metas
+        </div>
+        {bestStreak > 0 && (
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+            <TrendingUp className="h-3 w-3" />
+            Recorde: {bestStreak} {bestStreak === 1 ? 'mês' : 'meses'}
+          </div>
+        )}
+      </div>
+
+      {/* Current streak highlight */}
+      <div className="mt-3 flex items-center gap-3">
+        <div className={cn(
+          'flex h-12 w-12 items-center justify-center rounded-full text-lg font-bold',
+          currentStreak >= 3
+            ? 'bg-orange-500/10 text-orange-500'
+            : currentStreak >= 1
+              ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+              : 'bg-muted text-muted-foreground',
+        )}>
+          {currentStreak}
+        </div>
+        <div>
+          <p className="text-sm font-medium">
+            {currentStreak === 0
+              ? 'Nenhum mês na meta'
+              : currentStreak === 1
+                ? '1 mês consecutivo'
+                : `${currentStreak} meses consecutivos`}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Meta: {formatCurrency(data.target)}/mês
+          </p>
+        </div>
+      </div>
+
+      {/* Month dots visualization */}
+      <div className="mt-4 flex items-end gap-1.5">
+        {displayMonths.map((m, i) => (
+          <div key={i} className="flex flex-1 flex-col items-center gap-1">
+            <div
+              className={cn(
+                'flex h-8 w-full items-center justify-center rounded-md text-[10px] font-medium transition-colors',
+                m.metGoal
+                  ? 'bg-green-500/15 text-green-600 dark:text-green-400'
+                  : m.savings > 0
+                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    : 'bg-muted text-muted-foreground',
+              )}
+              title={`${m.month}: ${formatCurrency(m.savings)} economizado`}
+            >
+              {m.metGoal ? '✓' : m.savings > 0 ? '~' : '—'}
+            </div>
+            <span className="text-[10px] text-muted-foreground capitalize">{m.month}</span>
+          </div>
+        ))}
+      </div>
+
+      {currentStreak >= 2 && (
+        <p className="mt-3 text-xs text-green-600 dark:text-green-400">
+          Continue assim! Manter a sequência fica mais fácil com o tempo.
+        </p>
+      )}
+    </div>
+  );
+}
