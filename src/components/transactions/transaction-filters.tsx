@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Calendar, Search, X } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
 
 interface TransactionFiltersProps {
@@ -20,8 +22,7 @@ interface TransactionFiltersProps {
 export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
@@ -53,15 +54,15 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
       .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasFilters = search || from || to || type || category;
+  const hasFilters = search || dateRange?.from || dateRange?.to || type || category;
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 
   const datePresets = useMemo(() => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth();
 
-    const fmt = (d: Date) => d.toISOString().slice(0, 10);
     const firstOfMonth = new Date(year, month, 1);
     const lastOfMonth = new Date(year, month + 1, 0);
     const firstOfLastMonth = new Date(year, month - 1, 1);
@@ -70,45 +71,42 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
     const last30 = new Date(now); last30.setDate(now.getDate() - 29);
 
     return [
-      { id: 'this_month', label: 'Este mês', from: fmt(firstOfMonth), to: fmt(lastOfMonth) },
-      { id: 'last_month', label: 'Mês passado', from: fmt(firstOfLastMonth), to: fmt(lastOfLastMonth) },
-      { id: 'last_7', label: '7 dias', from: fmt(last7), to: fmt(now) },
-      { id: 'last_30', label: '30 dias', from: fmt(last30), to: fmt(now) },
+      { id: 'this_month', label: 'Este mês', from: firstOfMonth, to: lastOfMonth },
+      { id: 'last_month', label: 'Mês passado', from: firstOfLastMonth, to: lastOfLastMonth },
+      { id: 'last_7', label: '7 dias', from: last7, to: now },
+      { id: 'last_30', label: '30 dias', from: last30, to: now },
     ];
   }, []);
 
   function applyPreset(presetId: string) {
     if (activePreset === presetId) {
       setActivePreset(null);
-      setFrom('');
-      setTo('');
+      setDateRange(undefined);
       return;
     }
     const preset = datePresets.find((p) => p.id === presetId);
     if (!preset) return;
     setActivePreset(presetId);
-    setFrom(preset.from);
-    setTo(preset.to);
+    setDateRange({ from: preset.from, to: preset.to });
   }
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       onFiltersChange({
         search: search || undefined,
-        from: from || undefined,
-        to: to || undefined,
+        from: dateRange?.from ? fmtDate(dateRange.from) : undefined,
+        to: dateRange?.to ? fmtDate(dateRange.to) : undefined,
         type: type || undefined,
         category: category || undefined,
       });
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [search, from, to, type, category, onFiltersChange]);
+  }, [search, dateRange, type, category, onFiltersChange]);
 
   const clearFilters = useCallback(() => {
     setSearch('');
-    setFrom('');
-    setTo('');
+    setDateRange(undefined);
     setType('');
     setCategory('');
     setActivePreset(null);
@@ -172,19 +170,9 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
             ))}
           </select>
         )}
-        <Input
-          type="date"
-          value={from}
-          onChange={(e) => { setFrom(e.target.value); setActivePreset(null); }}
-          className="min-w-[140px] sm:w-auto"
-          aria-label="Data inicial"
-        />
-        <Input
-          type="date"
-          value={to}
-          onChange={(e) => { setTo(e.target.value); setActivePreset(null); }}
-          className="min-w-[140px] sm:w-auto"
-          aria-label="Data final"
+        <DateRangePicker
+          value={dateRange}
+          onChange={(range) => { setDateRange(range); setActivePreset(null); }}
         />
         {hasFilters && (
           <Button variant="outline" size="sm" onClick={clearFilters} className="gap-1">
