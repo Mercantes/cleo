@@ -6,6 +6,7 @@ import { Target, Save, Loader2, TrendingUp, Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 
 interface BudgetItem {
   id: string;
@@ -152,9 +153,9 @@ export function GoalsEditor() {
   const [currentSavings, setCurrentSavings] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const [saveError, setSaveError] = useState(false);
+  const { submit, saving, feedback } = useFormSubmit({
+    successMessage: 'Metas salvas com sucesso',
+  });
 
   useEffect(() => {
     fetchWithTimeout('/api/goals')
@@ -176,32 +177,17 @@ export function GoalsEditor() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleSave = async () => {
-    setSaving(true);
-    setSaved(false);
-    setSaveError(false);
-    try {
-      const res = await fetchWithTimeout('/api/goals', {
+  const handleSave = () =>
+    submit(() =>
+      fetchWithTimeout('/api/goals', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           monthlySavingsTarget: savingsTarget ? Number(savingsTarget) : null,
           retirementAgeTarget: retirementAge ? Number(retirementAge) : null,
         }),
-      });
-      if (res.ok) {
-        setSaved(true);
-        toast.success('Metas salvas com sucesso');
-        setTimeout(() => setSaved(false), 3000);
-      } else {
-        setSaveError(true);
-      }
-    } catch {
-      setSaveError(true);
-    } finally {
-      setSaving(false);
-    }
-  };
+      }),
+    );
 
   if (loading) {
     return <div className="h-48 animate-pulse rounded-lg bg-muted" />;
@@ -295,9 +281,9 @@ export function GoalsEditor() {
           ) : (
             <Save className="h-4 w-4" />
           )}
-          {saved ? 'Salvo!' : 'Salvar metas'}
+          {feedback === 'saved' ? 'Salvo!' : 'Salvar metas'}
         </button>
-        {saveError && (
+        {feedback === 'error' && (
           <p role="alert" className="text-sm text-red-600 dark:text-red-400">
             Erro ao salvar. Tente novamente.
           </p>

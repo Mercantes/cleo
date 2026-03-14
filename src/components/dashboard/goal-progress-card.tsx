@@ -4,27 +4,15 @@ import { Target, Flame, Trophy, Star } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
+import type { GoalProgress, Gamification } from '@/types/dashboard';
 
 interface GoalData {
   goals: {
     monthly_savings_target: number | null;
     retirement_age_target: number | null;
   } | null;
-  progress: {
-    currentSavings: number;
-    target: number;
-    percentage: number;
-    income: number;
-    expenses: number;
-  };
-  gamification: {
-    level: number;
-    xp: number;
-    xpToNextLevel: number;
-    streak: number;
-    bestStreak: number;
-    totalChallengesCompleted: number;
-  };
+  progress: GoalProgress;
+  gamification: Gamification;
 }
 
 export function GoalProgressCard() {

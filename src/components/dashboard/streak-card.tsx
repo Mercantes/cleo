@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Flame, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface MonthData {
   month: string;
@@ -22,16 +21,7 @@ interface StreakData {
 }
 
 export function StreakCard() {
-  const [data, setData] = useState<StreakData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/goals/streak')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setData(d))
-      .catch(() => setData(null))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data, isLoading: loading } = useApi<StreakData>('/api/goals/streak');
 
   if (loading) {
     return <div className="h-[160px] animate-pulse rounded-lg border bg-muted" />;

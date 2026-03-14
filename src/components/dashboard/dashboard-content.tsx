@@ -23,6 +23,7 @@ import { StreakCard } from './streak-card';
 import { AnimateIn } from '@/components/ui/animate-in';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
+import type { SummaryData, CategoryData, TrendMonth } from '@/types/dashboard';
 
 const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
   ssr: false,
@@ -33,30 +34,6 @@ const CategoryChart = dynamic(() => import('./category-chart').then((m) => m.Cat
   ssr: false,
   loading: () => <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />,
 });
-
-interface SummaryData {
-  income: number;
-  expenses: number;
-  balance: number;
-  savingsRate: number;
-  percentChange: number;
-  month: string;
-}
-
-interface CategoryData {
-  name: string;
-  amount: number;
-  categoryId: string | null;
-  percentage: number;
-  color: string;
-}
-
-interface TrendMonth {
-  month: string;
-  label: string;
-  income: number;
-  expenses: number;
-}
 
 function getGreeting(): string {
   const hour = new Date().getHours();

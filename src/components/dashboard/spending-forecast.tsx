@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface Prediction {
   category: string;
@@ -14,30 +14,18 @@ interface Prediction {
   status: 'over' | 'under' | 'on_track';
 }
 
-export function SpendingForecast() {
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [monthProgress, setMonthProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [hasData, setHasData] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+interface ForecastData {
+  predictions: Prediction[];
+  hasEnoughData: boolean;
+  monthProgress: number;
+}
 
-  useEffect(() => {
-    fetchWithTimeout('/api/projections/categories')
-      .then((r) => {
-        if (!r.ok) return { predictions: [], hasEnoughData: false, monthProgress: 0 };
-        return r.json();
-      })
-      .then((d) => {
-        setPredictions(d.predictions || []);
-        setMonthProgress(d.monthProgress || 0);
-        setHasData(d.hasEnoughData || false);
-      })
-      .catch(() => {
-        setPredictions([]);
-        setHasData(false);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+export function SpendingForecast() {
+  const { data, isLoading: loading } = useApi<ForecastData>('/api/projections/categories');
+  const predictions = data?.predictions || [];
+  const monthProgress = data?.monthProgress || 0;
+  const hasData = data?.hasEnoughData || false;
+  const [showAll, setShowAll] = useState(false);
 
   if (loading) {
     return <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />;

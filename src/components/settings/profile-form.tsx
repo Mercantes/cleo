@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from '@/components/ui/toast';
+import { useFormSubmit } from '@/hooks/use-form-submit';
 
 interface ProfileFormProps {
   initialName: string;
@@ -12,30 +12,18 @@ interface ProfileFormProps {
 
 export function ProfileForm({ initialName, email }: ProfileFormProps) {
   const [name, setName] = useState(initialName);
-  const [saving, setSaving] = useState(false);
-  const [feedback, setFeedback] = useState<'saved' | 'error' | null>(null);
+  const { submit, saving, feedback } = useFormSubmit({
+    successMessage: 'Perfil salvo com sucesso',
+  });
 
-  const handleSave = async () => {
-    setSaving(true);
-    setFeedback(null);
-    try {
-      const res = await fetch('/api/settings/profile', {
+  const handleSave = () =>
+    submit(() =>
+      fetch('/api/settings/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ full_name: name }),
-      });
-      if (res.ok) {
-        setFeedback('saved');
-        toast.success('Perfil salvo com sucesso');
-      } else {
-        setFeedback('error');
-      }
-    } catch {
-      setFeedback('error');
-    } finally {
-      setSaving(false);
-    }
-  };
+      }),
+    );
 
   return (
     <div className="space-y-4">

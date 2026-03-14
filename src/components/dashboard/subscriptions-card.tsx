@@ -1,19 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Repeat } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import Link from 'next/link';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
-
-interface RecurringItem {
-  merchant: string;
-  amount: number;
-  frequency: string;
-  type: string;
-  next_expected_date: string;
-  installments_remaining?: number;
-}
+import { useApi } from '@/hooks/use-api';
+import type { RecurringItem } from '@/types/dashboard';
 
 interface RecurringData {
   subscriptions: RecurringItem[];
@@ -22,17 +13,7 @@ interface RecurringData {
 }
 
 export function SubscriptionsCard() {
-  const [data, setData] = useState<RecurringData | null>(null);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/recurring')
-      .then((res) => {
-        if (!res.ok) return null;
-        return res.json();
-      })
-      .then((json) => { if (json) setData(json); })
-      .catch(() => { /* Optional card — graceful no-op */ });
-  }, []);
+  const { data } = useApi<RecurringData>('/api/recurring');
 
   if (!data || (data.subscriptions.length === 0 && data.installments.length === 0)) {
     return null;

@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { X, MessageSquare } from 'lucide-react';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface Insight {
   id: string;
@@ -44,20 +44,9 @@ function saveDismissed(ids: Set<string>) {
 
 export function InsightsBar() {
   const router = useRouter();
-  const [insights, setInsights] = useState<Insight[]>([]);
+  const { data, isLoading: loading } = useApi<{ insights: Insight[] }>('/api/insights');
+  const insights = data?.insights || [];
   const [dismissed, setDismissed] = useState<Set<string>>(() => getDismissedFromStorage());
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/insights')
-      .then((r) => {
-        if (!r.ok) return { insights: [] };
-        return r.json();
-      })
-      .then((d) => setInsights(d.insights || []))
-      .catch(() => setInsights([]))
-      .finally(() => setLoading(false));
-  }, []);
 
   const dismiss = (id: string) => {
     setDismissed((prev) => {

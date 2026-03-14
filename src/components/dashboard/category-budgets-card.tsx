@@ -1,36 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
-
-interface BudgetItem {
-  id: string;
-  categoryId: string;
-  categoryName: string;
-  categoryIcon: string;
-  monthlyLimit: number;
-  spent: number;
-  percentage: number;
-  status: 'over' | 'warning' | 'ok';
-}
+import { useApi } from '@/hooks/use-api';
+import type { BudgetItem } from '@/types/dashboard';
 
 export function CategoryBudgetsCard() {
-  const [budgets, setBudgets] = useState<BudgetItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/budgets')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.budgets) setBudgets(data.budgets);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: budgetsData, isLoading: loading } = useApi<{ budgets: BudgetItem[] }>('/api/budgets');
+  const budgets = budgetsData?.budgets || [];
 
   if (loading) {
     return <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />;

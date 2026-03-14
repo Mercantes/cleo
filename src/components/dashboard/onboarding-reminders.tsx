@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Landmark, Tags, Target, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 const STEP_CONFIG: Record<string, { icon: typeof Landmark; label: string; description: string }> = {
   'connect-bank': {
@@ -25,22 +25,9 @@ const STEP_CONFIG: Record<string, { icon: typeof Landmark; label: string; descri
 };
 
 export function OnboardingReminders() {
-  const [skippedSteps, setSkippedSteps] = useState<string[]>([]);
+  const { data } = useApi<{ skippedSteps: string[] }>('/api/onboarding');
+  const skippedSteps = data?.skippedSteps || [];
   const [dismissed, setDismissed] = useState<string[]>([]);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/onboarding')
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((data) => {
-        if (data?.skippedSteps?.length) {
-          setSkippedSteps(data.skippedSteps);
-        }
-      })
-      .catch(() => { /* Optional widget — graceful no-op */ });
-  }, []);
 
   const visibleSteps = skippedSteps.filter((s) => !dismissed.includes(s));
 
