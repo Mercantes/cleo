@@ -90,14 +90,18 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
       continue;
     }
 
-    // Check for subscription pattern: monthly frequency + similar amounts
+    // Check for recurring pattern: monthly frequency + similar amounts
     const intervals: number[] = [];
     let amountConsistent = true;
+    let amountsExact = true;
 
     for (let i = 1; i < sorted.length; i++) {
       intervals.push(daysBetween(sorted[i].date, sorted[i - 1].date));
       if (!isAmountSimilar(sorted[i].amount, sorted[0].amount)) {
         amountConsistent = false;
+      }
+      if (Math.abs(sorted[i].amount - sorted[0].amount) > 0.01) {
+        amountsExact = false;
       }
     }
 
@@ -109,11 +113,26 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
 
     if (isMonthly && sorted.length >= 2) {
       const latest = sorted[sorted.length - 1];
+
+      // Determine type: installment vs subscription
+      // - Amounts with slight variation (price adjustments) → subscription
+      // - Exact amounts + few occurrences (≤4) + short span → likely installment
+      // - 5+ occurrences or spanning 5+ months → subscription (long-running)
+      const spanMonths = daysBetween(sorted[0].date, sorted[sorted.length - 1].date) / 30;
+      const isLongRunning = spanMonths >= 5;
+      const hasAmountVariation = !amountsExact;
+
+      const type: 'subscription' | 'installment' =
+        hasAmountVariation || sorted.length >= 5 || isLongRunning
+          ? 'subscription'
+          : 'installment';
+
       results.push({
         merchant: latest.merchant || latest.description,
         amount: latest.amount,
         frequency: 'monthly',
-        type: 'subscription',
+        type,
+        installments_remaining: type === 'installment' ? Math.max(0, 12 - sorted.length) : undefined,
         next_expected_date: addMonths(latest.date, 1),
         occurrences: sorted.length,
         transaction_pattern: merchantKey,

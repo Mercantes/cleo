@@ -71,11 +71,13 @@ describe('detectInstallmentPattern', () => {
 });
 
 describe('detectRecurringFromTransactions', () => {
-  it('detects monthly subscription with 2+ months', () => {
+  it('detects monthly subscription with 5+ months of history', () => {
     const transactions = [
-      makeTx({ id: '1', date: '2026-01-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '2', date: '2026-02-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '3', date: '2026-03-14', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '1', date: '2025-10-15', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '2', date: '2025-11-15', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '3', date: '2025-12-15', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '4', date: '2026-01-15', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '5', date: '2026-02-15', amount: 39.9, merchant: 'Netflix' }),
     ];
 
     const results = detectRecurringFromTransactions(transactions);
@@ -83,6 +85,18 @@ describe('detectRecurringFromTransactions', () => {
     expect(results[0].type).toBe('subscription');
     expect(results[0].merchant).toBe('Netflix');
     expect(results[0].frequency).toBe('monthly');
+  });
+
+  it('classifies few months with exact amount as installment', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2026-01-10', amount: 500, merchant: 'SplashPiscinas' }),
+      makeTx({ id: '2', date: '2026-02-10', amount: 500, merchant: 'SplashPiscinas' }),
+      makeTx({ id: '3', date: '2026-03-10', amount: 500, merchant: 'SplashPiscinas' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe('installment');
   });
 
   it('detects installments with X/Y pattern', () => {
