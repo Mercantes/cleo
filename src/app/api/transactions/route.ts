@@ -1,18 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
 const PAGE_SIZE = 50;
 
-export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (request: NextRequest, { supabase, user }) => {
   const { searchParams } = request.nextUrl;
   const category = searchParams.get('category');
   const bank = searchParams.get('bank');
@@ -20,7 +11,7 @@ export async function GET(request: NextRequest) {
   const from = searchParams.get('from');
   const to = searchParams.get('to');
   const search = searchParams.get('search');
-  const page = parseInt(searchParams.get('page') || '1');
+  const page = Math.max(1, parseInt(searchParams.get('page') || '1') || 1);
 
   let query = supabase
     .from('transactions')
@@ -57,4 +48,4 @@ export async function GET(request: NextRequest) {
     pageSize: PAGE_SIZE,
     total: count || 0,
   });
-}
+});

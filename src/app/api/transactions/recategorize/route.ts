@@ -1,17 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
-export async function POST() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (_request, { supabase, user }) => {
   const { data: uncategorized, error } = await supabase
     .from('transactions')
     .select('id, description, amount, type')
@@ -34,4 +25,4 @@ export async function POST() {
     categorized,
     total: uncategorized.length,
   });
-}
+});

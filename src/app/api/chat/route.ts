@@ -39,6 +39,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Message is required' }, { status: 400 });
   }
 
+  if (message.length > 4000) {
+    return NextResponse.json({ error: 'Mensagem muito longa (máximo 4000 caracteres)' }, { status: 400 });
+  }
+
   // Check tier limit
   const tierCheck = await checkTierLimit(user.id, 'chat');
   if (!tierCheck.allowed) {
@@ -103,6 +107,8 @@ export async function POST(request: NextRequest) {
               );
             }
           }
+
+          const finalMessage = await stream.finalMessage();
 
           // Save assistant response
           const { data: assistantMessage } = await supabase

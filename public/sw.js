@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'cleo-v2';
+const CACHE_NAME = 'cleo-v3';
 const API_CACHE_NAME = 'cleo-api-v1';
-const OFFLINE_URLS = ['/', '/dashboard', '/transactions'];
+const OFFLINE_URLS = ['/', '/dashboard', '/transactions', '/splits', '/reports', '/import'];
 const API_CACHE_URLS = [
   '/api/dashboard/summary',
   '/api/dashboard/categories',
@@ -11,12 +11,20 @@ const API_CACHE_URLS = [
   '/api/dashboard/recent',
   '/api/goals',
   '/api/insights',
+  '/api/reports/monthly',
+  '/api/reports/compare',
+  '/api/splits',
 ];
 const API_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(OFFLINE_URLS)),
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(OFFLINE_URLS))
+      .catch((err) => {
+        console.warn('[sw] Cache install failed (quota?):', err.message);
+      }),
   );
   self.skipWaiting();
 });
@@ -65,7 +73,7 @@ self.addEventListener('fetch', (event) => {
                   cache.put(
                     event.request,
                     new Response(body, { status: clone.status, headers }),
-                  );
+                  ).catch(() => {});
                 });
               }
             })
@@ -86,7 +94,7 @@ self.addEventListener('fetch', (event) => {
             cache.put(
               event.request,
               new Response(body, { status: clone.status, headers }),
-            );
+            ).catch(() => {});
           });
         }
         return response;

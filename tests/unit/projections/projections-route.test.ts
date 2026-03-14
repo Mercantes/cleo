@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/projections/route';
 
 const mockGetUser = vi.fn();
@@ -48,7 +49,7 @@ beforeEach(() => {
 
 describe('GET /api/projections', () => {
   it('returns projection data with scenarios', async () => {
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost'));
     const json = await res.json();
     expect(res.status).toBe(200);
     expect(json.hasEnoughData).toBe(true);
@@ -58,7 +59,7 @@ describe('GET /api/projections', () => {
 
   it('returns 401 when not authenticated', async () => {
     mockGetUser.mockResolvedValueOnce({ data: { user: null } });
-    const res = await GET();
+    const res = await GET(new NextRequest('http://localhost'));
     expect(res.status).toBe(401);
   });
 });

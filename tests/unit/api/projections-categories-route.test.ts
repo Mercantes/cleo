@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 const mockSelect = vi.fn();
@@ -29,7 +30,7 @@ describe('GET /api/projections/categories', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/projections/categories/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -39,7 +40,7 @@ describe('GET /api/projections/categories', () => {
     mockSelect.mockResolvedValue({ data: [] });
 
     const { GET } = await import('@/app/api/projections/categories/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -66,7 +67,7 @@ describe('GET /api/projections/categories', () => {
     });
 
     const { GET } = await import('@/app/api/projections/categories/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);

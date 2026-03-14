@@ -132,6 +132,8 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
           <button
             key={preset.id}
             onClick={() => applyPreset(preset.id)}
+            aria-label={`Filtrar: ${preset.label}`}
+            aria-pressed={activePreset === preset.id}
             className={cn(
               'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
               activePreset === preset.id

@@ -1,19 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { createConnectToken } from '@/lib/pluggy/client';
 import { PluggyError } from '@/lib/pluggy/types';
 import { checkTierLimit } from '@/lib/finance/tier-check';
 
-export async function POST(request: Request) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (request, { user }) => {
   try {
     // Check if Pluggy is configured
     if (!process.env.PLUGGY_CLIENT_ID || !process.env.PLUGGY_CLIENT_SECRET) {
@@ -72,4 +63,4 @@ export async function POST(request: Request) {
     console.error('[pluggy-connect] unexpected error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
+});

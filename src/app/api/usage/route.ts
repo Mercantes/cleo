@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAuthClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { getUserTier } from '@/lib/finance/tier-check';
 import { TIER_LIMITS, getCurrentPeriod } from '@/lib/finance/tier-config';
 import { createClient } from '@supabase/supabase-js';
@@ -11,16 +11,7 @@ function getServiceClient() {
   );
 }
 
-export async function GET() {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const tier = await getUserTier(user.id);
 
   if (tier === 'pro') {
@@ -59,4 +50,4 @@ export async function GET() {
     },
     { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' } },
   );
-}
+});

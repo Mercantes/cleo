@@ -25,14 +25,21 @@ export function ChatInterface() {
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
   const [autoSent, setAutoSent] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const isNearBottom = useCallback(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 150;
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isLoading, scrollToBottom]);
+    if (isNearBottom()) scrollToBottom();
+  }, [messages, isLoading, scrollToBottom, isNearBottom]);
 
   useEffect(() => {
     async function loadHistory() {
@@ -197,7 +204,7 @@ export function ChatInterface() {
       // best effort
     }
     setMessages([]);
-    toast('Chat limpo');
+    toast.success('Chat limpo');
   }
 
   const showSuggestions = isHistoryLoaded && messages.length === 0;
@@ -216,7 +223,7 @@ export function ChatInterface() {
           </button>
         </div>
       )}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
         {showSuggestions && <ChatSuggestions onSelect={handleSuggestionSelect} />}
         {messages.map((msg) => (
           <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} />

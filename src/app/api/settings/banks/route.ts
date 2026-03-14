@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const { data: connections, error } = await supabase
     .from('bank_connections')
     .select('id, connector_name, connector_logo_url, status, last_sync_at, created_at')
@@ -22,26 +13,16 @@ export async function GET() {
   }
 
   return NextResponse.json({ connections: connections || [] });
-}
+});
 
-export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const DELETE = withAuth(async (request: NextRequest, { supabase, user }) => {
   const { searchParams } = new URL(request.url);
   const connectionId = searchParams.get('id');
 
-  if (!connectionId) {
-    return NextResponse.json({ error: 'Connection ID required' }, { status: 400 });
+  if (!connectionId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(connectionId)) {
+    return NextResponse.json({ error: 'Invalid connection ID' }, { status: 400 });
   }
 
-  // Delete connection (cascades to accounts/transactions via DB)
   const { error } = await supabase
     .from('bank_connections')
     .delete()
@@ -53,4 +34,4 @@ export async function DELETE(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

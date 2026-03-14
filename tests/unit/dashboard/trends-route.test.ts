@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 const mockSelect = vi.fn();
@@ -32,7 +33,7 @@ describe('GET /api/dashboard/trends', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/dashboard/trends/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -47,7 +48,7 @@ describe('GET /api/dashboard/trends', () => {
     });
 
     const { GET } = await import('@/app/api/dashboard/trends/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);

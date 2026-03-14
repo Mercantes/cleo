@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAuthClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
 
 function getServiceClient() {
@@ -17,16 +17,7 @@ interface MonthResult {
   metGoal: boolean;
 }
 
-export async function GET() {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const db = getServiceClient();
 
   // Get user goals
@@ -74,8 +65,7 @@ export async function GET() {
     const savings = Math.max(0, income - expenses);
 
     // Current month is "in progress" — only count as met if already exceeded
-    const isCurrent = i === 0;
-    const metGoal = isCurrent ? savings >= target : savings >= target;
+    const metGoal = savings >= target;
 
     months.push({
       month: label,
@@ -107,4 +97,4 @@ export async function GET() {
     },
     { headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' } },
   );
-}
+});

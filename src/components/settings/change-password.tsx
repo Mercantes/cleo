@@ -38,7 +38,7 @@ export function ChangePassword() {
         return;
       }
 
-      toast('Senha alterada com sucesso');
+      toast.success('Senha alterada com sucesso');
       setNewPassword('');
       setConfirmPassword('');
     } catch {

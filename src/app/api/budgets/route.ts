@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
+import { budgetSchema, parseBody } from '@/lib/validations/api';
 
 interface BudgetRow {
   id: string;
@@ -8,17 +9,7 @@ interface BudgetRow {
   categories: { name: string; icon: string } | null;
 }
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Get budgets with category names (table not in generated types)
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const { data: budgets, error } = await (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> })
     .from('category_budgets')
     .select('id, category_id, monthly_limit, categories(name, icon)')
@@ -29,7 +20,6 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch budgets' }, { status: 500 });
   }
 
-  // Get current month spending per category
   const now = new Date();
   const startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
@@ -65,24 +55,15 @@ export async function GET() {
   });
 
   return NextResponse.json({ budgets: result });
-}
+});
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (request: NextRequest, { supabase, user }) => {
   const body = await request.json();
-  const { categoryId, monthlyLimit } = body;
-
-  if (!categoryId || !monthlyLimit || monthlyLimit <= 0) {
-    return NextResponse.json({ error: 'Invalid data' }, { status: 400 });
+  const parsed = parseBody(budgetSchema, body);
+  if (parsed.error || !parsed.data) {
+    return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
   }
+  const { categoryId, monthlyLimit } = parsed.data;
 
   const { data, error } = await (supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> })
     .from('category_budgets')
@@ -103,18 +84,9 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ budget: data });
-}
+});
 
-export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const DELETE = withAuth(async (request: NextRequest, { supabase, user }) => {
   const { searchParams } = new URL(request.url);
   const budgetId = searchParams.get('id');
 
@@ -133,4 +105,4 @@ export async function DELETE(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

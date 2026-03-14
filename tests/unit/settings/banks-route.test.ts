@@ -66,7 +66,7 @@ describe('Settings Banks API', () => {
 
   it('GET returns bank connections', async () => {
     const { GET } = await import('@/app/api/settings/banks/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -78,7 +78,7 @@ describe('Settings Banks API', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/settings/banks/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -86,12 +86,23 @@ describe('Settings Banks API', () => {
   it('DELETE disconnects a bank', async () => {
     const { DELETE } = await import('@/app/api/settings/banks/route');
     const request = new NextRequest(
-      'http://localhost/api/settings/banks?id=conn-1',
+      'http://localhost/api/settings/banks?id=00000000-0000-0000-0000-000000000001',
       { method: 'DELETE' },
     );
 
     const response = await DELETE(request);
     expect(response.status).toBe(200);
     expect(mockDelete).toHaveBeenCalled();
+  });
+
+  it('DELETE rejects invalid connection ID', async () => {
+    const { DELETE } = await import('@/app/api/settings/banks/route');
+    const request = new NextRequest(
+      'http://localhost/api/settings/banks?id=not-a-uuid',
+      { method: 'DELETE' },
+    );
+
+    const response = await DELETE(request);
+    expect(response.status).toBe(400);
   });
 });

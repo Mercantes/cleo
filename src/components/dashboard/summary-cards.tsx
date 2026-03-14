@@ -52,6 +52,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
         <Link
           key={card.label}
           href={card.href}
+          aria-label={`${card.label}: ${card.value}`}
           className="rounded-lg border bg-card p-4 transition-all duration-200 hover:bg-accent/50 hover:shadow-md"
         >
           <div className="flex items-center justify-between">

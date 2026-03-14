@@ -1,8 +1,21 @@
+const currencyFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+});
+
+const compactFormatter = new Intl.NumberFormat('pt-BR', {
+  style: 'currency',
+  currency: 'BRL',
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
+
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(amount);
+  return currencyFormatter.format(amount);
+}
+
+export function formatCompactCurrency(amount: number): string {
+  return compactFormatter.format(amount);
 }
 
 export function formatDate(date: string): string {

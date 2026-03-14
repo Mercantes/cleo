@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
@@ -21,7 +22,7 @@ describe('GET /api/tier', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/tier/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -36,7 +37,7 @@ describe('GET /api/tier', () => {
     });
 
     const { GET } = await import('@/app/api/tier/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);

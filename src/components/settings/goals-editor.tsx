@@ -56,7 +56,7 @@ function CategoryBudgetsEditor() {
         }
         setSelectedCat('');
         setLimitValue('');
-        toast('Limite adicionado');
+        toast.success('Limite adicionado');
       }
     } catch { /* ignore */ }
     setSaving(false);
@@ -66,7 +66,7 @@ function CategoryBudgetsEditor() {
     const res = await fetchWithTimeout(`/api/budgets?id=${budgetId}`, { method: 'DELETE' });
     if (res.ok) {
       setBudgets((prev) => prev.filter((b) => b.id !== budgetId));
-      toast('Limite removido');
+      toast.success('Limite removido');
     }
   }
 
@@ -191,7 +191,7 @@ export function GoalsEditor() {
       });
       if (res.ok) {
         setSaved(true);
-        toast('Metas salvas com sucesso');
+        toast.success('Metas salvas com sucesso');
         setTimeout(() => setSaved(false), 3000);
       } else {
         setSaveError(true);

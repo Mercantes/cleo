@@ -244,24 +244,16 @@ export function TransactionList() {
   }, [transactions]);
 
   function exportCSV() {
-    const header = 'Data,Descrição,Categoria,Tipo,Valor\n';
-    const rows = transactions
-      .map((tx) => {
-        const date = tx.date;
-        const desc = tx.description.replace(/"/g, '""');
-        const cat = tx.categories?.name || 'Sem categoria';
-        const type = tx.type === 'credit' ? 'Receita' : 'Despesa';
-        const amount = tx.amount.toFixed(2);
-        return `${date},"${desc}","${cat}",${type},${amount}`;
-      })
-      .join('\n');
-    const blob = new Blob([header + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const params = new URLSearchParams();
+    const f = filtersRef.current;
+    if (f.from) params.set('from', f.from);
+    if (f.to) params.set('to', f.to);
+    const qs = params.toString();
+    const url = `/api/transactions/export${qs ? `?${qs}` : ''}`;
     const a = document.createElement('a');
     a.href = url;
-    a.download = `cleo-transacoes-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = '';
     a.click();
-    URL.revokeObjectURL(url);
   }
 
   if (isInitialLoad) {

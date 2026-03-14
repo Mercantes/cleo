@@ -48,6 +48,7 @@ describe('POST /api/stripe/checkout', () => {
   });
 
   it('returns 403 for invalid origin', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1', email: 'test@example.com' } } });
     const { POST } = await import('@/app/api/stripe/checkout/route');
     const response = await POST(makeRequest('http://evil.com'));
 

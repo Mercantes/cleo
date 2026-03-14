@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAuthClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
 
 function getServiceClient() {
@@ -18,16 +18,7 @@ interface Insight {
   priority: number;
 }
 
-export async function GET() {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const db = getServiceClient();
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
@@ -35,13 +26,14 @@ export async function GET() {
   const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
-  const [currentTxRes, lastTxRes, recurringRes, goalsRes] = await Promise.all([
-    db.from('transactions').select('amount, type, categories(name)').eq('user_id', user.id)
+  const [currentTxRes, lastTxRes, recurringRes, goalsRes, budgetsRes] = await Promise.all([
+    db.from('transactions').select('amount, type, category_id, categories(name)').eq('user_id', user.id)
       .gte('date', currentMonth).lte('date', currentMonthEnd),
     db.from('transactions').select('amount, type, categories(name)').eq('user_id', user.id)
       .gte('date', lastMonthStart).lte('date', lastMonthEnd),
     db.from('recurring_transactions').select('merchant, amount, type').eq('user_id', user.id).eq('status', 'active'),
     db.from('goals').select('monthly_savings_target, streak_months, level').eq('user_id', user.id).single(),
+    db.from('category_budgets').select('category_id, monthly_limit, categories(name)').eq('user_id', user.id),
   ]);
 
   const currentTx = currentTxRes.data || [];
@@ -170,7 +162,49 @@ export async function GET() {
     }
   }
 
-  // 5. Savings streak celebration
+  // 5. Budget overspend alerts
+  const budgets = budgetsRes.data || [];
+  if (budgets.length > 0) {
+    const spendingByCategory = new Map<string, number>();
+    for (const tx of currentTx.filter((t: { type: string }) => t.type === 'debit')) {
+      const catId = (tx as unknown as { category_id: string | null }).category_id;
+      if (catId) {
+        spendingByCategory.set(catId, (spendingByCategory.get(catId) || 0) + Number(tx.amount));
+      }
+    }
+
+    for (const budget of budgets) {
+      const bCatId = (budget as unknown as { category_id: string }).category_id;
+      const limit = Number((budget as unknown as { monthly_limit: number }).monthly_limit);
+      const spent = spendingByCategory.get(bCatId) || 0;
+      const catName = ((budget as unknown as { categories: { name: string } | null }).categories)?.name || 'Categoria';
+      const pct = limit > 0 ? (spent / limit) * 100 : 0;
+
+      if (pct >= 100) {
+        insights.push({
+          id: `budget-over-${bCatId}`,
+          type: 'warning',
+          icon: '🚨',
+          title: `${catName}: orçamento estourado`,
+          message: `Você já gastou R$ ${spent.toFixed(0)} de R$ ${limit.toFixed(0)} em ${catName} (${Math.round(pct)}%).`,
+          priority: 92,
+        });
+        break;
+      } else if (pct >= 80) {
+        insights.push({
+          id: `budget-warn-${bCatId}`,
+          type: 'warning',
+          icon: '⚠️',
+          title: `${catName}: quase no limite`,
+          message: `Você já usou ${Math.round(pct)}% do orçamento de ${catName}. Restam R$ ${(limit - spent).toFixed(0)}.`,
+          priority: 82,
+        });
+        break;
+      }
+    }
+  }
+
+  // 6. Savings streak celebration
   if (goals?.streak_months && goals.streak_months >= 2) {
     insights.push({
       id: 'streak',
@@ -189,4 +223,4 @@ export async function GET() {
     { insights: insights.slice(0, 4) },
     { headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' } },
   );
-}
+});

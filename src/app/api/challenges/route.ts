@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAuthClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
 
 function getServiceClient() {
@@ -57,16 +57,7 @@ const CHALLENGE_TEMPLATES = [
   },
 ];
 
-export async function GET() {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const db = getServiceClient();
   const { data: challenges } = await db
     .from('challenges')
@@ -84,18 +75,9 @@ export async function GET() {
     completed,
     available: CHALLENGE_TEMPLATES,
   });
-}
+});
 
-export async function POST(request: Request) {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (request, { user }) => {
   const body = await request.json();
   const { templateIndex, title, description, type, targetAmount, durationDays } = body;
 
@@ -141,18 +123,9 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ challenge: data }, { status: 201 });
-}
+});
 
-export async function PATCH(request: Request) {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const PATCH = withAuth(async (request, { user }) => {
   const body = await request.json();
   const { challengeId, status } = body;
 
@@ -204,4 +177,4 @@ export async function PATCH(request: Request) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

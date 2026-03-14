@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/utils/api-rate-limit';
 
 export async function PATCH(
   request: NextRequest,
@@ -13,6 +14,9 @@ export async function PATCH(
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const limited = checkRateLimit(user.id);
+  if (limited) return limited;
 
   const { id } = await params;
   const body = await request.json();

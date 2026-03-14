@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient as createAuthClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
+import { goalSchema, parseBody } from '@/lib/validations/api';
 
 function getServiceClient() {
   return createClient(
@@ -9,16 +10,7 @@ function getServiceClient() {
   );
 }
 
-export async function GET() {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const db = getServiceClient();
 
   const { data: goals } = await db
@@ -73,35 +65,26 @@ export async function GET() {
     },
     { headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' } },
   );
-}
+});
 
-export async function PUT(request: Request) {
-  const authClient = await createAuthClient();
-  const {
-    data: { user },
-  } = await authClient.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const PUT = withAuth(async (request, { user }) => {
   const body = await request.json();
-  const { monthlySavingsTarget, retirementAgeTarget } = body;
-
-  const savings = monthlySavingsTarget != null ? Number(monthlySavingsTarget) : null;
-  const retAge = retirementAgeTarget != null ? Number(retirementAgeTarget) : null;
-
-  if ((savings != null && (isNaN(savings) || savings < 0 || savings > 1_000_000)) ||
-      (retAge != null && (isNaN(retAge) || retAge < 18 || retAge > 120))) {
-    return NextResponse.json({ error: 'Invalid goal values' }, { status: 400 });
+  const parsed = parseBody(goalSchema, {
+    monthlySavingsTarget: body.monthlySavingsTarget != null ? Number(body.monthlySavingsTarget) : undefined,
+    retirementAge: body.retirementAgeTarget != null ? Number(body.retirementAgeTarget) : undefined,
+  });
+  if (parsed.error || !parsed.data) {
+    return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
   }
+  const savings = parsed.data.monthlySavingsTarget ?? null;
+  const retAge = parsed.data.retirementAge ?? null;
 
   const db = getServiceClient();
   const { error } = await db.from('goals').upsert(
     {
       user_id: user.id,
-      monthly_savings_target: savings,
-      retirement_age_target: retAge,
+      monthly_savings_target: savings ?? undefined,
+      retirement_age_target: retAge ?? undefined,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },
@@ -113,4 +96,4 @@ export async function PUT(request: Request) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

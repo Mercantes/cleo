@@ -51,6 +51,9 @@ export async function POST(request: Request) {
       .eq('user_id', user.id);
 
     if (body.transactionIds?.length) {
+      if (body.transactionIds.length > 500) {
+        return NextResponse.json({ error: 'Máximo 500 transações por vez' }, { status: 400 });
+      }
       query = query.in('id', body.transactionIds);
     } else if (body.all) {
       query = query.or('category_id.is.null,category_confidence.lt.0.70');

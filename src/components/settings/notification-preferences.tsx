@@ -52,7 +52,11 @@ export function NotificationPreferences() {
     const updated = { ...prefs, [key]: !prefs[key] };
     setPrefs(updated);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    toast(updated[key] ? 'Notificação ativada' : 'Notificação desativada');
+    if (updated[key]) {
+      toast.success('Notificação ativada');
+    } else {
+      toast.warning('Notificação desativada');
+    }
   };
 
   async function handlePushToggle() {
@@ -61,19 +65,19 @@ export function NotificationPreferences() {
       if (pushPermission === 'granted') {
         await unsubscribeFromPush();
         setPushPermission('default');
-        toast('Notificações push desativadas');
+        toast.warning('Notificações push desativadas');
       } else {
         const permission = await Notification.requestPermission();
         setPushPermission(permission);
         if (permission === 'granted') {
           await subscribeToPush();
-          toast('Notificações push ativadas!');
+          toast.success('Notificações push ativadas!');
         } else {
-          toast('Permissão de notificação negada');
+          toast.warning('Permissão de notificação negada');
         }
       }
     } catch {
-      toast('Erro ao configurar notificações push');
+      toast.error('Erro ao configurar notificações push');
     } finally {
       setPushLoading(false);
     }

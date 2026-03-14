@@ -50,7 +50,7 @@ describe('Onboarding API', () => {
     });
 
     const { GET } = await import('@/app/api/onboarding/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -63,7 +63,7 @@ describe('Onboarding API', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/onboarding/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });

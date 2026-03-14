@@ -1,18 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { calculateProjections } from '@/lib/finance/projection-engine';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Fetch last 6 months of transactions
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   const startDate = sixMonthsAgo.toISOString().split('T')[0];
@@ -28,7 +18,6 @@ export async function GET() {
     return NextResponse.json({ error: 'Failed to fetch transactions' }, { status: 500 });
   }
 
-  // Get current balance from accounts
   const { data: accounts } = await supabase
     .from('accounts')
     .select('balance')
@@ -41,4 +30,4 @@ export async function GET() {
   return NextResponse.json(result, {
     headers: { 'Cache-Control': 'private, max-age=1800, stale-while-revalidate=300' },
   });
-}
+});

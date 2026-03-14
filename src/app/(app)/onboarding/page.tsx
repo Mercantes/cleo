@@ -29,6 +29,9 @@ export default function OnboardingPage() {
         setCurrentStep(data.step || 0);
         setSkippedSteps(data.skippedSteps || []);
       })
+      .catch(() => {
+        // On error, start from step 0
+      })
       .finally(() => setLoading(false));
   }, [router]);
 

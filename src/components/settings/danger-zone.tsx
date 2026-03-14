@@ -26,9 +26,9 @@ export function DangerZone() {
       a.download = `cleo-dados-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      toast('Dados exportados com sucesso');
+      toast.success('Dados exportados com sucesso');
     } catch {
-      toast('Erro ao exportar dados. Tente novamente.');
+      toast.error('Erro ao exportar dados. Tente novamente.');
     } finally {
       setIsExporting(false);
     }
@@ -42,7 +42,7 @@ export function DangerZone() {
       if (!res.ok) throw new Error('Delete failed');
       await signOut();
     } catch {
-      toast('Erro ao excluir conta. Tente novamente.');
+      toast.error('Erro ao excluir conta. Tente novamente.');
       setIsDeleting(false);
     }
   }

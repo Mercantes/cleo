@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod/v4';
 import { createClient as createServiceClient } from '@supabase/supabase-js';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
 const onboardingPatchSchema = z.object({
   step: z.number().int().min(0).max(10).optional(),
@@ -21,16 +21,7 @@ function getServiceClient() {
   );
 }
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { user }) => {
   const serviceClient = getServiceClient();
   const { data } = await serviceClient
     .from('profiles')
@@ -43,18 +34,9 @@ export async function GET() {
     completed: data?.onboarding_completed || false,
     skippedSteps: data?.onboarding_skipped_steps || [],
   });
-}
+});
 
-export async function PATCH(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const PATCH = withAuth(async (request: NextRequest, { user }) => {
   const raw = await request.json();
   const parsed = onboardingPatchSchema.safeParse(raw);
   if (!parsed.success) {
@@ -80,18 +62,9 @@ export async function PATCH(request: NextRequest) {
     .eq('id', user.id);
 
   return NextResponse.json({ success: true });
-}
+});
 
-export async function POST(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const POST = withAuth(async (request: NextRequest, { user }) => {
   const raw = await request.json();
   const parsed = onboardingPostSchema.safeParse(raw);
   if (!parsed.success) {
@@ -122,4 +95,4 @@ export async function POST(request: NextRequest) {
     .eq('id', user.id);
 
   return NextResponse.json({ success: true });
-}
+});

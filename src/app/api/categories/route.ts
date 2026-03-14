@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { supabase }) => {
   const { data, error } = await supabase
     .from('categories')
     .select('id, name, icon')
@@ -24,4 +15,4 @@ export async function GET() {
     { categories: data || [] },
     { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' } },
   );
-}
+});

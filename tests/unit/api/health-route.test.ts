@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+vi.mock('@/lib/utils/rate-limit', () => ({
+  rateLimit: () => ({ allowed: true, remaining: 10, resetAt: Date.now() + 60000 }),
+  RATE_LIMITS: { general: { maxRequests: 60, windowMs: 60000 } },
+}));
+
 const mockSelect = vi.fn();
 vi.mock('@supabase/supabase-js', () => ({
   createClient: () => ({
@@ -18,6 +23,8 @@ describe('GET /api/health', () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-key';
     process.env.ANTHROPIC_API_KEY = 'test-key';
+    process.env.STRIPE_SECRET_KEY = 'sk_test_123';
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }));
   });
 
   it('returns ok when all checks pass', async () => {

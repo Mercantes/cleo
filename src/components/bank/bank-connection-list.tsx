@@ -75,7 +75,7 @@ export function BankConnectionList() {
         body: JSON.stringify({ connectionId }),
       });
       if (!res.ok) throw new Error('Sync failed');
-      toast('Sincronização iniciada');
+      toast.success('Sincronização iniciada');
       // Reload connections after brief delay
       setTimeout(async () => {
         const supabase = createBrowserClient(
@@ -90,7 +90,7 @@ export function BankConnectionList() {
         setSyncingId(null);
       }, 2000);
     } catch {
-      toast('Erro ao sincronizar. Tente novamente.');
+      toast.error('Erro ao sincronizar. Tente novamente.');
       setSyncingId(null);
     }
   }

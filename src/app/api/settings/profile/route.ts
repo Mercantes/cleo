@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
+import { parseBody } from '@/lib/validations/api';
+import { z } from 'zod';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const profileSchema = z.object({
+  full_name: z.string().trim().min(1, 'Nome é obrigatório').max(100, 'Nome muito longo'),
+});
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, email, avatar_url')
@@ -18,28 +15,18 @@ export async function GET() {
     .single();
 
   return NextResponse.json({ profile: profile || { full_name: '', email: user.email } });
-}
+});
 
-export async function PATCH(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const PATCH = withAuth(async (request: NextRequest, { supabase, user }) => {
   const body = await request.json();
-  const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : undefined;
-
-  if (fullName !== undefined && fullName.length > 100) {
-    return NextResponse.json({ error: 'Name too long' }, { status: 400 });
+  const parsed = parseBody(profileSchema, body);
+  if (parsed.error || !parsed.data) {
+    return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
   }
 
   const { error } = await supabase
     .from('profiles')
-    .update({ full_name: fullName, updated_at: new Date().toISOString() })
+    .update({ full_name: parsed.data.full_name, updated_at: new Date().toISOString() })
     .eq('id', user.id);
 
   if (error) {
@@ -47,4 +34,4 @@ export async function PATCH(request: NextRequest) {
   }
 
   return NextResponse.json({ success: true });
-}
+});

@@ -65,7 +65,7 @@ export function ChallengesCard() {
       if (!res.ok) throw new Error();
       setShowPicker(false);
       fetchChallenges();
-      toast('Desafio iniciado!');
+      toast.success('Desafio iniciado!');
     } catch {
       setError('Não foi possível iniciar o desafio.');
     } finally {
@@ -84,7 +84,7 @@ export function ChallengesCard() {
       });
       if (!res.ok) throw new Error();
       fetchChallenges();
-      toast('Desafio completado! XP ganho');
+      toast.success('Desafio completado! XP ganho');
     } catch {
       setError('Não foi possível completar o desafio.');
     } finally {
@@ -103,7 +103,7 @@ export function ChallengesCard() {
       });
       if (!res.ok) throw new Error();
       fetchChallenges();
-      toast('Desafio cancelado');
+      toast.warning('Desafio cancelado');
     } catch {
       setError('Não foi possível cancelar o desafio.');
     } finally {

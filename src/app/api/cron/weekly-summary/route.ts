@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendPushNotification, isWebPushConfigured } from '@/lib/push/send';
 
 export const maxDuration = 60;
 
@@ -31,6 +32,11 @@ export async function GET(request: Request) {
 
   if (!subscriptions || subscriptions.length === 0) {
     return NextResponse.json({ message: 'No subscriptions', sent: 0 });
+  }
+
+  if (!isWebPushConfigured()) {
+    console.log('[weekly-summary] VAPID keys not configured, skipping push delivery');
+    return NextResponse.json({ message: 'Push not configured', sent: 0 });
   }
 
   // Group subscriptions by user
@@ -82,8 +88,8 @@ export async function GET(request: Request) {
           sentCount++;
         } catch (err) {
           console.error(`[weekly-summary] Push failed for ${sub.endpoint}:`, err);
-          // Remove invalid subscriptions
-          if (err instanceof Error && err.message.includes('410')) {
+          // Remove expired/invalid subscriptions (410 Gone, 404 Not Found)
+          if (err instanceof Error && (err.message.includes('410') || err.message.includes('404'))) {
             await (db as unknown as { from: (t: string) => ReturnType<typeof db.from> })
               .from('push_subscriptions')
               .delete()
@@ -99,21 +105,3 @@ export async function GET(request: Request) {
   return NextResponse.json({ message: 'Weekly summaries sent', sent: sentCount });
 }
 
-async function sendPushNotification(
-  subscription: { endpoint: string; p256dh: string; auth: string },
-  payload: { title: string; body: string; tag: string; url: string },
-): Promise<void> {
-  // Web Push requires VAPID keys and web-push library on server
-  // For now, store the notification for in-app display if web-push is not configured
-  const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-  if (!VAPID_PRIVATE_KEY) {
-    console.log('[weekly-summary] VAPID_PRIVATE_KEY not configured, skipping push');
-    return;
-  }
-
-  // Use fetch-based Web Push (no external library needed)
-  // The actual push sending requires VAPID signing which needs a library
-  // For now, log the intent — install web-push package when ready for production
-  console.log('[weekly-summary] Would send push to:', subscription.endpoint, payload);
-  // TODO: Install web-push package and implement: npm install web-push
-}

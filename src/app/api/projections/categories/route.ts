@@ -1,17 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  // Get last 3 months of transactions with categories
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const threeMonthsAgo = new Date();
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
   const startDate = threeMonthsAgo.toISOString().split('T')[0];
@@ -28,7 +18,6 @@ export async function GET() {
     return NextResponse.json({ predictions: [], hasEnoughData: false });
   }
 
-  // Group by category and month
   const categoryMonthly = new Map<string, Map<string, number>>();
 
   for (const tx of transactions) {
@@ -43,7 +32,6 @@ export async function GET() {
     monthMap.set(month, (monthMap.get(month) || 0) + Math.abs(Number(tx.amount)));
   }
 
-  // Calculate predictions per category
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const dayOfMonth = now.getDate();
@@ -54,22 +42,15 @@ export async function GET() {
 
   for (const [category, monthMap] of categoryMonthly) {
     const months = [...monthMap.entries()].sort(([a], [b]) => a.localeCompare(b));
-
-    // Calculate average from previous months (exclude current)
     const previousMonths = months.filter(([m]) => m < currentMonth);
     if (previousMonths.length === 0) continue;
 
     const avgSpending = previousMonths.reduce((s, [, v]) => s + v, 0) / previousMonths.length;
-
-    // Current month spending so far
     const currentSpending = monthMap.get(currentMonth) || 0;
-
-    // Projected end-of-month spending (linear extrapolation)
     const projectedSpending = monthProgress > 0.1
       ? Math.round(currentSpending / monthProgress)
       : avgSpending;
 
-    // Trend: compare last month vs average
     const lastMonth = previousMonths[previousMonths.length - 1];
     const trend = lastMonth ? ((lastMonth[1] - avgSpending) / avgSpending) * 100 : 0;
 
@@ -84,7 +65,6 @@ export async function GET() {
     });
   }
 
-  // Sort by projected spending descending
   predictions.sort((a, b) => b.projectedSpending - a.projectedSpending);
 
   return NextResponse.json({
@@ -92,4 +72,4 @@ export async function GET() {
     hasEnoughData: true,
     monthProgress: Math.round(monthProgress * 100),
   });
-}
+});

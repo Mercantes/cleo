@@ -81,5 +81,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 
+  console.log(`[stripe/webhook] processed ${event.type} successfully`);
   return NextResponse.json({ received: true });
 }

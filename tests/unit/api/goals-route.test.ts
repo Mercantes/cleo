@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
@@ -49,7 +50,7 @@ describe('GET /api/goals', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/goals/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -75,7 +76,7 @@ describe('GET /api/goals', () => {
     });
 
     const { GET } = await import('@/app/api/goals/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -93,7 +94,7 @@ describe('GET /api/goals', () => {
     mockTransactionsLte.mockResolvedValue({ data: [] });
 
     const { GET } = await import('@/app/api/goals/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -112,7 +113,7 @@ describe('PUT /api/goals', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { PUT } = await import('@/app/api/goals/route');
-    const response = await PUT(new Request('http://localhost', {
+    const response = await PUT(new NextRequest('http://localhost', {
       method: 'PUT',
       body: JSON.stringify({ monthlySavingsTarget: 500 }),
     }));
@@ -125,7 +126,7 @@ describe('PUT /api/goals', () => {
     mockUpsert.mockResolvedValue({ error: null });
 
     const { PUT } = await import('@/app/api/goals/route');
-    const response = await PUT(new Request('http://localhost', {
+    const response = await PUT(new NextRequest('http://localhost', {
       method: 'PUT',
       body: JSON.stringify({ monthlySavingsTarget: 500, retirementAgeTarget: 65 }),
     }));

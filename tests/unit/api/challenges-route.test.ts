@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 vi.mock('@/lib/supabase/server', () => ({
@@ -55,7 +56,7 @@ describe('GET /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/challenges/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -70,7 +71,7 @@ describe('GET /api/challenges', () => {
     });
 
     const { GET } = await import('@/app/api/challenges/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -89,7 +90,7 @@ describe('POST /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new Request('http://localhost', {
+    const response = await POST(new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({ templateIndex: 0 }),
     }));
@@ -109,7 +110,7 @@ describe('POST /api/challenges', () => {
     });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new Request('http://localhost', {
+    const response = await POST(new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({ templateIndex: 0 }),
     }));
@@ -123,7 +124,7 @@ describe('POST /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new Request('http://localhost', {
+    const response = await POST(new NextRequest('http://localhost', {
       method: 'POST',
       body: JSON.stringify({}),
     }));
@@ -141,7 +142,7 @@ describe('PATCH /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
 
     const { PATCH } = await import('@/app/api/challenges/route');
-    const response = await PATCH(new Request('http://localhost', {
+    const response = await PATCH(new NextRequest('http://localhost', {
       method: 'PATCH',
       body: JSON.stringify({ challengeId: '1', status: 'invalid' }),
     }));

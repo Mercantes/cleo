@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    formats: ['image/avif', 'image/webp'],
+  },
   async headers() {
     return [
       {
@@ -22,6 +25,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' data:",
               "connect-src 'self' https://*.supabase.co https://api.anthropic.com https://api.stripe.com https://api.pluggy.ai https://connect.pluggy.ai",
               "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.pluggy.ai",
+              "worker-src 'self'",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",

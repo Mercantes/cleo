@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 const mockSelect = vi.fn();
@@ -46,7 +47,7 @@ describe('GET /api/recurring', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { GET } = await import('@/app/api/recurring/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const json = await response.json();
 
     expect(response.status).toBe(401);
@@ -61,7 +62,7 @@ describe('GET /api/recurring', () => {
     ];
 
     const { GET } = await import('@/app/api/recurring/route');
-    const response = await GET();
+    const response = await GET(new NextRequest('http://localhost'));
     const json = await response.json();
 
     expect(response.status).toBe(200);

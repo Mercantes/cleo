@@ -1,16 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function GET(request: NextRequest) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (request: NextRequest, { supabase, user }) => {
   const searchParams = request.nextUrl.searchParams;
   const now = new Date();
   const monthParam = searchParams.get('month') || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -50,14 +41,14 @@ export async function GET(request: NextRequest) {
   // Build previous month map
   const prevCategoryMap = new Map<string, number>();
   for (const tx of prevData || []) {
-    const catObj = tx.categories as { name: string } | null;
+    const catObj = tx.categories as unknown as { name: string } | null;
     const catName = catObj?.name || 'Sem categoria';
     prevCategoryMap.set(catName, (prevCategoryMap.get(catName) || 0) + Number(tx.amount));
   }
 
   const categoryMap = new Map<string, { amount: number; id: string | null }>();
   for (const tx of data || []) {
-    const catObj = tx.categories as { name: string; id?: string } | null;
+    const catObj = tx.categories as unknown as { name: string; id?: string } | null;
     const catName = catObj?.name || 'Sem categoria';
     const existing = categoryMap.get(catName);
     if (existing) {
@@ -117,4 +108,4 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ categories }, {
     headers: { 'Cache-Control': 'private, max-age=600, stale-while-revalidate=120' },
   });
-}
+});

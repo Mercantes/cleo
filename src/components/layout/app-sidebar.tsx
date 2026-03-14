@@ -4,12 +4,11 @@ import { useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { navItems } from '@/components/layout/nav-items';
 import { UsageMeter } from './usage-meter';
 import { SidebarBalance } from './sidebar-balance';
-import { signOut } from '@/lib/actions/auth';
 
 const STORAGE_KEY = 'cleo-sidebar-collapsed';
 
@@ -51,7 +50,7 @@ export function AppSidebar() {
     >
       <div className={cn('flex h-14 items-center border-b', collapsed ? 'justify-center px-2' : 'px-6')}>
         <Link href="/dashboard" className="flex items-center gap-2 overflow-hidden">
-          <Image src="/logo.png" alt="" width={28} height={28} className="shrink-0 rounded-md" />
+          <Image src="/logo.png" alt="Cleo" width={28} height={28} className="shrink-0 rounded-md" />
           {!collapsed && <span className="text-xl font-bold">Cleo</span>}
         </Link>
       </div>
@@ -79,29 +78,6 @@ export function AppSidebar() {
       </nav>
       {!collapsed && <SidebarBalance />}
       {!collapsed && <UsageMeter />}
-      <div className="border-t p-3">
-        {collapsed ? (
-          <div className="flex flex-col items-center gap-1">
-            <button
-              onClick={() => signOut()}
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-red-500"
-              aria-label="Sair da conta"
-              title="Sair"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => signOut()}
-            className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-red-500"
-            aria-label="Sair da conta"
-          >
-            <LogOut className="h-3.5 w-3.5" />
-            <span>Sair</span>
-          </button>
-        )}
-      </div>
     </aside>
   );
 }

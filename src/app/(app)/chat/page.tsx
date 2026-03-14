@@ -3,7 +3,7 @@ import { Suspense } from 'react';
 import { ChatInterface } from '@/components/chat/chat-interface';
 
 export const metadata: Metadata = {
-  title: 'Chat',
+  title: 'Pergunte à Cleo',
 };
 
 export default function ChatPage() {

@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function DELETE() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const DELETE = withAuth(async (_request, { supabase, user }) => {
   const userId = user.id;
 
   // Delete user data in dependency order (child tables first)
@@ -38,4 +29,4 @@ export async function DELETE() {
   await supabase.from('profiles').delete().eq('id', userId);
 
   return NextResponse.json({ success: true });
-}
+});

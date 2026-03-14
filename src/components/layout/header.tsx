@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings, User } from 'lucide-react';
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -32,7 +32,7 @@ interface HeaderProps {
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
-  '/chat': 'Chat',
+  '/chat': 'Pergunte à Cleo',
   '/transactions': 'Transações',
   '/projections': 'Projeções',
   '/retirement': 'Aposentadoria',
@@ -40,6 +40,9 @@ const pageTitles: Record<string, string> = {
   '/settings': 'Configurações',
   '/onboarding': 'Configuração Inicial',
   '/upgrade': 'Upgrade',
+  '/splits': 'Dividir Despesas',
+  '/reports': 'Relatórios',
+  '/import': 'Importar Extrato',
 };
 
 export function Header({ userName }: HeaderProps) {
@@ -67,7 +70,7 @@ export function Header({ userName }: HeaderProps) {
           <SheetContent side="left" className="w-64 p-0">
             <SheetTitle className="sr-only">Menu de navegação</SheetTitle>
             <div className="flex h-14 items-center gap-2 border-b px-6">
-              <Image src="/logo.png" alt="" width={28} height={28} className="rounded-md" />
+              <Image src="/logo.png" alt="Cleo" width={28} height={28} className="rounded-md" />
               <span className="text-xl font-bold">Cleo</span>
             </div>
             <nav aria-label="Menu principal" className="space-y-1 p-3">
@@ -115,10 +118,6 @@ export function Header({ userName }: HeaderProps) {
           <span className="hidden text-sm md:inline-block">{userName}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => router.push('/settings')}>
-            <User className="mr-2 h-4 w-4" />
-            Meu Perfil
-          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => router.push('/settings')}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações

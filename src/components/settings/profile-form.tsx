@@ -26,7 +26,7 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
       });
       if (res.ok) {
         setFeedback('saved');
-        toast('Perfil salvo com sucesso');
+        toast.success('Perfil salvo com sucesso');
       } else {
         setFeedback('error');
       }

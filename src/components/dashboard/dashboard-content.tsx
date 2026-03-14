@@ -21,6 +21,7 @@ import { SetupChecklist } from './setup-checklist';
 import { CategoryBudgetsCard } from './category-budgets-card';
 import { StreakCard } from './streak-card';
 import { AnimateIn } from '@/components/ui/animate-in';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 
 const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
@@ -256,35 +257,39 @@ export function DashboardContent() {
         <>
           <AnimateIn delay={100}>
             <div className="grid gap-4 lg:grid-cols-2">
-              <ExpenseChart data={trends} />
-              <CategoryChart data={categories} />
+              <ErrorBoundary>
+                <ExpenseChart data={trends} />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <CategoryChart data={categories} />
+              </ErrorBoundary>
             </div>
           </AnimateIn>
 
           <AnimateIn delay={150}>
             <div className="grid gap-4 lg:grid-cols-2">
-              <AccountsCard />
-              <RecentTransactionsCard />
+              <ErrorBoundary><AccountsCard /></ErrorBoundary>
+              <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
             </div>
           </AnimateIn>
 
           <AnimateIn delay={200}>
             <div className="grid gap-4 lg:grid-cols-3">
-              <GoalProgressCard />
-              <ChallengesCard />
-              <FinancialHealthCard />
+              <ErrorBoundary><GoalProgressCard /></ErrorBoundary>
+              <ErrorBoundary><ChallengesCard /></ErrorBoundary>
+              <ErrorBoundary><FinancialHealthCard /></ErrorBoundary>
             </div>
           </AnimateIn>
 
           <AnimateIn delay={225}>
-            <StreakCard />
+            <ErrorBoundary><StreakCard /></ErrorBoundary>
           </AnimateIn>
 
-          <AnimateIn delay={250}><CategoryBudgetsCard /></AnimateIn>
+          <AnimateIn delay={250}><ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary></AnimateIn>
 
-          <AnimateIn delay={300}><SpendingForecast /></AnimateIn>
+          <AnimateIn delay={300}><ErrorBoundary><SpendingForecast /></ErrorBoundary></AnimateIn>
 
-          <AnimateIn delay={350}><SubscriptionsCard /></AnimateIn>
+          <AnimateIn delay={350}><ErrorBoundary><SubscriptionsCard /></ErrorBoundary></AnimateIn>
         </>
       )}
     </div>

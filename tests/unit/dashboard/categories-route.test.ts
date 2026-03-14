@@ -59,7 +59,7 @@ describe('GET /api/dashboard/categories', () => {
 
     expect(json.categories).toHaveLength(6); // top 5 + Outros
     expect(json.categories[0].name).toBe('Alimentação');
-    expect(json.categories[5].name).toBe('Outros');
+    expect(json.categories[5].name).toBe('Demais');
     expect(json.categories[5].amount).toBe(300); // 200 + 100
   });
 });

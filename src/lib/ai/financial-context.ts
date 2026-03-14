@@ -3,6 +3,15 @@ import { createClient } from '@supabase/supabase-js';
 const contextCache = new Map<string, { data: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+/** Strip control chars and prompt injection patterns from user-controlled strings */
+function sanitize(text: string): string {
+  return text
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+    .replace(/#{2,}/g, '')
+    .replace(/<[^>]*>/g, '')
+    .slice(0, 100);
+}
+
 export async function buildFinancialContext(userId: string): Promise<string> {
   const cached = contextCache.get(userId);
   if (cached && cached.expiresAt > Date.now()) {
@@ -36,7 +45,7 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     supabase.from('challenges').select('title, status, end_date').eq('user_id', userId).eq('status', 'active'),
   ]);
 
-  const name = profileResult.data?.full_name || 'Usuário';
+  const name = sanitize(profileResult.data?.full_name || 'Usuário');
   const transactions = transactionsResult.data || [];
   const recurring = recurringResult.data || [];
   const accounts = accountsResult.data || [];
@@ -56,7 +65,7 @@ export async function buildFinancialContext(userId: string): Promise<string> {
   const categoryMap = new Map<string, number>();
   for (const tx of transactions.filter((t) => t.type === 'debit')) {
     const catObj = tx.categories as unknown as { name: string } | null;
-    const cat = catObj?.name || 'Outros';
+    const cat = sanitize(catObj?.name || 'Outros');
     categoryMap.set(cat, (categoryMap.get(cat) || 0) + Number(tx.amount));
   }
   const topCategories = [...categoryMap.entries()]
@@ -85,14 +94,14 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     lines.push('', '--- Recorrências Ativas ---');
     for (const r of recurring) {
       const typeLabel = r.type === 'subscription' ? 'Assinatura' : 'Parcela';
-      lines.push(`- ${r.merchant}: R$ ${Number(r.amount).toFixed(2)}/mês (${typeLabel})`);
+      lines.push(`- ${sanitize(r.merchant)}: R$ ${Number(r.amount).toFixed(2)}/mês (${typeLabel})`);
     }
   }
 
   if (accounts.length > 0) {
     lines.push('', '--- Contas ---');
     for (const acc of accounts) {
-      lines.push(`- ${acc.name} (${acc.type}): R$ ${Number(acc.balance).toFixed(2)}`);
+      lines.push(`- ${sanitize(acc.name)} (${acc.type}): R$ ${Number(acc.balance).toFixed(2)}`);
     }
   }
 
@@ -113,7 +122,7 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     lines.push('', '--- Desafios Ativos ---');
     for (const c of activeChallenges) {
       const daysLeft = Math.max(0, Math.ceil((new Date(c.end_date).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
-      lines.push(`- ${c.title} (${daysLeft} dias restantes)`);
+      lines.push(`- ${sanitize(c.title)} (${daysLeft} dias restantes)`);
     }
   }
 

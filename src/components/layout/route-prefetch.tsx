@@ -17,6 +17,12 @@ const PREFETCH_MAP: Record<string, string[]> = {
   '/settings': [
     '/api/goals',
   ],
+  '/splits': [
+    '/api/splits',
+  ],
+  '/reports': [
+    '/api/reports/monthly',
+  ],
 };
 
 const fetcher = (url: string) => fetch(url).then((r) => r.ok ? r.json() : null);
@@ -30,10 +36,10 @@ export function RoutePrefetch() {
       let urlsToPrefetch: string[] = [];
 
       if (pathname === '/dashboard') {
-        // User on dashboard likely to visit transactions or settings
-        urlsToPrefetch = PREFETCH_MAP['/transactions'] || [];
+        urlsToPrefetch = [...(PREFETCH_MAP['/transactions'] || []), ...(PREFETCH_MAP['/reports'] || [])];
       } else if (pathname === '/transactions') {
-        // User on transactions likely to return to dashboard
+        urlsToPrefetch = PREFETCH_MAP['/dashboard'] || [];
+      } else if (pathname === '/reports') {
         urlsToPrefetch = PREFETCH_MAP['/dashboard'] || [];
       }
 

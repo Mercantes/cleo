@@ -139,10 +139,7 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
             setIsLoading(false);
             setError('Erro ao carregar widget bancário. Tente novamente.');
           }}
-          onEvent={(event: unknown) => console.log('[pluggy-widget] onEvent:', event)}
-          onOpen={() => console.log('[pluggy-widget] onOpen: widget opened')}
           onClose={() => {
-            console.log('[pluggy-widget] onClose: widget closed');
             setConnectToken(null);
             setIsLoading(false);
           }}

@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 // Mock Supabase
 const mockGetUser = vi.fn();
@@ -23,7 +24,7 @@ vi.mock('@/lib/finance/tier-check', () => ({
 import { POST } from '@/app/api/pluggy/connect-token/route';
 
 function createRequest(body?: Record<string, unknown>) {
-  return new Request('http://localhost:3000/api/pluggy/connect-token', {
+  return new NextRequest('http://localhost:3000/api/pluggy/connect-token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,

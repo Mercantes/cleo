@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { NextRequest } from 'next/server';
 
 const mockGetUser = vi.fn();
 const mockSelect = vi.fn();
@@ -67,7 +68,7 @@ describe('DELETE /api/chat/history', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { DELETE } = await import('@/app/api/chat/history/route');
-    const response = await DELETE();
+    const response = await DELETE(new NextRequest('http://localhost'));
 
     expect(response.status).toBe(401);
   });
@@ -77,7 +78,7 @@ describe('DELETE /api/chat/history', () => {
     mockDelete.mockResolvedValue({ error: null });
 
     const { DELETE } = await import('@/app/api/chat/history/route');
-    const response = await DELETE();
+    const response = await DELETE(new NextRequest('http://localhost'));
     const data = await response.json();
 
     expect(response.status).toBe(200);

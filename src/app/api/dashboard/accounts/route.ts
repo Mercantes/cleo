@@ -1,16 +1,7 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 
-export async function GET() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+export const GET = withAuth(async (_request, { supabase, user }) => {
   const { data: accounts, error } = await supabase
     .from('accounts')
     .select('id, name, type, balance, bank_connections(connector_name)')
@@ -25,7 +16,7 @@ export async function GET() {
 
   return NextResponse.json({
     accounts: (accounts || []).map((acc) => {
-      const conn = acc.bank_connections as { connector_name: string } | null;
+      const conn = acc.bank_connections as unknown as { connector_name: string } | null;
       return {
         id: acc.id,
         name: acc.name,
@@ -38,4 +29,4 @@ export async function GET() {
   }, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },
   });
-}
+});

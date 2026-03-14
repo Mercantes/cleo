@@ -27,6 +27,8 @@ function subscribe(callback: () => void): () => void {
 }
 
 function applyTheme(theme: Theme) {
+  // Add smooth transition for theme change
+  document.documentElement.style.transition = 'background-color 0.3s, color 0.3s';
   if (theme === 'system') {
     localStorage.removeItem('cleo_theme');
     const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -35,6 +37,10 @@ function applyTheme(theme: Theme) {
     localStorage.setItem('cleo_theme', theme);
     document.documentElement.classList.toggle('dark', theme === 'dark');
   }
+  // Remove transition after it completes to not affect other animations
+  setTimeout(() => {
+    document.documentElement.style.transition = '';
+  }, 350);
 }
 
 const options: { value: Theme; label: string; icon: typeof Sun }[] = [

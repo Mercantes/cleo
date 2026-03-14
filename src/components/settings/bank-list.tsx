@@ -35,15 +35,15 @@ export function BankList({ connections, onDisconnect, onRefresh }: BankListProps
       });
 
       if (!response.ok) {
-        toast('Erro ao sincronizar. Tente novamente.');
+        toast.error('Erro ao sincronizar. Tente novamente.');
         return;
       }
 
       const result = await response.json();
-      toast(`Sincronizado! ${result.imported} novas transações.`);
+      toast.success(`Sincronizado! ${result.imported} novas transações.`);
       onRefresh?.();
     } catch {
-      toast('Erro ao sincronizar. Tente novamente.');
+      toast.error('Erro ao sincronizar. Tente novamente.');
     } finally {
       setSyncingId(null);
     }

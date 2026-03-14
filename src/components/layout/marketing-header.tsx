@@ -21,7 +21,7 @@ export function MarketingHeader() {
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 md:px-6">
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-            <Image src="/logo.png" alt="" width={32} height={32} className="rounded-lg" />
+            <Image src="/logo.png" alt="Cleo" width={32} height={32} className="rounded-lg" />
             Cleo
           </Link>
           <nav aria-label="Navegação do site" className="hidden items-center gap-4 text-sm text-muted-foreground md:flex">

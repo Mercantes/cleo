@@ -1,22 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { withAuth } from '@/lib/utils/with-auth';
 import { stripe } from '@/lib/stripe/client';
 import { getOrCreateCustomer } from '@/lib/stripe/subscription';
 
-export async function POST(request: NextRequest) {
+export const POST = withAuth(async (request: NextRequest, { user }) => {
   // Validate origin to prevent CSRF
   const origin = request.headers.get('origin');
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || request.headers.get('host');
   if (origin && appUrl && !origin.includes(appUrl.replace(/^https?:\/\//, ''))) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
-  }
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const priceId = process.env.STRIPE_PRO_PRICE_ID;
@@ -36,4 +28,4 @@ export async function POST(request: NextRequest) {
   });
 
   return NextResponse.json({ url: session.url });
-}
+});
