@@ -30,11 +30,12 @@ export function SetupChecklist() {
     Promise.all([
       fetchWithTimeout('/api/dashboard/accounts').then((r) => r.ok ? r.json() : null),
       fetchWithTimeout('/api/goals').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/recurring/detect').catch(() => null),
+      fetchWithTimeout('/api/chat/history').then((r) => r.ok ? r.json() : null),
     ].map((p) => p.catch(() => null)))
-      .then(([accounts, goals]) => {
+      .then(([accounts, goals, chatHistory]) => {
         const hasBank = (accounts?.accounts?.length || 0) > 0;
         const hasGoals = !!goals?.goals?.monthly_savings_target;
+        const hasChatted = (chatHistory?.messages?.length || 0) > 0;
 
         const setupSteps: SetupStep[] = [
           {
@@ -59,7 +60,7 @@ export function SetupChecklist() {
             description: 'Peça dicas personalizadas',
             href: '/chat',
             icon: Sparkles,
-            completed: false, // always show as available
+            completed: hasChatted,
           },
         ];
 
