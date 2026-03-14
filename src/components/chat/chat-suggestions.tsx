@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 const DEFAULT_SUGGESTIONS = [
   'Quanto gastei esse mês?',
@@ -46,25 +46,17 @@ interface ChatSuggestionsProps {
 }
 
 export function ChatSuggestions({ onSelect }: ChatSuggestionsProps) {
-  const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
-  const [subtext, setSubtext] = useState('Sua assistente financeira. Como posso ajudar?');
+  const { data } = useApi<{ insights: Insight[] }>('/api/insights');
+  const insights = data?.insights || [];
 
-  useEffect(() => {
-    fetchWithTimeout('/api/insights')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.insights?.length > 0) {
-          const insights = data.insights as Insight[];
-          const dynamic = insights
-            .slice(0, 2)
-            .map((i) => insightToSuggestion(i));
-          const unique = [...new Set([...dynamic, ...DEFAULT_SUGGESTIONS])].slice(0, 4);
-          setSuggestions(unique);
-          setSubtext(getSubtext(insights));
-        }
-      })
-      .catch(() => {});
-  }, []);
+  const { suggestions, subtext } = useMemo(() => {
+    if (insights.length === 0) {
+      return { suggestions: DEFAULT_SUGGESTIONS, subtext: 'Sua assistente financeira. Como posso ajudar?' };
+    }
+    const dynamic = insights.slice(0, 2).map((i) => insightToSuggestion(i));
+    const unique = [...new Set([...dynamic, ...DEFAULT_SUGGESTIONS])].slice(0, 4);
+    return { suggestions: unique, subtext: getSubtext(insights) };
+  }, [insights]);
 
   return (
     <div className="flex flex-col items-center gap-4 py-8">

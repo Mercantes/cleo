@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface HealthFactor {
   label: string;
@@ -94,25 +94,19 @@ function getScoreLabel(score: number) {
 }
 
 export function FinancialHealthCard() {
-  const [health, setHealth] = useState<HealthData | null>(null);
+  const { data: summary } = useApi<{ income: number; expenses: number; savingsRate: number; percentChange: number }>('/api/dashboard/summary');
+  const { data: goals } = useApi<{ progress?: { percentage: number } }>('/api/goals');
+  const { data: recurring } = useApi<{ monthlyTotal: number }>('/api/recurring');
   const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
 
-  useEffect(() => {
-    Promise.all([
-      fetchWithTimeout('/api/dashboard/summary').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/goals').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/recurring').then((r) => r.ok ? r.json() : null),
-    ])
-      .then(([summary, goals, recurring]) => {
-        if (!summary || summary.income === 0) return;
-        const goalsProgress = goals?.progress?.percentage || 0;
-        const recurringPercent = summary.income > 0
-          ? Math.round(((recurring?.monthlyTotal || 0) / summary.income) * 100)
-          : 0;
-        setHealth(calculateHealth(summary, goalsProgress, recurringPercent));
-      })
-      .catch(() => {});
-  }, []);
+  const health = useMemo(() => {
+    if (!summary || summary.income === 0) return null;
+    const goalsProgress = goals?.progress?.percentage || 0;
+    const recurringPercent = summary.income > 0
+      ? Math.round(((recurring?.monthlyTotal || 0) / summary.income) * 100)
+      : 0;
+    return calculateHealth(summary, goalsProgress, recurringPercent);
+  }, [summary, goals, recurring]);
 
   if (!health) {
     return (

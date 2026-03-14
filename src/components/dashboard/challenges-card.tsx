@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Zap, CheckCircle2, Plus, X } from 'lucide-react';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
+import { useApi } from '@/hooks/use-api';
 
 interface Challenge {
   id: string;
@@ -24,92 +24,75 @@ interface ChallengeTemplate {
   xpReward: number;
 }
 
+interface ChallengesData {
+  active: Challenge[];
+  available: ChallengeTemplate[];
+}
+
 export function ChallengesCard() {
-  const [active, setActive] = useState<Challenge[]>([]);
-  const [templates, setTemplates] = useState<ChallengeTemplate[]>([]);
+  const { data, isLoading: loading, mutate } = useApi<ChallengesData>('/api/challenges');
+  const active = data?.active || [];
+  const templates = data?.available || [];
   const [showPicker, setShowPicker] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchChallenges = () => {
-    fetchWithTimeout('/api/challenges')
-      .then((r) => {
-        if (!r.ok) return { active: [], completed: [], available: [] };
-        return r.json();
-      })
-      .then((d) => {
-        setActive(d.active || []);
-        setTemplates(d.available || []);
-      })
-      .catch(() => {
-        setActive([]);
-        setTemplates([]);
-      })
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => {
-    fetchChallenges();
-  }, []);
-
-  const startChallenge = async (templateIndex: number) => {
-    setActionLoading(`start-${templateIndex}`);
+  const mutateAction = async (
+    action: () => Promise<Response>,
+    successMsg: string,
+    errorMsg: string,
+    key: string,
+  ) => {
+    setActionLoading(key);
     setError(null);
     try {
-      const res = await fetchWithTimeout('/api/challenges', {
+      const res = await action();
+      if (!res.ok) throw new Error();
+      mutate();
+      toast.success(successMsg);
+    } catch {
+      setError(errorMsg);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const startChallenge = (templateIndex: number) => {
+    mutateAction(
+      () => fetch('/api/challenges', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ templateIndex }),
-      });
-      if (!res.ok) throw new Error();
-      setShowPicker(false);
-      fetchChallenges();
-      toast.success('Desafio iniciado!');
-    } catch {
-      setError('Não foi possível iniciar o desafio.');
-    } finally {
-      setActionLoading(null);
-    }
+      }),
+      'Desafio iniciado!',
+      'Não foi possível iniciar o desafio.',
+      `start-${templateIndex}`,
+    ).then(() => setShowPicker(false));
   };
 
-  const completeChallenge = async (challengeId: string) => {
-    setActionLoading(challengeId);
-    setError(null);
-    try {
-      const res = await fetchWithTimeout('/api/challenges', {
+  const completeChallenge = (challengeId: string) =>
+    mutateAction(
+      () => fetch('/api/challenges', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, status: 'completed' }),
-      });
-      if (!res.ok) throw new Error();
-      fetchChallenges();
-      toast.success('Desafio completado! XP ganho');
-    } catch {
-      setError('Não foi possível completar o desafio.');
-    } finally {
-      setActionLoading(null);
-    }
-  };
+      }),
+      'Desafio completado! XP ganho',
+      'Não foi possível completar o desafio.',
+      challengeId,
+    );
 
-  const cancelChallenge = async (challengeId: string) => {
-    setActionLoading(challengeId);
-    setError(null);
-    try {
-      const res = await fetchWithTimeout('/api/challenges', {
+  const cancelChallenge = (challengeId: string) =>
+    mutateAction(
+      () => fetch('/api/challenges', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ challengeId, status: 'cancelled' }),
-      });
-      if (!res.ok) throw new Error();
-      fetchChallenges();
-      toast.warning('Desafio cancelado');
-    } catch {
-      setError('Não foi possível cancelar o desafio.');
-    } finally {
-      setActionLoading(null);
-    }
-  };
+      }),
+      'Desafio cancelado',
+      'Não foi possível cancelar o desafio.',
+      challengeId,
+    );
 
   if (loading) {
     return <div className="h-[200px] animate-pulse rounded-lg border bg-muted" />;

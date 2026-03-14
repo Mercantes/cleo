@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Check } from 'lucide-react';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { Button } from '@/components/ui/button';
+import { useApi } from '@/hooks/use-api';
 
 interface UsageItem {
   feature: string;
@@ -27,19 +27,8 @@ const FEATURE_PERIOD: Record<string, string> = {
 };
 
 export function TierStatus() {
-  const [usage, setUsage] = useState<UsageItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/tier')
-      .then((r) => {
-        if (!r.ok) return { usage: [] };
-        return r.json();
-      })
-      .then((data) => setUsage(data.usage || []))
-      .catch(() => setUsage([]))
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: tierData, isLoading: loading } = useApi<{ usage: UsageItem[] }>('/api/tier');
+  const usage = tierData?.usage || [];
 
   if (loading) {
     return (

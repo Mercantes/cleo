@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
 interface UsageData {
   tier: 'free' | 'pro';
@@ -11,16 +10,7 @@ interface UsageData {
 }
 
 export function UsageMeter() {
-  const [usage, setUsage] = useState<UsageData | null>(null);
-
-  useEffect(() => {
-    fetchWithTimeout('/api/usage')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d) setUsage(d);
-      })
-      .catch(() => {});
-  }, []);
+  const { data: usage } = useApi<UsageData>('/api/usage');
 
   if (!usage || usage.tier === 'pro') return null;
 

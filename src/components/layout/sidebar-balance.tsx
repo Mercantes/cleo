@@ -1,29 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import { formatCurrency } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
+import { useApi } from '@/hooks/use-api';
 
-interface BalanceData {
+interface AccountsData {
   totalBalance: number;
 }
 
 export function SidebarBalance() {
-  const pathname = usePathname();
-  const [data, setData] = useState<BalanceData | null>(null);
+  const { data } = useApi<AccountsData>('/api/dashboard/accounts');
 
-  useEffect(() => {
-    fetchWithTimeout('/api/dashboard/accounts')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => {
-        if (d && d.totalBalance !== undefined) setData({ totalBalance: d.totalBalance });
-      })
-      .catch(() => {});
-  }, [pathname]);
-
-  if (!data) return null;
+  if (!data || data.totalBalance === undefined) return null;
 
   return (
     <div className="border-t px-4 py-3">

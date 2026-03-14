@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Target, Save, Loader2, TrendingUp, Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
-import { fetchWithTimeout } from '@/lib/utils/fetch-with-timeout';
 import { toast } from '@/components/ui/toast';
 import { useFormSubmit } from '@/hooks/use-form-submit';
+import { useApi } from '@/hooks/use-api';
 
 interface BudgetItem {
   id: string;
@@ -20,21 +20,13 @@ interface BudgetItem {
 }
 
 function CategoryBudgetsEditor() {
-  const [budgets, setBudgets] = useState<BudgetItem[]>([]);
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const { data: budgetsData, mutate: mutateBudgets } = useApi<{ budgets: BudgetItem[] }>('/api/budgets');
+  const { data: catsData } = useApi<{ categories: { id: string; name: string }[] }>('/api/categories');
+  const budgets = budgetsData?.budgets || [];
+  const categories = catsData?.categories || [];
   const [selectedCat, setSelectedCat] = useState('');
   const [limitValue, setLimitValue] = useState('');
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    Promise.all([
-      fetchWithTimeout('/api/budgets').then((r) => r.ok ? r.json() : null),
-      fetchWithTimeout('/api/categories').then((r) => r.ok ? r.json() : null),
-    ]).then(([budgetsData, catsData]) => {
-      if (budgetsData?.budgets) setBudgets(budgetsData.budgets);
-      if (catsData?.categories) setCategories(catsData.categories);
-    }).catch(() => {});
-  }, []);
 
   const availableCategories = categories.filter(
     (c) => !budgets.some((b) => b.categoryId === c.id),
@@ -44,17 +36,13 @@ function CategoryBudgetsEditor() {
     if (!selectedCat || !limitValue || Number(limitValue) <= 0) return;
     setSaving(true);
     try {
-      const res = await fetchWithTimeout('/api/budgets', {
+      const res = await fetch('/api/budgets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ categoryId: selectedCat, monthlyLimit: Number(limitValue) }),
       });
       if (res.ok) {
-        const refreshRes = await fetchWithTimeout('/api/budgets');
-        if (refreshRes.ok) {
-          const data = await refreshRes.json();
-          setBudgets(data.budgets || []);
-        }
+        mutateBudgets();
         setSelectedCat('');
         setLimitValue('');
         toast.success('Limite adicionado');
@@ -64,9 +52,9 @@ function CategoryBudgetsEditor() {
   }
 
   async function handleDelete(budgetId: string) {
-    const res = await fetchWithTimeout(`/api/budgets?id=${budgetId}`, { method: 'DELETE' });
+    const res = await fetch(`/api/budgets?id=${budgetId}`, { method: 'DELETE' });
     if (res.ok) {
-      setBudgets((prev) => prev.filter((b) => b.id !== budgetId));
+      mutateBudgets();
       toast.success('Limite removido');
     }
   }
@@ -146,40 +134,40 @@ function CategoryBudgetsEditor() {
   );
 }
 
+interface GoalsData {
+  goals: {
+    monthly_savings_target: number | null;
+    retirement_age_target: number | null;
+  } | null;
+  progress: {
+    percentage: number;
+    currentSavings: number;
+  };
+}
+
 export function GoalsEditor() {
+  const { data: goalsData, isLoading: loading, error: loadError } = useApi<GoalsData>('/api/goals');
   const [savingsTarget, setSavingsTarget] = useState('');
   const [retirementAge, setRetirementAge] = useState('');
-  const [currentProgress, setCurrentProgress] = useState(0);
-  const [currentSavings, setCurrentSavings] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const [initialized, setInitialized] = useState(false);
   const { submit, saving, feedback } = useFormSubmit({
     successMessage: 'Metas salvas com sucesso',
   });
 
+  // Initialize form state from API data (once)
   useEffect(() => {
-    fetchWithTimeout('/api/goals')
-      .then((r) => {
-        if (!r.ok) return null;
-        return r.json();
-      })
-      .then((data) => {
-        if (data?.goals) {
-          setSavingsTarget(data.goals.monthly_savings_target?.toString() || '');
-          setRetirementAge(data.goals.retirement_age_target?.toString() || '');
-        }
-        if (data?.progress) {
-          setCurrentProgress(data.progress.percentage);
-          setCurrentSavings(data.progress.currentSavings);
-        }
-      })
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
+    if (goalsData && !initialized) {
+      if (goalsData.goals) {
+        setSavingsTarget(goalsData.goals.monthly_savings_target?.toString() || '');
+        setRetirementAge(goalsData.goals.retirement_age_target?.toString() || '');
+      }
+      setInitialized(true);
+    }
+  }, [goalsData, initialized]);
 
   const handleSave = () =>
     submit(() =>
-      fetchWithTimeout('/api/goals', {
+      fetch('/api/goals', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -201,6 +189,8 @@ export function GoalsEditor() {
     );
   }
 
+  const currentProgress = goalsData?.progress?.percentage || 0;
+  const currentSavings = goalsData?.progress?.currentSavings || 0;
   const target = savingsTarget ? Number(savingsTarget) : 0;
 
   return (
