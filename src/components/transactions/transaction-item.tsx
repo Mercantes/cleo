@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { ChevronDown, Check, Loader2, Tags } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ChevronDown, Check, Loader2, Tags, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatRelativeDate } from '@/lib/utils/format';
 import { HighlightText } from '@/components/ui/highlight-text';
@@ -53,6 +54,7 @@ export function TransactionItem({
   searchQuery,
   onCategoryChange,
 }: TransactionItemProps) {
+  const router = useRouter();
   const [expanded, setExpanded] = useState(false);
   const [categories, setCategories] = useState<CategoryOption[]>(categoriesCache || []);
   const [isSaving, setIsSaving] = useState(false);
@@ -257,6 +259,24 @@ export function TransactionItem({
                   );
                 })}
               </div>
+            </div>
+          )}
+          {!isIncome && (
+            <div className="mt-3 border-t pt-2">
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams({
+                    description: merchant || description,
+                    amount: String(Math.abs(amount)),
+                    txId: id,
+                  });
+                  router.push(`/splits?${params.toString()}`);
+                }}
+                className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <Users className="h-3.5 w-3.5" />
+                Dividir conta
+              </button>
             </div>
           )}
         </div>

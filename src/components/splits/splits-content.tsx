@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Plus, Trash2, Check, Users, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
@@ -23,9 +24,21 @@ interface Split {
 }
 
 export function SplitsContent() {
+  const searchParams = useSearchParams();
   const { data, mutate } = useApi<{ splits: Split[] }>('/api/splits');
   const [showForm, setShowForm] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Auto-open form when coming from a transaction
+  const prefillDescription = searchParams.get('description') || '';
+  const prefillAmount = searchParams.get('amount') || '';
+  const prefillTxId = searchParams.get('txId') || '';
+
+  useEffect(() => {
+    if (prefillDescription && prefillAmount) {
+      setShowForm(true);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const splits = data?.splits || [];
 
@@ -82,6 +95,9 @@ export function SplitsContent() {
 
       {showForm && (
         <NewSplitForm
+          initialDescription={prefillDescription}
+          initialAmount={prefillAmount}
+          transactionId={prefillTxId}
           onCreated={() => { setShowForm(false); mutate(); }}
           onCancel={() => setShowForm(false)}
         />
@@ -178,9 +194,21 @@ export function SplitsContent() {
   );
 }
 
-function NewSplitForm({ onCreated, onCancel }: { onCreated: () => void; onCancel: () => void }) {
-  const [description, setDescription] = useState('');
-  const [totalAmount, setTotalAmount] = useState('');
+function NewSplitForm({
+  initialDescription = '',
+  initialAmount = '',
+  transactionId = '',
+  onCreated,
+  onCancel,
+}: {
+  initialDescription?: string;
+  initialAmount?: string;
+  transactionId?: string;
+  onCreated: () => void;
+  onCancel: () => void;
+}) {
+  const [description, setDescription] = useState(initialDescription);
+  const [totalAmount, setTotalAmount] = useState(initialAmount);
   const [participants, setParticipants] = useState<{ name: string; amount: string }[]>([
     { name: '', amount: '' },
     { name: '', amount: '' },
@@ -232,6 +260,7 @@ function NewSplitForm({ onCreated, onCancel }: { onCreated: () => void; onCancel
           description: description.trim(),
           totalAmount: total,
           participants: validParticipants,
+          ...(transactionId && { transactionId }),
         }),
       });
 
