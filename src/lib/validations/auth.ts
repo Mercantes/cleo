@@ -21,7 +21,7 @@ function isValidCPF(cpf: string): boolean {
 }
 
 export const signupSchema = z.object({
-  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
+  name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').optional(),
   email: z.string().email('Email inválido'),
   cpf: z
     .string()
