@@ -21,14 +21,14 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
       value: formatCurrency(data.income),
       icon: TrendingUp,
       color: 'text-green-600 dark:text-green-400',
-      href: '/transactions',
+      href: '/transactions?type=credit',
     },
     {
       label: 'Despesas',
       value: formatCurrency(data.expenses),
       icon: TrendingDown,
       color: 'text-red-600 dark:text-red-400',
-      href: '/transactions',
+      href: '/transactions?type=debit',
     },
     {
       label: 'Saldo',

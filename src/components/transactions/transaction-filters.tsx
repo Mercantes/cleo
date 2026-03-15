@@ -32,9 +32,9 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [type, setType] = useState('');
+  const [type, setType] = useState(() => searchParams.get('type') || '');
   const [category, setCategory] = useState('');
-  const [bank, setBank] = useState('');
+  const [bank, setBank] = useState(() => searchParams.get('bank') || '');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const initialCategoryApplied = useRef(false);
