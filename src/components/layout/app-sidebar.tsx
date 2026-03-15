@@ -8,7 +8,7 @@ import { MessageSquare, Bug, HelpCircle, Crown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
-import { SidebarBalance } from './sidebar-balance';
+
 
 const STORAGE_KEY = 'cleo-sidebar-collapsed';
 
@@ -117,9 +117,6 @@ export function AppSidebar() {
           </div>
         ))}
       </nav>
-
-      {/* Balance */}
-      {!collapsed && <SidebarBalance />}
 
       {/* Footer links */}
       <div className={cn('border-t', collapsed ? 'px-2 py-2' : 'px-3 py-2')}>
