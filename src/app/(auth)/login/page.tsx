@@ -70,7 +70,7 @@ export default function LoginPage() {
   }
 
   return (
-    <Card className="border-0 shadow-lg sm:border">
+    <Card className="mx-auto max-w-md border-0 shadow-lg sm:border">
       <CardHeader className="text-center pb-2">
         <CardTitle className="text-2xl">Bem-vindo de volta</CardTitle>
         <CardDescription>Entre na sua conta Cleo</CardDescription>

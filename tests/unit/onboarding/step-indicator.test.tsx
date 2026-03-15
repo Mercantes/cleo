@@ -3,29 +3,28 @@ import { render, screen } from '@testing-library/react';
 import { StepIndicator } from '@/components/onboarding/step-indicator';
 
 describe('StepIndicator', () => {
-  it('renders all step labels', () => {
+  it('renders 4 step dots', () => {
     render(<StepIndicator currentStep={0} completedSteps={[]} />);
 
-    expect(screen.getByText('Perfil')).toBeInTheDocument();
-    expect(screen.getByText('Banco')).toBeInTheDocument();
-    expect(screen.getByText('Categorias')).toBeInTheDocument();
-    expect(screen.getByText('Metas')).toBeInTheDocument();
+    const dots = screen.getAllByRole('img');
+    expect(dots).toHaveLength(4);
   });
 
-  it('highlights current step', () => {
+  it('marks current step as active', () => {
     render(<StepIndicator currentStep={1} completedSteps={[0]} />);
 
-    // Step 2 (index 1) should show number "2"
-    expect(screen.getByText('2')).toBeInTheDocument();
+    const dots = screen.getAllByRole('img');
+    // Current step (index 1) should have the wider class
+    expect(dots[1].className).toContain('w-8');
+    expect(dots[1].className).toContain('bg-primary');
   });
 
-  it('shows check for completed steps', () => {
+  it('marks completed steps', () => {
     render(<StepIndicator currentStep={2} completedSteps={[0, 1]} />);
 
-    // Completed steps should not show numbers
-    expect(screen.queryByText('1')).not.toBeInTheDocument();
-    expect(screen.queryByText('2')).not.toBeInTheDocument();
-    // Current step shows number
-    expect(screen.getByText('3')).toBeInTheDocument();
+    const dots = screen.getAllByRole('img');
+    expect(dots[0].className).toContain('bg-primary/60');
+    expect(dots[1].className).toContain('bg-primary/60');
+    expect(dots[2].className).toContain('w-8');
   });
 });

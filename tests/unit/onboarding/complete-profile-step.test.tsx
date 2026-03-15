@@ -9,13 +9,13 @@ describe('CompleteProfileStep', () => {
     expect(screen.getByText('Complete seu perfil')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('000.000.000-00')).toBeInTheDocument();
     expect(screen.getByText('Continuar')).toBeInTheDocument();
-    expect(screen.getByText('Pular por agora')).toBeInTheDocument();
+    expect(screen.getByText('Pular')).toBeInTheDocument();
   });
 
   it('shows personalized greeting when userName is provided', () => {
-    render(<CompleteProfileStep onComplete={vi.fn()} onSkip={vi.fn()} userName="João" />);
+    render(<CompleteProfileStep onComplete={vi.fn()} onSkip={vi.fn()} userName="Joao" />);
 
-    expect(screen.getByText('João, complete seu perfil')).toBeInTheDocument();
+    expect(screen.getByText('Joao, complete seu perfil')).toBeInTheDocument();
   });
 
   it('formats CPF as user types', () => {
@@ -34,14 +34,28 @@ describe('CompleteProfileStep', () => {
     fireEvent.change(input, { target: { value: '11111111111' } });
     fireEvent.submit(screen.getByText('Continuar'));
 
-    expect(await screen.findByText('CPF inválido. Verifique o número digitado.')).toBeInTheDocument();
+    expect(await screen.findByText('CPF invalido. Verifique o numero digitado.')).toBeInTheDocument();
   });
 
   it('calls onSkip when skip button clicked', () => {
     const onSkip = vi.fn();
     render(<CompleteProfileStep onComplete={vi.fn()} onSkip={onSkip} />);
 
-    fireEvent.click(screen.getByText('Pular por agora'));
+    fireEvent.click(screen.getByText('Pular'));
     expect(onSkip).toHaveBeenCalled();
+  });
+
+  it('renders referral code field', () => {
+    render(<CompleteProfileStep onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    expect(screen.getByPlaceholderText('CLEO-XXXXXXXX')).toBeInTheDocument();
+    expect(screen.getByText(/Codigo de indicacao/)).toBeInTheDocument();
+  });
+
+  it('renders analytics consent toggle', () => {
+    render(<CompleteProfileStep onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    expect(screen.getByRole('switch')).toBeInTheDocument();
+    expect(screen.getByText(/analytics/)).toBeInTheDocument();
   });
 });

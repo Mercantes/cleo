@@ -27,9 +27,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name')
+    .select('full_name, onboarding_completed')
     .eq('id', user.id)
-    .single();
+    .single() as { data: { full_name: string | null; onboarding_completed: boolean | null } | null };
+
+  // Redirect to onboarding if not completed
+  if (profile && !profile.onboarding_completed) {
+    redirect('/onboarding');
+  }
 
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'usuário';
 

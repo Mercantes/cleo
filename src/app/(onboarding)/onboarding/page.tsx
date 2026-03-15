@@ -130,10 +130,8 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="mx-auto max-w-lg space-y-8 py-8">
-      <StepIndicator currentStep={currentStep} completedSteps={completedSteps} />
-
-      <div className="rounded-xl border p-6 sm:p-8">
+    <div className="space-y-8">
+      <div className="rounded-xl border bg-card p-6 sm:p-8">
         {currentStep > 0 && (
           <button
             onClick={goToPreviousStep}
@@ -157,6 +155,8 @@ export default function OnboardingPage() {
           <SetGoalsStep onComplete={handleGoalsComplete} onSkip={skipStep} />
         )}
       </div>
+
+      <StepIndicator currentStep={currentStep} completedSteps={completedSteps} />
     </div>
   );
 }

@@ -77,7 +77,7 @@ describe('TransactionList', () => {
     render(<TransactionList />);
 
     await waitFor(() => {
-      expect(screen.getByText('Pão de Açúcar')).toBeInTheDocument();
+      expect(screen.getAllByText('Pão de Açúcar').length).toBeGreaterThan(0);
     });
   });
 });

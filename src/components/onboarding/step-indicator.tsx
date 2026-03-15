@@ -1,13 +1,6 @@
 'use client';
 
-import { Check } from 'lucide-react';
-
-const STEPS = [
-  { label: 'Perfil' },
-  { label: 'Banco' },
-  { label: 'Categorias' },
-  { label: 'Metas' },
-];
+const TOTAL_STEPS = 4;
 
 interface StepIndicatorProps {
   currentStep: number;
@@ -16,68 +9,31 @@ interface StepIndicatorProps {
 
 export function StepIndicator({ currentStep, completedSteps }: StepIndicatorProps) {
   return (
-    <div className="space-y-4">
-      <ol className="flex items-center justify-center gap-2" aria-label="Etapas de configuração">
-        {STEPS.map((step, index) => {
-          const isCompleted = completedSteps.includes(index);
-          const isCurrent = index === currentStep;
-
-          return (
-            <li
-              key={step.label}
-              className="flex items-center gap-2"
-              aria-current={isCurrent ? 'step' : undefined}
-            >
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors ${
-                    isCompleted
-                      ? 'bg-green-500 text-white'
-                      : isCurrent
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                  }`}
-                  aria-label={
-                    isCompleted
-                      ? `${step.label} — concluído`
-                      : isCurrent
-                        ? `${step.label} — etapa atual`
-                        : `${step.label} — pendente`
-                  }
-                >
-                  {isCompleted ? <Check className="h-4 w-4" /> : index + 1}
-                </div>
-                <span className={`text-xs ${isCurrent ? 'font-medium' : 'text-muted-foreground'}`}>
-                  {step.label}
-                </span>
-              </div>
-              {index < STEPS.length - 1 && (
-                <div className={`mb-4 h-0.5 w-8 transition-colors ${isCompleted ? 'bg-green-500' : 'bg-muted'}`} aria-hidden="true" />
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      {/* Step dots */}
-      <div className="flex justify-center gap-1.5" aria-hidden="true">
-        {STEPS.map((step, index) => {
-          const isCompleted = completedSteps.includes(index);
-          const isCurrent = index === currentStep;
-          return (
-            <div
-              key={step.label}
-              className={`h-1.5 rounded-full transition-all ${
-                isCurrent
-                  ? 'w-6 bg-primary'
-                  : isCompleted
-                    ? 'w-1.5 bg-green-500'
-                    : 'w-1.5 bg-muted'
-              }`}
-            />
-          );
-        })}
-      </div>
+    <div className="flex justify-center gap-2" aria-label="Etapas de configuracao">
+      {Array.from({ length: TOTAL_STEPS }, (_, index) => {
+        const isCompleted = completedSteps.includes(index);
+        const isCurrent = index === currentStep;
+        return (
+          <div
+            key={index}
+            className={`h-2 rounded-full transition-all ${
+              isCurrent
+                ? 'w-8 bg-primary'
+                : isCompleted
+                  ? 'w-2 bg-primary/60'
+                  : 'w-2 bg-muted'
+            }`}
+            role="img"
+            aria-label={
+              isCompleted
+                ? `Etapa ${index + 1} — concluida`
+                : isCurrent
+                  ? `Etapa ${index + 1} — atual`
+                  : `Etapa ${index + 1} — pendente`
+            }
+          />
+        );
+      })}
     </div>
   );
 }

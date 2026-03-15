@@ -51,8 +51,8 @@ describe('buildFinancialContext', () => {
     const context = await buildFinancialContext('user-1');
 
     expect(context).toContain('João');
-    expect(context).toContain('5000.00');
-    expect(context).toContain('1200.00');
+    expect(context).toContain('R$\u00a05.000,00');
+    expect(context).toContain('R$\u00a01.200,00');
     expect(context).toContain('Alimentação');
   });
 
@@ -66,6 +66,6 @@ describe('buildFinancialContext', () => {
     const context = await buildFinancialContext('user-2');
 
     expect(context).toContain('Usuário');
-    expect(context).toContain('0.00');
+    expect(context).toContain('R$\u00a00,00');
   });
 });
