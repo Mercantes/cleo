@@ -389,7 +389,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right side - Dashboard Preview */}
-      <div className="hidden lg:flex lg:flex-col lg:justify-center">
+      <div className="hidden rounded-xl bg-muted/40 p-6 lg:flex lg:flex-col lg:justify-center sm:p-8">
         <DashboardPreview />
       </div>
     </div>
