@@ -21,7 +21,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { navItems } from '@/components/layout/nav-items';
+import { navSections } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NotificationBell } from '@/components/layout/notification-bell';
@@ -33,18 +33,22 @@ interface HeaderProps {
 }
 
 const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
+  '/dashboard': 'Visão Geral',
   '/chat': 'Pergunte à Cleo',
   '/transactions': 'Transações',
   '/projections': 'Projeções',
-  '/retirement': 'Aposentadoria',
-  '/subscriptions': 'Assinaturas',
+  '/retirement': 'Patrimônio',
+  '/subscriptions': 'Recorrentes',
   '/settings': 'Configurações',
   '/onboarding': 'Configuração Inicial',
-  '/upgrade': 'Upgrade',
+  '/upgrade': 'Plano',
   '/splits': 'Dividir Despesas',
   '/reports': 'Relatórios',
   '/import': 'Importar Extrato',
+  '/categories': 'Categorias',
+  '/goals': 'Metas',
+  '/accounts': 'Contas',
+  '/support': 'Suporte',
 };
 
 export function Header({ userName }: HeaderProps) {
@@ -75,25 +79,41 @@ export function Header({ userName }: HeaderProps) {
               <Image src="/logo.png" alt="Cleo" width={28} height={28} className="rounded-md" />
               <span className="text-xl font-bold">Cleo</span>
             </div>
-            <nav aria-label="Menu principal" className="space-y-1 p-3">
-              {navItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                    )}
-                  >
-                    <item.icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
+            <nav aria-label="Menu principal" className="p-3">
+              {navSections.map((section) => (
+                <div key={section.title} className="mb-3">
+                  <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {section.title}
+                  </p>
+                  <div className="space-y-0.5">
+                    {section.items.map((item) => {
+                      const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                            isActive
+                              ? 'bg-primary/10 text-primary'
+                              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                          )}
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <span className="flex flex-1 items-center justify-between">
+                            {item.label}
+                            {item.pro && (
+                              <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary">
+                                PRO
+                              </span>
+                            )}
+                          </span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </nav>
           </SheetContent>
         </Sheet>

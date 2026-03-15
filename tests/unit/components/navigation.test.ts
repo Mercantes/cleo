@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest';
-import { navItems } from '@/components/layout/nav-items';
+import { navItems, navSections } from '@/components/layout/nav-items';
 
 describe('Navigation Items', () => {
-  it('should have 8 navigation items', () => {
-    expect(navItems).toHaveLength(8);
+  it('should have 3 navigation sections', () => {
+    expect(navSections).toHaveLength(3);
+  });
+
+  it('navItems flat list should include all section items', () => {
+    const totalItems = navSections.reduce((sum, s) => sum + s.items.length, 0);
+    expect(navItems).toHaveLength(totalItems);
   });
 
   it('each item should have label, href, and icon', () => {
@@ -17,12 +22,24 @@ describe('Navigation Items', () => {
   it('should contain expected routes', () => {
     const hrefs = navItems.map((item) => item.href);
     expect(hrefs).toContain('/dashboard');
-    expect(hrefs).toContain('/chat');
     expect(hrefs).toContain('/transactions');
     expect(hrefs).toContain('/subscriptions');
     expect(hrefs).toContain('/projections');
     expect(hrefs).toContain('/retirement');
     expect(hrefs).toContain('/reports');
     expect(hrefs).toContain('/accounts');
+  });
+
+  it('should mark pro items correctly', () => {
+    const proItems = navItems.filter((item) => item.pro);
+    expect(proItems.length).toBeGreaterThan(0);
+    expect(proItems.every((item) => item.pro === true)).toBe(true);
+  });
+
+  it('sections should have titles', () => {
+    for (const section of navSections) {
+      expect(section.title).toBeTruthy();
+      expect(section.items.length).toBeGreaterThan(0);
+    }
   });
 });
