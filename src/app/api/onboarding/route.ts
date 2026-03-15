@@ -25,14 +25,17 @@ export const GET = withAuth(async (_request, { user }) => {
   const serviceClient = getServiceClient();
   const { data } = await serviceClient
     .from('profiles')
-    .select('onboarding_step, onboarding_completed, onboarding_skipped_steps')
+    .select('onboarding_step, onboarding_completed, onboarding_skipped_steps, full_name')
     .eq('id', user.id)
     .single();
+
+  const firstName = data?.full_name?.split(' ')[0] || undefined;
 
   return NextResponse.json({
     step: data?.onboarding_step || 0,
     completed: data?.onboarding_completed || false,
     skippedSteps: data?.onboarding_skipped_steps || [],
+    userName: firstName,
   });
 });
 

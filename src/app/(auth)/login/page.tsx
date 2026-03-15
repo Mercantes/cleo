@@ -70,10 +70,10 @@ export default function LoginPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Entrar na Cleo</CardTitle>
-        <CardDescription>Sua assistente financeira com IA</CardDescription>
+    <Card className="border-0 shadow-lg sm:border">
+      <CardHeader className="text-center pb-2">
+        <CardTitle className="text-2xl">Bem-vindo de volta</CardTitle>
+        <CardDescription>Entre na sua conta Cleo</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Button
@@ -160,7 +160,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-muted-foreground">
           Não tem conta?{' '}
           <Link href="/signup" className="text-primary underline-offset-4 hover:underline">
-            Criar conta
+            Criar conta grátis
           </Link>
         </p>
       </CardContent>

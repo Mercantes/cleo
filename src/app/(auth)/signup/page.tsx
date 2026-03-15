@@ -7,11 +7,27 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { signupSchema, type SignupFormData } from '@/lib/validations/auth';
-import { Eye, EyeOff, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GoogleIcon } from '@/components/ui/google-icon';
+import { formatCPF, stripCPF } from '@/lib/utils/cpf';
+
+function PasswordRequirement({ met, label }: { met: boolean; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5 text-xs">
+      {met ? (
+        <Check className="h-3 w-3 text-green-500" />
+      ) : (
+        <X className="h-3 w-3 text-muted-foreground" />
+      )}
+      <span className={met ? 'text-green-600 dark:text-green-400' : 'text-muted-foreground'}>
+        {label}
+      </span>
+    </div>
+  );
+}
 
 export default function SignupPage() {
   const router = useRouter();
@@ -23,10 +39,21 @@ export default function SignupPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
+    defaultValues: { acceptTerms: undefined as unknown as true },
   });
+
+  const passwordValue = watch('password', '');
+
+  const passwordChecks = {
+    length: passwordValue.length >= 8,
+    lowercase: /[a-z]/.test(passwordValue),
+    uppercase: /[A-Z]/.test(passwordValue),
+    number: /[0-9]/.test(passwordValue),
+  };
 
   async function onSubmit(data: SignupFormData) {
     setError(null);
@@ -36,7 +63,7 @@ export default function SignupPage() {
       email: data.email,
       password: data.password,
       options: {
-        data: { full_name: data.name },
+        data: { full_name: data.name, cpf: stripCPF(data.cpf) },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -50,7 +77,6 @@ export default function SignupPage() {
       return;
     }
 
-    // If email confirmation is required, Supabase returns user but no session
     if (signUpData.user && !signUpData.session) {
       setEmailSent(data.email);
       return;
@@ -103,8 +129,8 @@ export default function SignupPage() {
   }
 
   return (
-    <Card>
-      <CardHeader className="text-center">
+    <Card className="border-0 shadow-lg sm:border">
+      <CardHeader className="text-center pb-2">
         <CardTitle className="text-2xl">Criar conta na Cleo</CardTitle>
         <CardDescription>Sua assistente financeira com IA</CardDescription>
       </CardHeader>
@@ -124,25 +150,47 @@ export default function SignupPage() {
             <span className="w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-card px-2 text-muted-foreground">ou</span>
+            <span className="bg-card px-2 text-muted-foreground">ou crie com email</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">
-              Nome
+              Nome completo
             </label>
             <Input
               id="name"
               autoComplete="name"
-              placeholder="Seu nome"
+              placeholder="Como devemos te chamar?"
               aria-describedby={errors.name ? 'name-error' : undefined}
               aria-invalid={!!errors.name}
               {...register('name')}
               disabled={isSubmitting}
             />
             {errors.name && <p id="name-error" role="alert" className="text-sm text-destructive">{errors.name.message}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="cpf" className="text-sm font-medium">
+              CPF
+            </label>
+            <Input
+              id="cpf"
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="000.000.000-00"
+              aria-describedby={errors.cpf ? 'cpf-error' : undefined}
+              aria-invalid={!!errors.cpf}
+              {...register('cpf', {
+                onChange: (e) => {
+                  e.target.value = formatCPF(e.target.value);
+                },
+              })}
+              disabled={isSubmitting}
+              maxLength={14}
+            />
+            {errors.cpf && <p id="cpf-error" role="alert" className="text-sm text-destructive">{errors.cpf.message}</p>}
           </div>
 
           <div className="space-y-2">
@@ -171,8 +219,8 @@ export default function SignupPage() {
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 autoComplete="new-password"
-                placeholder="Mínimo 6 caracteres"
-                aria-describedby={errors.password ? 'signup-password-error' : undefined}
+                placeholder="Crie uma senha segura"
+                aria-describedby="password-requirements"
                 aria-invalid={!!errors.password}
                 {...register('password')}
                 disabled={isSubmitting}
@@ -187,8 +235,40 @@ export default function SignupPage() {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {errors.password && (
-              <p id="signup-password-error" role="alert" className="text-sm text-destructive">{errors.password.message}</p>
+            {passwordValue.length > 0 && (
+              <div id="password-requirements" className="grid grid-cols-2 gap-1 pt-1">
+                <PasswordRequirement met={passwordChecks.length} label="8+ caracteres" />
+                <PasswordRequirement met={passwordChecks.lowercase} label="Letra minúscula" />
+                <PasswordRequirement met={passwordChecks.uppercase} label="Letra maiúscula" />
+                <PasswordRequirement met={passwordChecks.number} label="Um número" />
+              </div>
+            )}
+            {errors.password && !passwordValue && (
+              <p role="alert" className="text-sm text-destructive">{errors.password.message}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 rounded border-input accent-primary"
+                {...register('acceptTerms')}
+                disabled={isSubmitting}
+              />
+              <span className="text-xs text-muted-foreground leading-relaxed">
+                Li e aceito os{' '}
+                <Link href="/terms" className="text-primary hover:underline" target="_blank">
+                  Termos de Uso
+                </Link>{' '}
+                e a{' '}
+                <Link href="/privacy" className="text-primary hover:underline" target="_blank">
+                  Política de Privacidade
+                </Link>
+              </span>
+            </label>
+            {errors.acceptTerms && (
+              <p role="alert" className="text-sm text-destructive">{errors.acceptTerms.message}</p>
             )}
           </div>
 

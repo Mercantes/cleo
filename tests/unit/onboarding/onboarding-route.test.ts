@@ -44,9 +44,9 @@ describe('Onboarding API', () => {
     });
   });
 
-  it('GET returns onboarding state', async () => {
+  it('GET returns onboarding state with userName', async () => {
     mockSingle.mockResolvedValue({
-      data: { onboarding_step: 1, onboarding_completed: false, onboarding_skipped_steps: ['connect-bank'] },
+      data: { onboarding_step: 1, onboarding_completed: false, onboarding_skipped_steps: ['connect-bank'], full_name: 'Maria Silva' },
     });
 
     const { GET } = await import('@/app/api/onboarding/route');
@@ -57,6 +57,7 @@ describe('Onboarding API', () => {
     expect(data.step).toBe(1);
     expect(data.completed).toBe(false);
     expect(data.skippedSteps).toContain('connect-bank');
+    expect(data.userName).toBe('Maria');
   });
 
   it('GET returns 401 when not authenticated', async () => {

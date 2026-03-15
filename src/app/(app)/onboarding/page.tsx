@@ -18,6 +18,8 @@ export default function OnboardingPage() {
   const [isComplete, setIsComplete] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [userName, setUserName] = useState<string | undefined>();
+
   useEffect(() => {
     fetch('/api/onboarding')
       .then((r) => r.json())
@@ -28,6 +30,7 @@ export default function OnboardingPage() {
         }
         setCurrentStep(data.step || 0);
         setSkippedSteps(data.skippedSteps || []);
+        if (data.userName) setUserName(data.userName);
       })
       .catch(() => {
         // On error, start from step 0
@@ -141,7 +144,7 @@ export default function OnboardingPage() {
           </button>
         )}
         {currentStep === 0 && (
-          <ConnectBankStep onComplete={goToNextStep} onSkip={skipStep} />
+          <ConnectBankStep onComplete={goToNextStep} onSkip={skipStep} userName={userName} />
         )}
         {currentStep === 1 && (
           <ReviewCategoriesStep onComplete={goToNextStep} onSkip={skipStep} />

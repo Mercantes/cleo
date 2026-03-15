@@ -6,9 +6,23 @@ describe('ConnectBankStep', () => {
   it('renders step content', () => {
     render(<ConnectBankStep onComplete={vi.fn()} onSkip={vi.fn()} />);
 
-    expect(screen.getByText('Conecte seu banco')).toBeInTheDocument();
+    expect(screen.getByText('Vamos conectar seu banco')).toBeInTheDocument();
     expect(screen.getByText('Conectar banco')).toBeInTheDocument();
     expect(screen.getByText('Pular por agora')).toBeInTheDocument();
+  });
+
+  it('shows personalized greeting when userName is provided', () => {
+    render(<ConnectBankStep onComplete={vi.fn()} onSkip={vi.fn()} userName="Maria" />);
+
+    expect(screen.getByText('Olá, Maria!')).toBeInTheDocument();
+  });
+
+  it('shows security trust badges', () => {
+    render(<ConnectBankStep onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    expect(screen.getByText('Criptografia bancária')).toBeInTheDocument();
+    expect(screen.getByText('Acesso somente leitura')).toBeInTheDocument();
+    expect(screen.getByText('Desconecte quando quiser')).toBeInTheDocument();
   });
 
   it('calls onComplete when connect button clicked', () => {
