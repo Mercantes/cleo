@@ -180,9 +180,9 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
             value={bank}
             onChange={(e) => setBank(e.target.value)}
             aria-label="Filtrar por conta"
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            className="h-9 max-w-[10rem] truncate rounded-md border border-input bg-background px-3 text-sm text-foreground"
           >
-            <option value="">Contas e Cartões</option>
+            <option value="">Conta</option>
             {accounts.map((acc) => (
               <option key={acc.id} value={acc.id}>
                 {acc.name}
