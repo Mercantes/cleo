@@ -54,6 +54,12 @@ describe('normalizeMerchant', () => {
   it('removes location suffixes', () => {
     expect(normalizeMerchant('NETFLIX.COM SAO PAULO BR', null)).toBe('netflix.com');
   });
+
+  it('removes acquirer prefixes (Dm*, Ifd*, Pag*)', () => {
+    expect(normalizeMerchant('Dm*Spotify', null)).toBe('spotify');
+    expect(normalizeMerchant('Ifd*Ifood Club', null)).toBe('ifood club');
+    expect(normalizeMerchant('Pag*Netflix', null)).toBe('netflix');
+  });
 });
 
 describe('isAmountSimilar', () => {
@@ -222,7 +228,7 @@ describe('detectRecurringFromTransactions', () => {
     expect(results[0].confidence).toBe('high'); // Known merchant (vivo)
   });
 
-  it('marks subscription as inactive when last charge > 45 days ago', () => {
+  it('marks subscription as cancelled when last charge > 45 days ago', () => {
     const transactions = [
       makeTx({ id: '1', date: '2025-09-15', amount: 39.9, merchant: 'Netflix' }),
       makeTx({ id: '2', date: '2025-10-15', amount: 39.9, merchant: 'Netflix' }),
@@ -233,7 +239,7 @@ describe('detectRecurringFromTransactions', () => {
 
     const results = detectRecurringFromTransactions(transactions);
     expect(results).toHaveLength(1);
-    expect(results[0].status).toBe('inactive');
+    expect(results[0].status).toBe('cancelled');
   });
 
   // ===== INSTALLMENT DETECTION =====

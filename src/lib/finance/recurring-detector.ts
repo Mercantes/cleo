@@ -5,7 +5,7 @@ export interface RecurringResult {
   amount: number;
   frequency: 'monthly' | 'weekly' | 'yearly';
   type: 'subscription' | 'installment';
-  status: 'active' | 'inactive';
+  status: 'active' | 'cancelled' | 'completed';
   confidence: 'high' | 'medium' | 'low';
   installments_remaining?: number;
   next_expected_date: string;
@@ -34,7 +34,7 @@ const KNOWN_SUBSCRIPTIONS: string[] = [
   'chatgpt', 'openai', 'claude', 'midjourney', 'canva',
   'playstation', 'xbox', 'nintendo', 'steam', 'ea play',
   'duolingo', 'coursera', 'alura', 'rocketseat',
-  'nubank vida', 'porto seguro', 'sulamerica',
+  'nu seguro', 'nubank vida', 'porto seguro', 'sulamerica',
   'claro', 'vivo', 'tim', 'oi',
 ];
 
@@ -47,8 +47,10 @@ function normalizeMerchant(description: string, merchant: string | null): string
   return name
     .replace(/\s+/g, ' ')
     .replace(/\d{2}\/\d{2}/g, '') // Remove date patterns like 01/06
-    .replace(/\*+/g, ' ')
-    .replace(/\b(br|brasil|sao paulo|sp|rj|rio)\b/gi, '') // Remove location suffixes
+    .replace(/\*+/g, ' ')         // Replace asterisks with space
+    .replace(/\b(br|brasil|sao paulo|sp|rj|rio|nova odessa|bra)\b/gi, '') // Remove location suffixes
+    // Remove acquirer prefixes (Dm*, Ifd*, Pag*, Mp*, Pagseguro*, etc.)
+    .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet)\s+/i, '')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -100,14 +102,19 @@ function hasMultiplePerMonth(transactions: Transaction[]): boolean {
   }
   const counts = [...monthCounts.values()];
   const avgPerMonth = counts.reduce((a, b) => a + b, 0) / counts.length;
-  return avgPerMonth > 1.5; // More than 1.5 transactions per month on average = not subscription
+  return avgPerMonth > 1.5;
+}
+
+function mapStatus(isActive: boolean, type: 'subscription' | 'installment'): 'active' | 'cancelled' | 'completed' {
+  if (isActive) return 'active';
+  return type === 'installment' ? 'completed' : 'cancelled';
 }
 
 export function detectRecurringFromTransactions(transactions: Transaction[]): RecurringResult[] {
   const results: RecurringResult[] = [];
   const grouped = new Map<string, Transaction[]>();
 
-  // STEP 1: Filter credits and group by normalized merchant
+  // Filter credits and group by normalized merchant
   for (const tx of transactions) {
     if (tx.type === 'credit') continue;
     const key = normalizeMerchant(tx.description, tx.merchant);
@@ -122,15 +129,16 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
     // STEP 1: Installment pattern X/Y has absolute precedence
     const installment = detectInstallmentPattern(sorted[sorted.length - 1].description);
     if (installment) {
+      const isActive = installment.current < installment.total;
       results.push({
         merchant: latest.merchant || latest.description,
         amount: latest.amount,
         frequency: 'monthly',
         type: 'installment',
-        status: installment.current < installment.total ? 'active' : 'inactive',
+        status: isActive ? 'active' : 'completed',
         confidence: 'high',
         installments_remaining: installment.total - installment.current,
-        next_expected_date: installment.current < installment.total
+        next_expected_date: isActive
           ? addMonths(latest.date, 1)
           : latest.date,
         occurrences: sorted.length,
@@ -177,7 +185,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
     const isMonthly = avgInterval >= 25 && avgInterval <= 35;
     if (!isMonthly) continue;
 
-    // STEP 3: Regularity check — irregular intervals = not subscription
+    // Regularity check — irregular intervals = not subscription
     const isRegular = intervalStdDev <= 10;
     if (!isRegular) continue;
 
@@ -196,7 +204,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
         amount: latest.amount,
         frequency: 'monthly',
         type: 'subscription',
-        status: isActive ? 'active' : 'inactive',
+        status: isActive ? 'active' : 'cancelled',
         confidence: 'high',
         next_expected_date: addMonths(latest.date, 1),
         occurrences: sorted.length,
@@ -207,8 +215,6 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
 
     // Amount-based classification for unknown merchants
     if (amountCV <= 0.03) {
-      // Near-identical amounts: could be installment or subscription
-      // Installment: ≤12 occurrences, span < 13 months, and no recent charge (finished)
       const spanMonths = daysBetween(sorted[0].date, sorted[sorted.length - 1].date) / 30;
 
       if (sorted.length <= 12 && spanMonths < 13 && !isActive) {
@@ -218,7 +224,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
           amount: latest.amount,
           frequency: 'monthly',
           type: 'installment',
-          status: 'inactive',
+          status: 'completed',
           confidence: 'medium',
           installments_remaining: 0,
           next_expected_date: latest.date,
@@ -226,13 +232,13 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
           transaction_pattern: merchantKey,
         });
       } else if (sorted.length <= 4 && spanMonths < 5) {
-        // Few occurrences, short span, still active → likely installment in progress
+        // Few occurrences, short span → likely installment in progress
         results.push({
           merchant: latest.merchant || latest.description,
           amount: latest.amount,
           frequency: 'monthly',
           type: 'installment',
-          status: isActive ? 'active' : 'inactive',
+          status: mapStatus(isActive, 'installment'),
           confidence: 'medium',
           installments_remaining: isActive ? Math.max(0, 12 - sorted.length) : 0,
           next_expected_date: isActive ? addMonths(latest.date, 1) : latest.date,
@@ -246,7 +252,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
           amount: latest.amount,
           frequency: 'monthly',
           type: 'subscription',
-          status: isActive ? 'active' : 'inactive',
+          status: isActive ? 'active' : 'cancelled',
           confidence: intervalStdDev <= 5 ? 'high' : 'medium',
           next_expected_date: addMonths(latest.date, 1),
           occurrences: sorted.length,
@@ -260,7 +266,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
         amount: latest.amount,
         frequency: 'monthly',
         type: 'subscription',
-        status: isActive ? 'active' : 'inactive',
+        status: isActive ? 'active' : 'cancelled',
         confidence: 'medium',
         next_expected_date: addMonths(latest.date, 1),
         occurrences: sorted.length,
@@ -273,14 +279,13 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
         amount: latest.amount,
         frequency: 'monthly',
         type: 'subscription',
-        status: isActive ? 'active' : 'inactive',
+        status: isActive ? 'active' : 'cancelled',
         confidence: 'low',
         next_expected_date: addMonths(latest.date, 1),
         occurrences: sorted.length,
         transaction_pattern: merchantKey,
       });
     }
-    // CV > 30% or irregular + high variation → skip (not subscription or installment)
   }
 
   return results;
@@ -307,27 +312,33 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
 
   const results = detectRecurringFromTransactions(transactions);
 
-  // Upsert results into recurring_transactions
-  for (const result of results) {
+  // Delete old auto-detected records (preserve user overrides)
+  await supabase
+    .from('recurring_transactions')
+    .delete()
+    .eq('user_id', userId)
+    .is('user_override', null);
+
+  // Insert fresh results
+  if (results.length > 0) {
+    const rows = results.map(result => ({
+      user_id: userId,
+      transaction_pattern: result.transaction_pattern,
+      merchant: result.merchant,
+      amount: result.amount,
+      frequency: result.frequency,
+      type: result.type,
+      installments_remaining: result.installments_remaining ?? null,
+      next_expected_date: result.next_expected_date,
+      status: result.status,
+    }));
+
     const { error } = await supabase
       .from('recurring_transactions')
-      .upsert(
-        {
-          user_id: userId,
-          transaction_pattern: result.transaction_pattern,
-          merchant: result.merchant,
-          amount: result.amount,
-          frequency: result.frequency,
-          type: result.type,
-          installments_remaining: result.installments_remaining || null,
-          next_expected_date: result.next_expected_date,
-          status: result.status,
-        },
-        { onConflict: 'user_id,transaction_pattern', ignoreDuplicates: false },
-      );
+      .upsert(rows, { onConflict: 'user_id,transaction_pattern', ignoreDuplicates: false });
 
     if (error) {
-      console.error('[recurring-detector] upsert error:', error.message, 'merchant:', result.merchant);
+      console.error('[recurring-detector] bulk upsert error:', error.message);
     }
   }
 

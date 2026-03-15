@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Repeat, CreditCard, Loader2, MessageSquare } from 'lucide-react';
+import { Repeat, CreditCard, Loader2, MessageSquare, ArrowRightLeft } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
 import { Button } from '@/components/ui/button';
+import { useApi } from '@/hooks/use-api';
+import { toast } from '@/components/ui/toast';
 
 interface RecurringItem {
   id: string;
@@ -13,51 +15,73 @@ interface RecurringItem {
   amount: number;
   frequency: string;
   type: 'subscription' | 'installment';
+  user_override: string | null;
   installments_remaining: number | null;
   next_expected_date: string;
   status: string;
 }
 
+interface RecurringData {
+  subscriptions: RecurringItem[];
+  installments: RecurringItem[];
+  monthlyTotal: number;
+}
+
 export function RecurringList() {
   const router = useRouter();
-  const [subscriptions, setSubscriptions] = useState<RecurringItem[]>([]);
-  const [installments, setInstallments] = useState<RecurringItem[]>([]);
-  const [monthlyTotal, setMonthlyTotal] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading, error: fetchError, mutate } = useApi<RecurringData>('/api/recurring');
   const [isDetecting, setIsDetecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchRecurring();
-  }, []);
-
-  async function fetchRecurring() {
-    try {
-      const res = await fetch('/api/recurring', { cache: 'no-store' });
-      const data = await res.json();
-      setSubscriptions(data.subscriptions || []);
-      setInstallments(data.installments || []);
-      setMonthlyTotal(data.monthlyTotal || 0);
-    } catch {
-      setError('Não foi possível carregar suas recorrências.');
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const subscriptions = data?.subscriptions || [];
+  const installments = data?.installments || [];
+  const monthlyTotal = data?.monthlyTotal || 0;
+  const hasData = subscriptions.length > 0 || installments.length > 0;
 
   async function handleDetect() {
     setIsDetecting(true);
-    setError(null);
     try {
       const res = await fetch('/api/recurring/detect', { method: 'POST' });
       if (!res.ok) throw new Error();
-      await fetchRecurring();
+      await mutate();
+      toast.success('Recorrências atualizadas');
     } catch {
-      setError('Não foi possível detectar recorrências. Tente novamente.');
+      toast.error('Não foi possível detectar recorrências. Tente novamente.');
     } finally {
       setIsDetecting(false);
     }
   }
+
+  const handleToggleType = useCallback(async (item: RecurringItem) => {
+    const newType = item.type === 'subscription' ? 'installment' : 'subscription';
+    setTogglingId(item.id);
+
+    // Optimistic update
+    if (data) {
+      const allItems = [...data.subscriptions, ...data.installments];
+      const updated = allItems.map(i => i.id === item.id ? { ...i, type: newType as 'subscription' | 'installment' } : i);
+      mutate({
+        subscriptions: updated.filter(i => i.type === 'subscription'),
+        installments: updated.filter(i => i.type === 'installment'),
+        monthlyTotal: data.monthlyTotal,
+      }, false);
+    }
+
+    try {
+      const res = await fetch('/api/recurring', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, type: newType }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success(newType === 'subscription' ? 'Marcado como assinatura' : 'Marcado como parcela');
+    } catch {
+      await mutate(); // Revert on error
+      toast.error('Erro ao atualizar classificação');
+    } finally {
+      setTogglingId(null);
+    }
+  }, [data, mutate]);
 
   if (isLoading) {
     return (
@@ -69,8 +93,6 @@ export function RecurringList() {
     );
   }
 
-  const hasData = subscriptions.length > 0 || installments.length > 0;
-
   return (
     <div className="space-y-6">
       {hasData && (
@@ -80,9 +102,9 @@ export function RecurringList() {
         </div>
       )}
 
-      {error && (
+      {fetchError && (
         <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-          {error}
+          Não foi possível carregar suas recorrências.
         </div>
       )}
 
@@ -114,14 +136,23 @@ export function RecurringList() {
                     key={sub.id}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
-                    <div>
-                      <p className="text-sm font-medium">{sub.merchant}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{sub.merchant}</p>
                       <p className="text-xs text-muted-foreground">
                         {sub.frequency === 'monthly' ? 'Mensal' : sub.frequency} · Total anual:{' '}
                         {formatCurrency(sub.amount * 12)}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleToggleType(sub)}
+                        disabled={togglingId === sub.id}
+                        aria-label={`Reclassificar ${sub.merchant} como parcela`}
+                        title="Reclassificar como parcela"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                      </button>
                       <button
                         onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${sub.merchant} de ${formatCurrency(sub.amount)}/mês?`)}`)}
                         aria-label={`Perguntar sobre ${sub.merchant}`}
@@ -130,7 +161,7 @@ export function RecurringList() {
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
                       </button>
-                      <span className="text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(sub.amount)}/mês</span>
+                      <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(sub.amount)}/mês</span>
                     </div>
                   </div>
                 ))}
@@ -150,15 +181,26 @@ export function RecurringList() {
                     key={inst.id}
                     className="flex items-center justify-between rounded-lg border p-3"
                   >
-                    <div>
-                      <p className="text-sm font-medium">{inst.merchant}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{inst.merchant}</p>
                       <p className="text-xs text-muted-foreground">
                         {inst.installments_remaining != null
                           ? `${inst.installments_remaining} parcelas restantes`
                           : 'Em andamento'}
                       </p>
                     </div>
-                    <span className="text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(inst.amount)}/mês</span>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleToggleType(inst)}
+                        disabled={togglingId === inst.id}
+                        aria-label={`Reclassificar ${inst.merchant} como assinatura`}
+                        title="Reclassificar como assinatura"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">{formatCurrency(inst.amount)}/mês</span>
+                    </div>
                   </div>
                 ))}
               </div>
