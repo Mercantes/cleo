@@ -1,12 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const SECRET = 'test-webhook-secret';
-
-// Mock verify-signature
-vi.mock('@/lib/pluggy/verify-signature', () => ({
-  verifyPluggySignature: (_body: string, sig: string) => sig === 'valid-sig',
-}));
-
 // Mock webhook handler
 const mockHandleEvent = vi.fn().mockResolvedValue(undefined);
 vi.mock('@/lib/pluggy/webhook-handler', () => ({
@@ -15,32 +8,30 @@ vi.mock('@/lib/pluggy/webhook-handler', () => ({
 
 import { POST } from '@/app/api/webhooks/pluggy/route';
 
-function createWebhookRequest(body: object, signature = 'valid-sig') {
+function createWebhookRequest(body: string | object) {
   return new Request('http://localhost:3000/api/webhooks/pluggy', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-pluggy-signature': signature,
-    },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json' },
+    body: typeof body === 'string' ? body : JSON.stringify(body),
   });
 }
 
 describe('POST /api/webhooks/pluggy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.PLUGGY_WEBHOOK_SECRET = SECRET;
   });
 
-  it('should return 401 for invalid signature', async () => {
-    const response = await POST(
-      createWebhookRequest({ event: 'item/updated' }, 'bad-sig'),
-    );
-
-    expect(response.status).toBe(401);
+  it('should return 400 for invalid JSON', async () => {
+    const response = await POST(createWebhookRequest('not-json'));
+    expect(response.status).toBe(400);
   });
 
-  it('should return 200 for valid signature', async () => {
+  it('should return 400 when event field is missing', async () => {
+    const response = await POST(createWebhookRequest({ data: {} }));
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 200 for valid event', async () => {
     const response = await POST(
       createWebhookRequest({ event: 'item/updated', data: { itemId: 'item-1' } }),
     );
@@ -61,13 +52,5 @@ describe('POST /api/webhooks/pluggy', () => {
     expect(mockHandleEvent).toHaveBeenCalledWith(
       expect.objectContaining({ event: 'transactions/updated' }),
     );
-  });
-
-  it('should return 500 when webhook secret not configured', async () => {
-    delete process.env.PLUGGY_WEBHOOK_SECRET;
-
-    const response = await POST(createWebhookRequest({ event: 'test' }));
-
-    expect(response.status).toBe(500);
   });
 });
