@@ -113,37 +113,35 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl md:max-w-3xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px]">
-        <div className="flex h-full">
-          {/* Sidebar */}
-          <div className="w-48 shrink-0 border-r bg-muted/30 p-4 overflow-y-auto">
-            <DialogTitle className="mb-4 text-lg font-bold">Configurações</DialogTitle>
-            <nav className="space-y-1">
-              {sections.map((section) => (
-                <button
-                  key={section.key}
-                  onClick={() => setActiveSection(section.key)}
-                  className={cn(
-                    'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                    activeSection === section.key
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                  )}
-                >
-                  <section.icon className="h-4 w-4" />
-                  {section.label}
-                </button>
-              ))}
-            </nav>
-          </div>
+      <DialogContent className="sm:max-w-2xl md:max-w-3xl !flex !flex-row p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px]">
+        {/* Sidebar */}
+        <div className="w-48 shrink-0 border-r bg-muted/30 p-4">
+          <DialogTitle className="mb-4 text-lg font-bold">Configurações</DialogTitle>
+          <nav className="space-y-1">
+            {sections.map((section) => (
+              <button
+                key={section.key}
+                onClick={() => setActiveSection(section.key)}
+                className={cn(
+                  'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  activeSection === section.key
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
+              >
+                <section.icon className="h-4 w-4" />
+                {section.label}
+              </button>
+            ))}
+          </nav>
+        </div>
 
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6 min-h-0">
-            <h2 className="mb-5 text-lg font-bold">{sectionTitle}</h2>
-            {activeSection === 'geral' && <GeneralSection />}
-            {activeSection === 'conta' && <AccountSection profile={profile} loading={isLoading} />}
-            {activeSection === 'sobre' && <AboutSection />}
-          </div>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <h2 className="mb-5 text-lg font-bold">{sectionTitle}</h2>
+          {activeSection === 'geral' && <GeneralSection />}
+          {activeSection === 'conta' && <AccountSection profile={profile} loading={isLoading} />}
+          {activeSection === 'sobre' && <AboutSection />}
         </div>
       </DialogContent>
     </Dialog>
