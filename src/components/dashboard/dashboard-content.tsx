@@ -8,7 +8,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { toast } from '@/components/ui/toast';
 import dynamic from 'next/dynamic';
 import { MonthSelector } from './month-selector';
-import { SummaryCards } from './summary-cards';
 import { SubscriptionsCard } from './subscriptions-card';
 import { GoalProgressCard } from './goal-progress-card';
 import { ChallengesCard } from './challenges-card';
@@ -20,19 +19,21 @@ import { RecentTransactionsCard } from './recent-transactions-card';
 import { SetupChecklist } from './setup-checklist';
 import { CategoryBudgetsCard } from './category-budgets-card';
 import { StreakCard } from './streak-card';
+import { PartialResultCard } from './partial-result-card';
+import { CategoriesTableCard } from './categories-table-card';
 import { AnimateIn } from '@/components/ui/animate-in';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import type { SummaryData, CategoryData, TrendMonth } from '@/types/dashboard';
 
-const ExpenseChart = dynamic(() => import('./expense-chart').then((m) => m.ExpenseChart), {
+const SpendingPaceCard = dynamic(() => import('./spending-pace-card').then((m) => m.SpendingPaceCard), {
   ssr: false,
-  loading: () => <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />,
+  loading: () => <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />,
 });
 
-const CategoryChart = dynamic(() => import('./category-chart').then((m) => m.CategoryChart), {
+const NetWorthCard = dynamic(() => import('./net-worth-card').then((m) => m.NetWorthCard), {
   ssr: false,
-  loading: () => <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />,
+  loading: () => <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />,
 });
 
 function getGreeting(): string {
@@ -110,7 +111,6 @@ export function DashboardContent() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        {/* Header skeleton */}
         <div className="flex items-center justify-between">
           <div>
             <div className="h-7 w-32 animate-pulse rounded bg-muted" />
@@ -118,44 +118,13 @@ export function DashboardContent() {
           </div>
           <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
         </div>
-        {/* Summary cards skeleton */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-lg border p-4">
-              <div className="h-3 w-16 animate-pulse rounded bg-muted" />
-              <div className="mt-2 h-6 w-24 animate-pulse rounded bg-muted" />
-              <div className="mt-1.5 h-3 w-20 animate-pulse rounded bg-muted" />
-            </div>
-          ))}
-        </div>
-        {/* Charts skeleton */}
         <div className="grid gap-4 lg:grid-cols-2">
-          {[1, 2].map((i) => (
-            <div key={i} className="rounded-lg border p-4">
-              <div className="h-4 w-36 animate-pulse rounded bg-muted" />
-              <div className="mt-4 h-[200px] animate-pulse rounded bg-muted/50" />
-            </div>
-          ))}
+          <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />
+          <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />
         </div>
-        {/* Bottom cards skeleton */}
         <div className="grid gap-4 lg:grid-cols-2">
-          {[1, 2].map((i) => (
-            <div key={i} className="rounded-lg border p-4">
-              <div className="h-4 w-32 animate-pulse rounded bg-muted" />
-              <div className="mt-3 space-y-2">
-                {[1, 2, 3].map((j) => (
-                  <div key={j} className="flex items-center gap-3">
-                    <div className="h-7 w-7 animate-pulse rounded-full bg-muted" />
-                    <div className="flex-1">
-                      <div className="h-3.5 w-28 animate-pulse rounded bg-muted" />
-                      <div className="mt-1 h-3 w-20 animate-pulse rounded bg-muted" />
-                    </div>
-                    <div className="h-4 w-16 animate-pulse rounded bg-muted" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
+          <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />
+          <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />
         </div>
       </div>
     );
@@ -207,8 +176,6 @@ export function DashboardContent() {
 
       <SetupChecklist />
 
-      <AnimateIn>{summary && <SummaryCards data={summary} />}</AnimateIn>
-
       <AnimateIn delay={50}><InsightsBar /></AnimateIn>
 
       {!hasData ? (
@@ -232,25 +199,40 @@ export function DashboardContent() {
         </AnimateIn>
       ) : (
         <>
+          {/* Row 1: Spending Pace + Net Worth */}
           <AnimateIn delay={100}>
             <div className="grid gap-4 lg:grid-cols-2">
               <ErrorBoundary>
-                <ExpenseChart data={trends} />
+                {summary && <SpendingPaceCard data={summary} />}
               </ErrorBoundary>
               <ErrorBoundary>
-                <CategoryChart data={categories} />
+                <NetWorthCard />
               </ErrorBoundary>
             </div>
           </AnimateIn>
 
+          {/* Row 2: Partial Result + Categories Table */}
           <AnimateIn delay={150}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ErrorBoundary>
+                {summary && <PartialResultCard data={summary} />}
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <CategoriesTableCard data={categories} />
+              </ErrorBoundary>
+            </div>
+          </AnimateIn>
+
+          {/* Row 3: Accounts + Recent Transactions */}
+          <AnimateIn delay={200}>
             <div className="grid gap-4 lg:grid-cols-2">
               <ErrorBoundary><AccountsCard /></ErrorBoundary>
               <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
             </div>
           </AnimateIn>
 
-          <AnimateIn delay={200}>
+          {/* Row 4: Goals, Challenges, Health */}
+          <AnimateIn delay={250}>
             <div className="grid gap-4 lg:grid-cols-3">
               <ErrorBoundary><GoalProgressCard /></ErrorBoundary>
               <ErrorBoundary><ChallengesCard /></ErrorBoundary>
@@ -258,13 +240,13 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
-          <AnimateIn delay={225}>
+          <AnimateIn delay={275}>
             <ErrorBoundary><StreakCard /></ErrorBoundary>
           </AnimateIn>
 
-          <AnimateIn delay={250}><ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary></AnimateIn>
+          <AnimateIn delay={300}><ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary></AnimateIn>
 
-          <AnimateIn delay={300}><ErrorBoundary><SpendingForecast /></ErrorBoundary></AnimateIn>
+          <AnimateIn delay={325}><ErrorBoundary><SpendingForecast /></ErrorBoundary></AnimateIn>
 
           <AnimateIn delay={350}><ErrorBoundary><SubscriptionsCard /></ErrorBoundary></AnimateIn>
         </>
