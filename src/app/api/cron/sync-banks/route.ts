@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { syncTransactions } from '@/lib/pluggy/sync';
-import { getAccounts } from '@/lib/pluggy/client';
+import { getAccounts, updateItem, getItem } from '@/lib/pluggy/client';
 import { mapPluggyAccountToDb } from '@/lib/pluggy/account-mapper';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
-export const maxDuration = 60; // Allow up to 60s for cron on Vercel
+export const maxDuration = 120; // Allow up to 120s — includes Pluggy refresh wait + sync
 
 export async function GET(request: NextRequest) {
   // Verify cron secret to prevent unauthorized access
@@ -34,6 +34,25 @@ export async function GET(request: NextRequest) {
 
   for (const conn of connections) {
     try {
+      // Request Pluggy to refresh data from the bank
+      await updateItem(conn.pluggy_item_id);
+
+      // Wait for Pluggy to finish updating (poll up to ~45s)
+      let itemReady = false;
+      for (let i = 0; i < 9; i++) {
+        await new Promise((r) => setTimeout(r, 5000));
+        const item = await getItem(conn.pluggy_item_id);
+        if (item.status === 'UPDATED') {
+          itemReady = true;
+          break;
+        }
+        if (item.status !== 'UPDATING') break;
+      }
+
+      if (!itemReady) {
+        console.warn(`[cron/sync-banks] ${conn.connector_name}: item still updating, syncing with available data`);
+      }
+
       // Upsert accounts (create new + update existing balances)
       const pluggyAccounts = await getAccounts(conn.pluggy_item_id);
       for (const acc of pluggyAccounts) {

@@ -113,10 +113,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl md:max-w-3xl p-0 gap-0 overflow-hidden max-h-[85vh]">
-        <div className="flex min-h-[500px]">
+      <DialogContent className="sm:max-w-2xl md:max-w-3xl p-0 gap-0 overflow-hidden h-[85vh] max-h-[700px]">
+        <div className="flex h-full">
           {/* Sidebar */}
-          <div className="w-48 shrink-0 border-r bg-muted/30 p-4">
+          <div className="w-48 shrink-0 border-r bg-muted/30 p-4 overflow-y-auto">
             <DialogTitle className="mb-4 text-lg font-bold">Configurações</DialogTitle>
             <nav className="space-y-1">
               {sections.map((section) => (
@@ -138,7 +138,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-6">
+          <div className="flex-1 overflow-y-auto p-6 min-h-0">
             <h2 className="mb-5 text-lg font-bold">{sectionTitle}</h2>
             {activeSection === 'geral' && <GeneralSection />}
             {activeSection === 'conta' && <AccountSection profile={profile} loading={isLoading} />}

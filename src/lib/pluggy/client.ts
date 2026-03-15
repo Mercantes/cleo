@@ -118,6 +118,14 @@ export async function getItem(itemId: string): Promise<PluggyItem> {
   return apiRequest<PluggyItem>(`/items/${itemId}`);
 }
 
+/** Request Pluggy to re-sync the item with the bank (refresh balances/transactions) */
+export async function updateItem(itemId: string): Promise<PluggyItem> {
+  return apiRequest<PluggyItem>(`/items/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({}),
+  });
+}
+
 export async function getAccounts(itemId: string): Promise<PluggyAccount[]> {
   const data = await apiRequest<PluggyPaginatedResponse<PluggyAccount>>(
     `/accounts?itemId=${itemId}`,
