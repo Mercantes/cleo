@@ -1,9 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowDownLeft, ArrowUpRight, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
-import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 
 interface Transaction {
@@ -20,15 +18,47 @@ interface RecentData {
   transactions: Transaction[];
 }
 
-function formatShortDate(dateStr: string): string {
+const CATEGORY_BADGE_COLORS: Record<string, string> = {
+  Alimentação: 'bg-orange-500/15 text-orange-600 dark:text-orange-400',
+  Transporte: 'bg-red-500/15 text-red-600 dark:text-red-400',
+  Moradia: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+  Saúde: 'bg-pink-500/15 text-pink-600 dark:text-pink-400',
+  Educação: 'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+  Lazer: 'bg-purple-500/15 text-purple-600 dark:text-purple-400',
+  Serviços: 'bg-green-500/15 text-green-600 dark:text-green-400',
+  Transferências: 'bg-sky-500/15 text-sky-600 dark:text-sky-400',
+  Supermercado: 'bg-lime-500/15 text-lime-600 dark:text-lime-400',
+  Restaurantes: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400',
+  Investimentos: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+  Estacionamento: 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
+  'Serviços digitais': 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400',
+};
+
+function getDateGroupLabel(dateStr: string): string {
   const date = new Date(dateStr + 'T12:00:00');
   const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const txDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((today.getTime() - txDay.getTime()) / (1000 * 60 * 60 * 24));
 
-  if (diffDays === 0) return 'Hoje';
-  if (diffDays === 1) return 'Ontem';
-  if (diffDays < 7) return date.toLocaleDateString('pt-BR', { weekday: 'short' });
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+  if (diffDays === 0) return 'HOJE';
+  if (diffDays === 1) return 'ONTEM';
+  return date.toLocaleDateString('pt-BR', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase();
+}
+
+function groupByDate(transactions: Transaction[]): Map<string, Transaction[]> {
+  const groups = new Map<string, Transaction[]>();
+  for (const tx of transactions) {
+    const label = getDateGroupLabel(tx.date);
+    const existing = groups.get(label) || [];
+    existing.push(tx);
+    groups.set(label, existing);
+  }
+  return groups;
+}
+
+function getCategoryBadgeColor(name: string): string {
+  return CATEGORY_BADGE_COLORS[name] || 'bg-muted text-muted-foreground';
 }
 
 export function RecentTransactionsCard() {
@@ -42,63 +72,54 @@ export function RecentTransactionsCard() {
 
   if (transactions.length === 0) return null;
 
+  const grouped = groupByDate(transactions);
+
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Últimas Transações</h3>
-        <Link
-          href="/transactions"
-          className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-        >
-          Ver todas
-          <ChevronRight className="h-3 w-3" />
+    <div className="rounded-lg border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
+        <Link href="/transactions" className="text-xs font-medium text-primary hover:underline">
+          Ver todas &nearr;
         </Link>
       </div>
-      <div className="space-y-1">
-        {transactions.map((tx) => {
-          const isIncome = tx.type === 'credit';
-          const searchTerm = tx.merchant || tx.description;
-          return (
-            <Link
-              key={tx.id}
-              href={`/transactions?search=${encodeURIComponent(searchTerm)}`}
-              className="flex items-center justify-between rounded-md px-2 py-2 transition-colors hover:bg-accent/50"
-            >
-              <div className="flex items-center gap-2.5">
-                <div
-                  className={cn(
-                    'flex h-7 w-7 items-center justify-center rounded-full',
-                    isIncome ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30',
-                  )}
-                >
-                  {isIncome ? (
-                    <ArrowDownLeft className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
-                  ) : (
-                    <ArrowUpRight className="h-3.5 w-3.5 text-red-500 dark:text-red-400" />
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium leading-tight">
-                    {tx.merchant || tx.description}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {tx.categories?.name || 'Sem categoria'} · {formatShortDate(tx.date)}
-                  </p>
-                </div>
-              </div>
-              <span
-                className={cn(
-                  'ml-2 shrink-0 text-sm font-semibold',
-                  isIncome
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-red-500 dark:text-red-400',
-                )}
-              >
-                {isIncome ? '+' : '-'}{formatCurrency(Math.abs(tx.amount))}
-              </span>
-            </Link>
-          );
-        })}
+
+      <div className="mt-3 space-y-4">
+        {Array.from(grouped.entries()).map(([dateLabel, txs]) => (
+          <div key={dateLabel}>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              {dateLabel}
+            </p>
+            <div className="space-y-0.5">
+              {txs.map((tx) => {
+                const isIncome = tx.type === 'credit';
+                const categoryName = tx.categories?.name || 'Sem categoria';
+                const searchTerm = tx.merchant || tx.description;
+
+                return (
+                  <Link
+                    key={tx.id}
+                    href={`/transactions?search=${encodeURIComponent(searchTerm)}`}
+                    className="flex items-center justify-between gap-2 rounded-md px-1 py-2 transition-colors hover:bg-accent/50"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm">
+                        {tx.merchant || tx.description}
+                      </p>
+                    </div>
+
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${getCategoryBadgeColor(categoryName)}`}>
+                      {tx.categories?.icon ? `${tx.categories.icon} ` : ''}{categoryName}
+                    </span>
+
+                    <span className="shrink-0 text-sm font-medium tabular-nums">
+                      {formatCurrency(Math.abs(tx.amount))}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -21,6 +21,7 @@ import { CategoryBudgetsCard } from './category-budgets-card';
 import { StreakCard } from './streak-card';
 import { PartialResultCard } from './partial-result-card';
 import { CategoriesTableCard } from './categories-table-card';
+import { UpcomingExpensesCard } from './upcoming-expenses-card';
 import { AnimateIn } from '@/components/ui/animate-in';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
@@ -223,12 +224,17 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
-          {/* Row 3: Accounts + Recent Transactions */}
+          {/* Row 3: Recent Transactions + Upcoming Expenses */}
           <AnimateIn delay={200}>
             <div className="grid gap-4 lg:grid-cols-2">
-              <ErrorBoundary><AccountsCard /></ErrorBoundary>
               <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
+              <ErrorBoundary><UpcomingExpensesCard /></ErrorBoundary>
             </div>
+          </AnimateIn>
+
+          {/* Row 4: Accounts */}
+          <AnimateIn delay={225}>
+            <ErrorBoundary><AccountsCard /></ErrorBoundary>
           </AnimateIn>
 
           {/* Row 4: Goals, Challenges, Health */}
