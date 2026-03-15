@@ -42,7 +42,7 @@ export function AccountsCard() {
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold">Contas Bancárias</h3>
         <Link
-          href="/settings"
+          href="/accounts"
           className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           Gerenciar
