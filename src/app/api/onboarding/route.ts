@@ -93,7 +93,7 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     .from('profiles')
     .update({
       onboarding_completed: true,
-      onboarding_step: 3,
+      onboarding_step: 4,
     })
     .eq('id', user.id);
 

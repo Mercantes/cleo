@@ -6,7 +6,8 @@ describe('StepIndicator', () => {
   it('renders all step labels', () => {
     render(<StepIndicator currentStep={0} completedSteps={[]} />);
 
-    expect(screen.getByText('Conectar banco')).toBeInTheDocument();
+    expect(screen.getByText('Perfil')).toBeInTheDocument();
+    expect(screen.getByText('Banco')).toBeInTheDocument();
     expect(screen.getByText('Categorias')).toBeInTheDocument();
     expect(screen.getByText('Metas')).toBeInTheDocument();
   });

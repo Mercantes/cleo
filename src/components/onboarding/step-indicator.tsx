@@ -3,7 +3,8 @@
 import { Check } from 'lucide-react';
 
 const STEPS = [
-  { label: 'Conectar banco' },
+  { label: 'Perfil' },
+  { label: 'Banco' },
   { label: 'Categorias' },
   { label: 'Metas' },
 ];

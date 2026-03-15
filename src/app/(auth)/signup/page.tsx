@@ -12,7 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GoogleIcon } from '@/components/ui/google-icon';
-import { formatCPF, stripCPF } from '@/lib/utils/cpf';
 
 function PasswordRequirement({ met, label }: { met: boolean; label: string }) {
   return (
@@ -63,7 +62,7 @@ export default function SignupPage() {
       email: data.email,
       password: data.password,
       options: {
-        data: { full_name: data.name, cpf: stripCPF(data.cpf) },
+        data: { full_name: data.name },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     });
@@ -169,28 +168,6 @@ export default function SignupPage() {
               disabled={isSubmitting}
             />
             {errors.name && <p id="name-error" role="alert" className="text-sm text-destructive">{errors.name.message}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="cpf" className="text-sm font-medium">
-              CPF
-            </label>
-            <Input
-              id="cpf"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="000.000.000-00"
-              aria-describedby={errors.cpf ? 'cpf-error' : undefined}
-              aria-invalid={!!errors.cpf}
-              {...register('cpf', {
-                onChange: (e) => {
-                  e.target.value = formatCPF(e.target.value);
-                },
-              })}
-              disabled={isSubmitting}
-              maxLength={14}
-            />
-            {errors.cpf && <p id="cpf-error" role="alert" className="text-sm text-destructive">{errors.cpf.message}</p>}
           </div>
 
           <div className="space-y-2">

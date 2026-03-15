@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { StepIndicator } from '@/components/onboarding/step-indicator';
+import { CompleteProfileStep } from '@/components/onboarding/steps/complete-profile-step';
 import { ConnectBankStep } from '@/components/onboarding/steps/connect-bank-step';
 import { ReviewCategoriesStep } from '@/components/onboarding/steps/review-categories-step';
 import { SetGoalsStep } from '@/components/onboarding/steps/set-goals-step';
@@ -38,7 +39,7 @@ export default function OnboardingPage() {
       .finally(() => setLoading(false));
   }, [router]);
 
-  const stepNames = ['connect-bank', 'review-categories', 'set-goals'];
+  const stepNames = ['complete-profile', 'connect-bank', 'review-categories', 'set-goals'];
 
   const goToPreviousStep = () => {
     if (currentStep > 0) {
@@ -53,7 +54,7 @@ export default function OnboardingPage() {
     setCompletedSteps(newCompleted);
 
     try {
-      if (currentStep >= 2) {
+      if (currentStep >= 3) {
         setIsComplete(true);
         await fetch('/api/onboarding', {
           method: 'POST',
@@ -82,7 +83,7 @@ export default function OnboardingPage() {
     setSkippedSteps(newSkipped);
 
     try {
-      if (currentStep >= 2) {
+      if (currentStep >= 3) {
         setIsComplete(true);
         await fetch('/api/onboarding', {
           method: 'POST',
@@ -144,12 +145,15 @@ export default function OnboardingPage() {
           </button>
         )}
         {currentStep === 0 && (
-          <ConnectBankStep onComplete={goToNextStep} onSkip={skipStep} userName={userName} />
+          <CompleteProfileStep onComplete={goToNextStep} onSkip={skipStep} userName={userName} />
         )}
         {currentStep === 1 && (
-          <ReviewCategoriesStep onComplete={goToNextStep} onSkip={skipStep} />
+          <ConnectBankStep onComplete={goToNextStep} onSkip={skipStep} userName={userName} />
         )}
         {currentStep === 2 && (
+          <ReviewCategoriesStep onComplete={goToNextStep} onSkip={skipStep} />
+        )}
+        {currentStep === 3 && (
           <SetGoalsStep onComplete={handleGoalsComplete} onSkip={skipStep} />
         )}
       </div>

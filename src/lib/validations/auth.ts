@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import { isValidCPF } from '@/lib/utils/cpf';
 
 export const signupSchema = z.object({
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres'),
-  cpf: z.string().refine((v) => isValidCPF(v), { message: 'CPF inválido' }),
   email: z.string().email('Email inválido'),
   password: z
     .string()

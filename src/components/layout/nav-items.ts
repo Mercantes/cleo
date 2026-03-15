@@ -5,7 +5,6 @@ import {
   Repeat,
   TrendingUp,
   Target,
-  Settings,
   BarChart3,
   Landmark,
   type LucideIcon,
@@ -26,5 +25,4 @@ export const navItems: NavItem[] = [
   { label: 'Assinaturas', href: '/subscriptions', icon: Repeat },
   { label: 'Projeções', href: '/projections', icon: TrendingUp },
   { label: 'Aposentadoria', href: '/retirement', icon: Target },
-  { label: 'Configurações', href: '/settings', icon: Settings },
 ];
