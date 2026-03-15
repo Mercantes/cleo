@@ -77,12 +77,12 @@ function AccountBadge({ account }: { account: AccountInfo | null | undefined }) 
   const logoUrl = conn?.connector_logo_url;
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex items-center justify-center gap-1.5">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={conn?.connector_name || ''} className="h-5 w-5 rounded-full object-contain" />
+        <img src={logoUrl} alt={conn?.connector_name || ''} className="h-7 w-7 rounded-full object-contain" />
       ) : (
-        <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-bold text-muted-foreground">
+        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
           {(conn?.connector_name || account.name || '?').charAt(0).toUpperCase()}
         </div>
       )}
