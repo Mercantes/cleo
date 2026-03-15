@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Image from 'next/image';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -27,10 +26,6 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       >
         Ir para o formulário
       </a>
-      <Link href="/" className="mb-8 flex items-center gap-3">
-        <Image src="/logo.png" alt="Cleo" width={48} height={48} className="rounded-xl" />
-        <span className="text-2xl font-bold tracking-tight">Cleo</span>
-      </Link>
       <div id="auth-content" className="w-full max-w-5xl">{children}</div>
       <p className="mt-6 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground transition-colors">

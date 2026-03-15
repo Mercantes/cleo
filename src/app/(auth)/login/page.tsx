@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createClient } from '@/lib/supabase/client';
 import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
+import Image from 'next/image';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,6 +73,10 @@ export default function LoginPage() {
   return (
     <Card className="mx-auto max-w-md border-0 shadow-lg sm:border">
       <CardHeader className="text-center pb-2">
+        <Link href="/" className="mx-auto mb-4 flex items-center gap-3">
+          <Image src="/logo.png" alt="Cleo" width={48} height={48} className="rounded-xl" />
+          <span className="text-2xl font-bold tracking-tight">Cleo</span>
+        </Link>
         <CardTitle className="text-2xl">Bem-vindo de volta</CardTitle>
         <CardDescription>Entre na sua conta Cleo</CardDescription>
       </CardHeader>
