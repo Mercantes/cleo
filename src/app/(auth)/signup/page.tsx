@@ -218,7 +218,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,520px)_1fr]">
+    <div className="grid items-center gap-8 lg:grid-cols-2">
       {/* Left side - Form */}
       <div className="rounded-xl border bg-card p-6 sm:p-8">
         <div className="mb-6 flex flex-col items-center">
@@ -389,7 +389,7 @@ export default function SignupPage() {
       </div>
 
       {/* Right side - Dashboard Preview */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:flex lg:flex-col lg:justify-center">
         <DashboardPreview />
       </div>
     </div>

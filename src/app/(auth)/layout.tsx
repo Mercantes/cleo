@@ -26,7 +26,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
       >
         Ir para o formulário
       </a>
-      <div id="auth-content" className="w-full max-w-5xl">{children}</div>
+      <div id="auth-content" className="w-full max-w-6xl">{children}</div>
       <p className="mt-6 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-foreground transition-colors">
           &larr; Voltar para o início
