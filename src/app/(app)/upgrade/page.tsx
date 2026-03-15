@@ -31,10 +31,13 @@ export default function UpgradePage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-5xl space-y-8 pb-12">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Escolha seu plano</h1>
-        <p className="mt-2 text-muted-foreground">
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Escolha um plano
+        </p>
+        <h1 className="mt-1 text-2xl font-bold">Faturamento e Assinatura</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
           Desbloqueie todo o potencial da Cleo para suas finanças
         </p>
       </div>
