@@ -41,7 +41,7 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Principais Categorias</p>
         <Link href="/categories" className="text-xs font-medium text-primary hover:underline">
-          Ver mais &nearr;
+          Ver mais ↗
         </Link>
       </div>
 

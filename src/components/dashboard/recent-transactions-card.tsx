@@ -79,7 +79,7 @@ export function RecentTransactionsCard() {
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
         <Link href="/transactions" className="text-xs font-medium text-primary hover:underline">
-          Ver todas &nearr;
+          Ver todas ↗
         </Link>
       </div>
 
