@@ -230,7 +230,7 @@ export function TransactionList() {
                 <span className="text-center">N.°</span>
                 <span>Descrição</span>
                 <span>Categoria</span>
-                <span>Conta</span>
+                <span className="text-center">Conta</span>
                 <span>Data</span>
                 <span className="text-right">Valor</span>
                 <span />
