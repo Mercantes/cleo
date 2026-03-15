@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,6 +26,7 @@ import { signOut } from '@/lib/actions/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { NotificationBell } from '@/components/layout/notification-bell';
 import { toggleSidebar, useSidebarCollapsed } from '@/components/layout/app-sidebar';
+import { SettingsDialog } from '@/components/settings/settings-dialog';
 
 interface HeaderProps {
   userName: string;
@@ -47,8 +49,8 @@ const pageTitles: Record<string, string> = {
 
 export function Header({ userName }: HeaderProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const sidebarCollapsed = useSidebarCollapsed();
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const pageTitle = pageTitles[pathname] || 'Cleo';
   const initials = userName
     .split(' ')
@@ -118,7 +120,7 @@ export function Header({ userName }: HeaderProps) {
           <span className="hidden text-sm md:inline-block">{userName}</span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => router.push('/settings')}>
+          <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações
           </DropdownMenuItem>
@@ -130,6 +132,7 @@ export function Header({ userName }: HeaderProps) {
         </DropdownMenuContent>
       </DropdownMenu>
       </div>
+      <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>
   );
 }
