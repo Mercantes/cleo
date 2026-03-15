@@ -117,7 +117,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+              className="fill-muted-foreground"
               interval="preserveStartEnd"
               tickFormatter={(v: number) => (v === 1 || v % 5 === 0 ? String(v) : '')}
             />
@@ -125,7 +125,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
               fontSize={11}
               tickLine={false}
               axisLine={false}
-              tick={{ fill: 'hsl(var(--muted-foreground))' }}
+              className="fill-muted-foreground"
               tickFormatter={(v: number) => v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`}
               width={60}
             />
