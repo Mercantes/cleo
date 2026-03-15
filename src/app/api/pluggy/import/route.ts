@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getItem, getAccounts } from '@/lib/pluggy/client';
 import { PluggyError } from '@/lib/pluggy/types';
+import { mapPluggyAccountToDb } from '@/lib/pluggy/account-mapper';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 import { checkTierLimit } from '@/lib/finance/tier-check';
@@ -76,23 +77,8 @@ export async function POST(request: Request) {
     let accountCount = 0;
 
     for (const acc of pluggyAccounts) {
-      const accountType =
-        acc.subtype === 'SAVINGS_ACCOUNT'
-          ? 'savings'
-          : acc.type === 'CREDIT'
-            ? 'credit'
-            : 'checking';
-
       const { error: accError } = await supabase.from('accounts').upsert(
-        {
-          user_id: user.id,
-          bank_connection_id: connection.id,
-          pluggy_account_id: acc.id,
-          name: acc.name,
-          type: accountType,
-          balance: acc.balance,
-          currency: acc.currencyCode || 'BRL',
-        },
+        mapPluggyAccountToDb(acc, user.id, connection.id),
         { onConflict: 'pluggy_account_id' },
       );
 

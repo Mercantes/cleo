@@ -19,6 +19,22 @@ export interface PluggyItem {
   updatedAt: string;
 }
 
+export interface PluggyCreditData {
+  level: string | null;
+  brand: string | null;
+  balanceCloseDate: string | null;
+  balanceDueDate: string | null;
+  availableCreditLimit: number | null;
+  balanceForeignCurrency: number | null;
+  minimumPayment: number | null;
+  creditLimit: number | null;
+}
+
+export interface PluggyBankData {
+  transferNumber: string | null;
+  closingBalance: number | null;
+}
+
 export interface PluggyAccount {
   id: string;
   itemId: string;
@@ -28,6 +44,8 @@ export interface PluggyAccount {
   balance: number;
   currencyCode: string;
   number: string;
+  creditData?: PluggyCreditData | null;
+  bankData?: PluggyBankData | null;
 }
 
 export interface PluggyTransaction {

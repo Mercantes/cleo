@@ -1,4 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
+import { getAccounts } from './client';
+import { mapPluggyAccountToDb } from './account-mapper';
 import { syncTransactions } from './sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
@@ -32,6 +34,17 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
         .from('bank_connections')
         .update({ status })
         .eq('id', connection.id);
+
+      // Upsert accounts with latest balances
+      if (status === 'active') {
+        const pluggyAccounts = await getAccounts(event.data.itemId);
+        for (const acc of pluggyAccounts) {
+          await supabase.from('accounts').upsert(
+            mapPluggyAccountToDb(acc, connection.user_id, connection.id),
+            { onConflict: 'pluggy_account_id' },
+          );
+        }
+      }
       break;
     }
 

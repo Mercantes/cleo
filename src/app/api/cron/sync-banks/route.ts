@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { getAccounts } from '@/lib/pluggy/client';
+import { mapPluggyAccountToDb } from '@/lib/pluggy/account-mapper';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
 export const maxDuration = 60; // Allow up to 60s for cron on Vercel
@@ -33,13 +34,13 @@ export async function GET(request: NextRequest) {
 
   for (const conn of connections) {
     try {
-      // Update account balances
+      // Upsert accounts (create new + update existing balances)
       const pluggyAccounts = await getAccounts(conn.pluggy_item_id);
       for (const acc of pluggyAccounts) {
-        await supabase
-          .from('accounts')
-          .update({ balance: acc.balance })
-          .eq('pluggy_account_id', acc.id);
+        await supabase.from('accounts').upsert(
+          mapPluggyAccountToDb(acc, conn.user_id, conn.id),
+          { onConflict: 'pluggy_account_id' },
+        );
       }
 
       // Sync transactions (last 90 days by default)
