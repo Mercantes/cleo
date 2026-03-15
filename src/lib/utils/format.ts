@@ -27,6 +27,27 @@ export function formatDate(date: string): string {
   });
 }
 
+export function formatDateTime(date: string): string {
+  // Date-only strings (YYYY-MM-DD) - show just the date
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    const d = new Date(date + 'T12:00:00');
+    return d.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+  // Full datetime - show date + time
+  const d = new Date(date);
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function formatRelativeDate(date: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

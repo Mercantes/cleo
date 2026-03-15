@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Upload, FileText, Check, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface PreviewData {
   count: number;
@@ -154,13 +155,13 @@ export function ImportContent() {
               <div className="rounded-md bg-green-50 p-3 dark:bg-green-900/20">
                 <p className="text-xs text-green-600 dark:text-green-400">Entradas</p>
                 <p className="text-lg font-bold text-green-700 dark:text-green-300">
-                  R$ {preview.total.income.toFixed(2)}
+                  {formatCurrency(preview.total.income)}
                 </p>
               </div>
               <div className="rounded-md bg-red-50 p-3 dark:bg-red-900/20">
                 <p className="text-xs text-red-600 dark:text-red-400">Saídas</p>
                 <p className="text-lg font-bold text-red-700 dark:text-red-300">
-                  R$ {preview.total.expenses.toFixed(2)}
+                  {formatCurrency(preview.total.expenses)}
                 </p>
               </div>
             </div>
@@ -181,7 +182,7 @@ export function ImportContent() {
                     <p className="text-xs text-muted-foreground">{tx.date}</p>
                   </div>
                   <span className={`ml-2 text-sm font-medium ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}`}>
-                    {tx.type === 'credit' ? '+' : '-'}R$ {tx.amount.toFixed(2)}
+                    {tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
                   </span>
                 </div>
               ))}

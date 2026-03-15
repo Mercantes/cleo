@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Plus, Trash2, Check, Users, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface Participant {
   id?: string;
@@ -126,7 +127,7 @@ export function SplitsContent() {
               <div className="min-w-0 flex-1">
                 <p className="font-medium">{split.description}</p>
                 <p className="text-sm text-muted-foreground">
-                  R$ {Number(split.total_amount).toFixed(2)} · {paidCount}/{totalParticipants} pagos
+                  {formatCurrency(Number(split.total_amount))} · {paidCount}/{totalParticipants} pagos
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -159,7 +160,7 @@ export function SplitsContent() {
                           {p.name}
                         </span>
                       </div>
-                      <span className="font-medium">R$ {Number(p.amount).toFixed(2)}</span>
+                      <span className="font-medium">{formatCurrency(Number(p.amount))}</span>
                     </div>
                   ))}
                 </div>
@@ -168,8 +169,8 @@ export function SplitsContent() {
                     onClick={() => {
                       const unpaid = split.split_participants.filter(p => !p.is_paid);
                       if (unpaid.length === 0) { toast('Todos já pagaram!'); return; }
-                      const lines = unpaid.map(p => `• ${p.name}: R$ ${Number(p.amount).toFixed(2)}`);
-                      const text = `💰 ${split.description}\n\n${lines.join('\n')}\n\nTotal: R$ ${Number(split.total_amount).toFixed(2)}`;
+                      const lines = unpaid.map(p => `• ${p.name}: ${formatCurrency(Number(p.amount))}`);
+                      const text = `💰 ${split.description}\n\n${lines.join('\n')}\n\nTotal: ${formatCurrency(Number(split.total_amount))}`;
                       navigator.clipboard.writeText(text).then(() => toast.success('Cobrança copiada!'));
                     }}
                     className="flex items-center gap-1 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
+import { formatCurrency } from '@/lib/utils/format';
 
 function getServiceClient() {
   return createClient(
@@ -100,7 +101,7 @@ export const GET = withAuth(async (_request, { user }) => {
           type: 'warning',
           icon: '⚠️',
           title: `${cat} subindo`,
-          message: `Seus gastos com ${cat} estão ${Math.round(spike)}% acima do mês passado. Já gastou R$ ${amount.toFixed(0)} até agora.`,
+          message: `Seus gastos com ${cat} estão ${Math.round(spike)}% acima do mês passado. Já gastou ${formatCurrency(amount)} até agora.`,
           priority: 80,
         });
         break; // Only show top spike
@@ -119,7 +120,7 @@ export const GET = withAuth(async (_request, { user }) => {
           type: 'tip',
           icon: '💡',
           title: 'Assinaturas pesando',
-          message: `Suas assinaturas e recorrências somam R$ ${totalRecurring.toFixed(0)}/mês (${recurringPercent}% da renda). Revise se todas são necessárias.`,
+          message: `Suas assinaturas e recorrências somam ${formatCurrency(totalRecurring)}/mês (${recurringPercent}% da renda). Revise se todas são necessárias.`,
           priority: 60,
         });
       }
@@ -138,7 +139,7 @@ export const GET = withAuth(async (_request, { user }) => {
         type: 'celebration',
         icon: '🏆',
         title: 'Meta atingida!',
-        message: `Parabéns! Você já economizou R$ ${savings.toFixed(0)} este mês, superando sua meta de R$ ${target.toFixed(0)}!`,
+        message: `Parabéns! Você já economizou ${formatCurrency(savings)} este mês, superando sua meta de ${formatCurrency(target)}!`,
         priority: 95,
       });
     } else if (progress >= 75) {
@@ -147,7 +148,7 @@ export const GET = withAuth(async (_request, { user }) => {
         type: 'celebration',
         icon: '🔥',
         title: 'Quase lá!',
-        message: `Você já atingiu ${Math.round(progress)}% da sua meta mensal. Faltam R$ ${(target - savings).toFixed(0)}!`,
+        message: `Você já atingiu ${Math.round(progress)}% da sua meta mensal. Faltam ${formatCurrency(target - savings)}!`,
         priority: 85,
       });
     } else if (monthProgress > 0.5 && progress < 30) {
@@ -186,7 +187,7 @@ export const GET = withAuth(async (_request, { user }) => {
           type: 'warning',
           icon: '🚨',
           title: `${catName}: orçamento estourado`,
-          message: `Você já gastou R$ ${spent.toFixed(0)} de R$ ${limit.toFixed(0)} em ${catName} (${Math.round(pct)}%).`,
+          message: `Você já gastou ${formatCurrency(spent)} de ${formatCurrency(limit)} em ${catName} (${Math.round(pct)}%).`,
           priority: 92,
         });
         break;
@@ -196,7 +197,7 @@ export const GET = withAuth(async (_request, { user }) => {
           type: 'warning',
           icon: '⚠️',
           title: `${catName}: quase no limite`,
-          message: `Você já usou ${Math.round(pct)}% do orçamento de ${catName}. Restam R$ ${(limit - spent).toFixed(0)}.`,
+          message: `Você já usou ${Math.round(pct)}% do orçamento de ${catName}. Restam ${formatCurrency(limit - spent)}.`,
           priority: 82,
         });
         break;

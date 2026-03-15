@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { formatCurrency } from '@/lib/utils/format';
 
 const contextCache = new Map<string, { data: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -78,15 +79,15 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     `Mês atual: ${now.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })}`,
     '',
     '--- Resumo do Mês ---',
-    `Receita total: R$ ${income.toFixed(2)}`,
-    `Despesas totais: R$ ${expenses.toFixed(2)}`,
-    `Saldo do mês: R$ ${balance.toFixed(2)}`,
+    `Receita total: ${formatCurrency(income)}`,
+    `Despesas totais: ${formatCurrency(expenses)}`,
+    `Saldo do mês: ${formatCurrency(balance)}`,
   ];
 
   if (topCategories.length > 0) {
     lines.push('', '--- Top Categorias de Gastos ---');
     for (const [cat, amount] of topCategories) {
-      lines.push(`- ${cat}: R$ ${amount.toFixed(2)}`);
+      lines.push(`- ${cat}: ${formatCurrency(amount)}`);
     }
   }
 
@@ -94,14 +95,14 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     lines.push('', '--- Recorrências Ativas ---');
     for (const r of recurring) {
       const typeLabel = r.type === 'subscription' ? 'Assinatura' : 'Parcela';
-      lines.push(`- ${sanitize(r.merchant)}: R$ ${Number(r.amount).toFixed(2)}/mês (${typeLabel})`);
+      lines.push(`- ${sanitize(r.merchant)}: ${formatCurrency(Number(r.amount))}/mês (${typeLabel})`);
     }
   }
 
   if (accounts.length > 0) {
     lines.push('', '--- Contas ---');
     for (const acc of accounts) {
-      lines.push(`- ${sanitize(acc.name)} (${acc.type}): R$ ${Number(acc.balance).toFixed(2)}`);
+      lines.push(`- ${sanitize(acc.name)} (${acc.type}): ${formatCurrency(Number(acc.balance))}`);
     }
   }
 
@@ -111,8 +112,8 @@ export async function buildFinancialContext(userId: string): Promise<string> {
     const currentSavings = Math.max(0, balance);
     const savingsProgress = savingsTarget > 0 ? Math.round((currentSavings / savingsTarget) * 100) : 0;
     lines.push('', '--- Metas e Gamificação ---');
-    lines.push(`Meta mensal de economia: R$ ${savingsTarget.toFixed(2)}`);
-    lines.push(`Economia atual no mês: R$ ${currentSavings.toFixed(2)} (${Math.min(savingsProgress, 100)}%)`);
+    lines.push(`Meta mensal de economia: ${formatCurrency(savingsTarget)}`);
+    lines.push(`Economia atual no mês: ${formatCurrency(currentSavings)} (${Math.min(savingsProgress, 100)}%)`);
     if (goals.level) lines.push(`Nível: ${goals.level} (${goals.xp || 0} XP)`);
     if (goals.streak_months) lines.push(`Sequência: ${goals.streak_months} meses consecutivos atingindo a meta`);
     if (goals.total_challenges_completed) lines.push(`Desafios completados: ${goals.total_challenges_completed}`);

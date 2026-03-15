@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
+import { formatCurrency } from '@/lib/utils/format';
 
 interface ComparisonData {
   comparison: {
@@ -148,11 +149,11 @@ export function MonthComparison() {
                     <ChangeIndicator change={cat.changePercent} positiveIsGood={false} />
                   </div>
                   <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>R$ {cat.amount1.toFixed(2)}</span>
+                    <span>{formatCurrency(cat.amount1)}</span>
                     <span className={`font-medium ${cat.diff > 0 ? 'text-red-500' : cat.diff < 0 ? 'text-green-500' : ''}`}>
-                      {cat.diff > 0 ? '+' : ''}{cat.diff !== 0 ? `R$ ${cat.diff.toFixed(2)}` : '='}
+                      {cat.diff > 0 ? '+' : ''}{cat.diff !== 0 ? formatCurrency(cat.diff) : '='}
                     </span>
-                    <span>R$ {cat.amount2.toFixed(2)}</span>
+                    <span>{formatCurrency(cat.amount2)}</span>
                   </div>
                   {/* Visual bar comparison */}
                   <div className="mt-1 flex gap-1">
@@ -232,14 +233,14 @@ function ComparisonRow({
   return (
     <div className="grid grid-cols-3 border-b">
       <div className="p-3 text-center">
-        <p className="text-sm font-medium">R$ {Math.abs(value1).toFixed(2)}</p>
+        <p className="text-sm font-medium">{formatCurrency(Math.abs(value1))}</p>
       </div>
       <div className="flex items-center justify-center gap-1 border-x p-3">
         <p className="text-xs text-muted-foreground">{label}</p>
         {change !== 0 && <ChangeIndicator change={change} positiveIsGood={positiveIsGood} />}
       </div>
       <div className="p-3 text-center">
-        <p className="text-sm font-medium">R$ {Math.abs(value2).toFixed(2)}</p>
+        <p className="text-sm font-medium">{formatCurrency(Math.abs(value2))}</p>
       </div>
     </div>
   );

@@ -2,12 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Calendar, Search, X } from 'lucide-react';
+import { Calendar, Download, Search } from 'lucide-react';
 import type { DateRange } from 'react-day-picker';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { cn } from '@/lib/utils';
+
+interface Account {
+  id: string;
+  name: string;
+  type: string;
+  bankName: string;
+}
 
 interface TransactionFiltersProps {
   onFiltersChange: (filters: {
@@ -16,16 +23,20 @@ interface TransactionFiltersProps {
     to?: string;
     type?: string;
     category?: string;
+    bank?: string;
   }) => void;
+  onExportCSV: () => void;
 }
 
-export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps) {
+export function TransactionFilters({ onFiltersChange, onExportCSV }: TransactionFiltersProps) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [type, setType] = useState('');
   const [category, setCategory] = useState('');
+  const [bank, setBank] = useState('');
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const initialCategoryApplied = useRef(false);
 
   useEffect(() => {
@@ -34,14 +45,12 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
       .then((data) => {
         const cats = data.categories || [];
         setCategories(cats);
-        // Apply category from URL query param
         if (!initialCategoryApplied.current) {
           initialCategoryApplied.current = true;
           const categoryParam = searchParams.get('category');
           if (categoryParam === 'uncategorized') {
             setCategory('uncategorized');
           } else if (categoryParam) {
-            // Try matching by ID first, then by name
             const matchById = cats.find((c: { id: string; name: string }) => c.id === categoryParam);
             const matchByName = !matchById && cats.find((c: { id: string; name: string }) =>
               c.name.toLowerCase() === categoryParam.toLowerCase()
@@ -52,9 +61,17 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
         }
       })
       .catch(() => {});
+
+    fetch('/api/accounts')
+      .then((r) => r.json())
+      .then((data) => {
+        const all = [...(data.bankAccounts || []), ...(data.creditCards || [])];
+        setAccounts(all);
+      })
+      .catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const hasFilters = search || dateRange?.from || dateRange?.to || type || category;
+  const hasFilters = search || dateRange?.from || dateRange?.to || type || category || bank;
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const fmtDate = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -98,70 +115,101 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
         to: dateRange?.to ? fmtDate(dateRange.to) : undefined,
         type: type || undefined,
         category: category || undefined,
+        bank: bank || undefined,
       });
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [search, dateRange, type, category, onFiltersChange]);
+  }, [search, dateRange, type, category, bank, onFiltersChange]);
 
   const clearFilters = useCallback(() => {
     setSearch('');
     setDateRange(undefined);
     setType('');
     setCategory('');
+    setBank('');
     setActivePreset(null);
   }, []);
 
   return (
     <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por descrição ou estabelecimento..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          aria-label="Buscar transações"
-          className="pl-10"
-        />
+      {/* Search + Export */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Buscar transações..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Buscar transações"
+            className="pl-10"
+          />
+        </div>
+        <Button variant="outline" size="default" onClick={onExportCSV} className="gap-1.5 shrink-0">
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline">Exportar CSV</span>
+        </Button>
       </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
-        {datePresets.map((preset) => (
-          <button
-            key={preset.id}
-            onClick={() => applyPreset(preset.id)}
-            aria-label={`Filtrar: ${preset.label}`}
-            aria-pressed={activePreset === preset.id}
-            className={cn(
-              'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-              activePreset === preset.id
-                ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
-            )}
+
+      {/* Filters row */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Date presets */}
+        <div className="flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+          {datePresets.map((preset) => (
+            <button
+              key={preset.id}
+              onClick={() => applyPreset(preset.id)}
+              aria-label={`Filtrar: ${preset.label}`}
+              aria-pressed={activePreset === preset.id}
+              className={cn(
+                'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                activePreset === preset.id
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
+              )}
+            >
+              {preset.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Dropdowns */}
+        {accounts.length > 0 && (
+          <select
+            value={bank}
+            onChange={(e) => setBank(e.target.value)}
+            aria-label="Filtrar por conta"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
           >
-            {preset.label}
-          </button>
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-2">
+            <option value="">Contas e Cartões</option>
+            {accounts.map((acc) => (
+              <option key={acc.id} value={acc.id}>
+                {acc.name}
+              </option>
+            ))}
+          </select>
+        )}
+
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
           aria-label="Filtrar por tipo"
           className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
         >
-          <option value="">Todos os tipos</option>
+          <option value="">Todas as Transações</option>
           <option value="credit">Receitas</option>
           <option value="debit">Despesas</option>
         </select>
+
         {categories.length > 0 && (
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             aria-label="Filtrar por categoria"
-            className="h-9 max-w-[180px] rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
           >
-            <option value="">Todas as categorias</option>
+            <option value="">Categorias</option>
             <option value="uncategorized">Sem categoria</option>
             {categories.map((cat) => (
               <option key={cat.id} value={cat.id}>
@@ -170,15 +218,19 @@ export function TransactionFilters({ onFiltersChange }: TransactionFiltersProps)
             ))}
           </select>
         )}
+
         <DateRangePicker
           value={dateRange}
           onChange={(range) => { setDateRange(range); setActivePreset(null); }}
         />
+
         {hasFilters && (
-          <Button variant="outline" size="sm" onClick={clearFilters} className="gap-1">
-            <X className="h-3 w-3" />
-            Limpar
-          </Button>
+          <button
+            onClick={clearFilters}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Limpar filtros
+          </button>
         )}
       </div>
     </div>

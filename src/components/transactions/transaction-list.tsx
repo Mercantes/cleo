@@ -1,13 +1,23 @@
 'use client';
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, ArrowLeftRight, Download, Loader2 } from 'lucide-react';
-import { useVirtualizer } from '@tanstack/react-virtual';
+import { AlertTriangle, ArrowLeftRight, ArrowDown, ArrowUp, Loader2, Receipt } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
-import { TransactionItem } from './transaction-item';
+import { TransactionRow } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
 import { Button } from '@/components/ui/button';
-import { formatCurrency, formatDateGroupLabel } from '@/lib/utils/format';
+import { formatCurrency } from '@/lib/utils/format';
+import { cn } from '@/lib/utils';
+
+interface AccountInfo {
+  id: string;
+  name: string;
+  type: string;
+  bank_connections: {
+    connector_name: string;
+    connector_logo_url: string | null;
+  } | null;
+}
 
 interface Transaction {
   id: string;
@@ -17,7 +27,9 @@ interface Transaction {
   type: 'debit' | 'credit';
   merchant: string | null;
   category_id: string | null;
+  account_id: string | null;
   categories: { name: string; icon: string } | null;
+  accounts: AccountInfo | null;
 }
 
 interface Filters {
@@ -26,134 +38,7 @@ interface Filters {
   to?: string;
   type?: string;
   category?: string;
-}
-
-type FlatItem =
-  | { kind: 'header'; label: string }
-  | { kind: 'tx'; tx: Transaction };
-
-function VirtualizedTransactionList({
-  transactions,
-  searchQuery,
-  onCategoryChange,
-}: {
-  transactions: Transaction[];
-  searchQuery: string;
-  onCategoryChange: (txId: string, catId: string, cat: { name: string; icon: string }) => void;
-}) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const flatItems = useMemo<FlatItem[]>(() => {
-    const items: FlatItem[] = [];
-    let lastLabel = '';
-    for (const tx of transactions) {
-      const label = formatDateGroupLabel(tx.date);
-      if (label !== lastLabel) {
-        items.push({ kind: 'header', label });
-        lastLabel = label;
-      }
-      items.push({ kind: 'tx', tx });
-    }
-    return items;
-  }, [transactions]);
-
-  const virtualizer = useVirtualizer({
-    count: flatItems.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: (index) => (flatItems[index].kind === 'header' ? 32 : 68),
-    overscan: 10,
-  });
-
-  // Only use virtualization for large lists (100+)
-  if (transactions.length < 100) {
-    return (
-      <div className="space-y-4">
-        {(() => {
-          const groups: { label: string; items: Transaction[] }[] = [];
-          for (const tx of transactions) {
-            const label = formatDateGroupLabel(tx.date);
-            const last = groups[groups.length - 1];
-            if (last && last.label === label) {
-              last.items.push(tx);
-            } else {
-              groups.push({ label, items: [tx] });
-            }
-          }
-          return groups.map((group) => (
-            <div key={group.label}>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {group.label}
-              </h3>
-              <div className="space-y-2">
-                {group.items.map((tx) => (
-                  <TransactionItem
-                    key={tx.id}
-                    id={tx.id}
-                    description={tx.description}
-                    amount={tx.amount}
-                    date={tx.date}
-                    type={tx.type}
-                    category={tx.categories}
-                    categoryId={tx.category_id}
-                    merchant={tx.merchant}
-                    searchQuery={searchQuery}
-                    onCategoryChange={onCategoryChange}
-                  />
-                ))}
-              </div>
-            </div>
-          ));
-        })()}
-      </div>
-    );
-  }
-
-  return (
-    <div ref={parentRef} className="max-h-[70vh] overflow-auto">
-      <div
-        style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative', width: '100%' }}
-      >
-        {virtualizer.getVirtualItems().map((vItem) => {
-          const item = flatItems[vItem.index];
-          return (
-            <div
-              key={vItem.key}
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                transform: `translateY(${vItem.start}px)`,
-              }}
-              data-index={vItem.index}
-              ref={virtualizer.measureElement}
-            >
-              {item.kind === 'header' ? (
-                <h3 className="pb-2 pt-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground first:pt-0">
-                  {item.label}
-                </h3>
-              ) : (
-                <div className="pb-2">
-                  <TransactionItem
-                    id={item.tx.id}
-                    description={item.tx.description}
-                    amount={item.tx.amount}
-                    date={item.tx.date}
-                    type={item.tx.type}
-                    category={item.tx.categories}
-                    categoryId={item.tx.category_id}
-                    merchant={item.tx.merchant}
-                    searchQuery={searchQuery}
-                    onCategoryChange={onCategoryChange}
-                  />
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
+  bank?: string;
 }
 
 export function TransactionList() {
@@ -177,6 +62,7 @@ export function TransactionList() {
       if (currentFilters.to) params.set('to', currentFilters.to);
       if (currentFilters.type) params.set('type', currentFilters.type);
       if (currentFilters.category) params.set('category', currentFilters.category);
+      if (currentFilters.bank) params.set('bank', currentFilters.bank);
 
       try {
         const response = await fetch(`/api/transactions?${params.toString()}`);
@@ -212,12 +98,13 @@ export function TransactionList() {
         prev.from === newFilters.from &&
         prev.to === newFilters.to &&
         prev.type === newFilters.type &&
-        prev.category === newFilters.category
+        prev.category === newFilters.category &&
+        prev.bank === newFilters.bank
       ) {
         return;
       }
       filtersRef.current = newFilters;
-      setHasActiveFilters(!!(newFilters.search || newFilters.from || newFilters.to || newFilters.type || newFilters.category));
+      setHasActiveFilters(!!(newFilters.search || newFilters.from || newFilters.to || newFilters.type || newFilters.category || newFilters.bank));
       setSearchQuery(newFilters.search || '');
       setPage(1);
       fetchTransactions(newFilters, 1);
@@ -230,18 +117,6 @@ export function TransactionList() {
     setPage(nextPage);
     fetchTransactions(filtersRef.current, nextPage, true);
   }
-
-  const hasMore = transactions.length < total;
-
-  const summary = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    for (const tx of transactions) {
-      if (tx.type === 'credit') income += tx.amount;
-      else expenses += Math.abs(tx.amount);
-    }
-    return { income, expenses };
-  }, [transactions]);
 
   function exportCSV() {
     const params = new URLSearchParams();
@@ -256,12 +131,25 @@ export function TransactionList() {
     a.click();
   }
 
+  const hasMore = transactions.length < total;
+
+  const summary = useMemo(() => {
+    let income = 0;
+    let expenses = 0;
+    for (const tx of transactions) {
+      if (tx.type === 'credit') income += tx.amount;
+      else expenses += Math.abs(tx.amount);
+    }
+    return { income, expenses, balance: income - expenses };
+  }, [transactions]);
+
   if (isInitialLoad) {
     return (
       <div className="space-y-3">
         <div className="h-10 animate-pulse rounded-lg bg-muted" />
+        <div className="h-10 animate-pulse rounded-lg bg-muted" />
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded-lg border bg-muted" />
+          <div key={i} className="h-14 animate-pulse rounded-lg border bg-muted" />
         ))}
       </div>
     );
@@ -284,23 +172,41 @@ export function TransactionList() {
   return (
     <div className="space-y-4">
       <Suspense fallback={<div className="h-10 animate-pulse rounded-lg bg-muted" />}>
-        <TransactionFilters onFiltersChange={handleFiltersChange} />
+        <TransactionFilters onFiltersChange={handleFiltersChange} onExportCSV={exportCSV} />
       </Suspense>
 
+      {/* Summary stats bar */}
       {transactions.length > 0 && (
-        <div className="flex items-center justify-between rounded-lg border bg-card p-3">
-          <div className="flex gap-4 text-sm">
-            <span>
-              Receitas: <strong className="text-green-600 dark:text-green-400">{formatCurrency(summary.income)}</strong>
-            </span>
-            <span>
-              Despesas: <strong className="text-red-500 dark:text-red-400">{formatCurrency(summary.expenses)}</strong>
-            </span>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card px-4 py-3">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Receipt className="h-4 w-4" />
+            <span className="font-semibold text-foreground">{total}</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={exportCSV} className="gap-1 text-xs">
-            <Download className="h-3 w-3" />
-            CSV
-          </Button>
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <div className="flex items-center gap-1.5">
+              <ArrowDown className="h-3.5 w-3.5 text-red-500" />
+              <span className="font-semibold text-red-500 dark:text-red-400">
+                {formatCurrency(summary.expenses)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ArrowUp className="h-3.5 w-3.5 text-green-500" />
+              <span className="font-semibold text-green-600 dark:text-green-400">
+                {formatCurrency(summary.income)}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              <span className={cn(
+                'font-semibold',
+                summary.balance >= 0
+                  ? 'text-green-600 dark:text-green-400'
+                  : 'text-red-500 dark:text-red-400',
+              )}>
+                {formatCurrency(summary.balance)}
+              </span>
+            </div>
+          </div>
         </div>
       )}
 
@@ -316,17 +222,73 @@ export function TransactionList() {
         />
       ) : (
         <>
-          <VirtualizedTransactionList
-            transactions={transactions}
-            searchQuery={searchQuery}
-            onCategoryChange={(txId, _catId, cat) => {
-              setTransactions((prev) =>
-                prev.map((t) =>
-                  t.id === txId ? { ...t, categories: cat } : t,
-                ),
-              );
-            }}
-          />
+          {/* Desktop table view */}
+          <div className="hidden md:block">
+            <div className="rounded-lg border bg-card">
+              {/* Table header */}
+              <div className="grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="text-center">N.°</span>
+                <span>Descrição</span>
+                <span>Categoria</span>
+                <span>Conta</span>
+                <span>Data</span>
+                <span className="text-right">Valor</span>
+                <span />
+              </div>
+              {/* Rows */}
+              {transactions.map((tx, index) => (
+                <TransactionRow
+                  key={tx.id}
+                  index={index + 1}
+                  id={tx.id}
+                  description={tx.description}
+                  amount={tx.amount}
+                  date={tx.date}
+                  type={tx.type}
+                  category={tx.categories}
+                  categoryId={tx.category_id}
+                  merchant={tx.merchant}
+                  account={tx.accounts}
+                  searchQuery={searchQuery}
+                  onCategoryChange={(txId, _catId, cat) => {
+                    setTransactions((prev) =>
+                      prev.map((t) =>
+                        t.id === txId ? { ...t, categories: cat } : t,
+                      ),
+                    );
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile card view */}
+          <div className="space-y-2 md:hidden">
+            {transactions.map((tx, index) => (
+              <TransactionRow
+                key={tx.id}
+                index={index + 1}
+                id={tx.id}
+                description={tx.description}
+                amount={tx.amount}
+                date={tx.date}
+                type={tx.type}
+                category={tx.categories}
+                categoryId={tx.category_id}
+                merchant={tx.merchant}
+                account={tx.accounts}
+                searchQuery={searchQuery}
+                mobile
+                onCategoryChange={(txId, _catId, cat) => {
+                  setTransactions((prev) =>
+                    prev.map((t) =>
+                      t.id === txId ? { ...t, categories: cat } : t,
+                    ),
+                  );
+                }}
+              />
+            ))}
+          </div>
 
           {hasMore && (
             <div className="flex justify-center pt-2">

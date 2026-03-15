@@ -78,7 +78,7 @@ function CategoryBudgetsEditor() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">
-                  R$ {b.monthlyLimit.toFixed(0)}/mês
+                  {formatCurrency(b.monthlyLimit)}/mês
                 </span>
                 <button
                   onClick={() => handleDelete(b.id)}
