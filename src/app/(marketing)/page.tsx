@@ -197,33 +197,30 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="mt-16 space-y-12 md:space-y-20">
+          <div className="mt-16 space-y-20 md:space-y-28">
             {STEPS.map((step, i) => (
-              <div
-                key={step.title}
-                className={cn(
-                  'grid items-center gap-8 lg:grid-cols-2 lg:gap-16',
-                  i % 2 === 1 && 'lg:[direction:rtl]',
-                )}
-              >
-                <div className={cn(i % 2 === 1 && 'lg:[direction:ltr]')}>
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                      {i + 1}
-                    </span>
+              <div key={step.title} className="space-y-6">
+                <div className={cn(
+                  'flex items-start gap-4',
+                  i % 2 === 1 ? 'lg:justify-end' : 'lg:justify-start',
+                )}>
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                    {i + 1}
+                  </span>
+                  <div className="max-w-md">
                     <h3 className="text-xl font-bold">{step.title}</h3>
+                    <p className="mt-2 text-muted-foreground">{step.description}</p>
+                    {step.detail && (
+                      <p className="mt-1 text-sm text-muted-foreground/70">{step.detail}</p>
+                    )}
                   </div>
-                  <p className="mt-3 max-w-md text-muted-foreground">{step.description}</p>
-                  {step.detail && (
-                    <p className="mt-2 text-sm text-muted-foreground/70">{step.detail}</p>
-                  )}
                 </div>
-                <div className={cn('overflow-hidden rounded-2xl border bg-background shadow-lg', i % 2 === 1 && 'lg:[direction:ltr]')}>
+                <div className="overflow-hidden rounded-2xl border bg-background shadow-lg">
                   <Image
                     src={step.screenshot}
                     alt={step.title}
-                    width={1280}
-                    height={720}
+                    width={1920}
+                    height={1080}
                     className="w-full"
                     unoptimized
                   />
