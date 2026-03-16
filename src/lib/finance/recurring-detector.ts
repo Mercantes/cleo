@@ -62,7 +62,7 @@ function isAmountSimilar(a: number, b: number, tolerance = 0.05): boolean {
 }
 
 function daysBetween(a: string, b: string): number {
-  return Math.abs(new Date(a).getTime() - new Date(b).getTime()) / (1000 * 60 * 60 * 24);
+  return Math.abs(new Date(a + 'T12:00:00').getTime() - new Date(b + 'T12:00:00').getTime()) / (1000 * 60 * 60 * 24);
 }
 
 function coefficientOfVariation(values: number[]): number {
@@ -81,15 +81,23 @@ function standardDeviation(values: number[]): number {
 }
 
 function detectInstallmentPattern(description: string): { current: number; total: number } | null {
-  const match = description.match(/(\d+)\s*(?:\/|de)\s*(\d+)/i);
+  // Require installment prefixes (parcela, parc, parc.) or pattern at end of string
+  // to avoid false positives like "Compra 2/5 itens" or "Sala 101/302"
+  const match = description.match(/(?:parcelas?\s*|parc\.?\s*)(\d+)\s*(?:\/|de)\s*(\d+)/i)
+    || description.match(/(\d+)\s*(?:\/|de)\s*(\d+)\s*$/i);
   if (match) {
-    return { current: parseInt(match[1]), total: parseInt(match[2]) };
+    const current = parseInt(match[1]);
+    const total = parseInt(match[2]);
+    // Validate: current must be 1..total, total must be 2..48 (reasonable installment range)
+    if (current >= 1 && current <= total && total >= 2 && total <= 48) {
+      return { current, total };
+    }
   }
   return null;
 }
 
 function addMonths(dateStr: string, months: number): string {
-  const d = new Date(dateStr);
+  const d = new Date(dateStr + 'T12:00:00');
   d.setMonth(d.getMonth() + months);
   return d.toISOString().split('T')[0];
 }
@@ -151,7 +159,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
     if (sorted.length < 2) {
       // STEP 2: Known subscription with single occurrence in last 45 days
       if (isKnownSubscription(merchantKey)) {
-        const daysSinceLast = daysBetween(latest.date, new Date().toISOString().split('T')[0]);
+        const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
         if (daysSinceLast <= 45) {
           results.push({
             merchant: latest.merchant || latest.description,
@@ -194,8 +202,10 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
 
     // STEP 4: Differentiate installment vs subscription
     const isKnown = isKnownSubscription(merchantKey);
-    const daysSinceLast = daysBetween(latest.date, new Date().toISOString().split('T')[0]);
-    const isActive = daysSinceLast <= 45;
+    const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
+    // 65-day threshold accounts for bimonthly billing cycles and delayed charges,
+    // preventing monthly subscriptions from being marked "cancelled" too quickly
+    const isActive = daysSinceLast <= 65;
 
     // Known subscriptions with regular interval → subscription (high confidence)
     if (isKnown) {

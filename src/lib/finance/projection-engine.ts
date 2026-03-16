@@ -98,8 +98,13 @@ export function calculateProjections(
         balance += scenarioMonthlySavings;
         monthlyData.push({
           month: getMonthLabel(futureDate),
-          balance: Math.round(balance * 100) / 100,
+          balance, // keep full precision during iteration
         });
+      }
+
+      // Round only the final output values to avoid accumulated rounding errors
+      for (const point of monthlyData) {
+        point.balance = Math.round(point.balance * 100) / 100;
       }
 
       return {

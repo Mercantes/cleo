@@ -26,6 +26,25 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
 
   const txs = data || [];
 
+  // Get current total balance across all user accounts
+  const { data: accountsData } = await supabase
+    .from('accounts')
+    .select('balance')
+    .eq('user_id', user.id);
+
+  const currentTotalBalance = (accountsData || []).reduce(
+    (sum, acc) => sum + Number(acc.balance || 0),
+    0
+  );
+
+  // Calculate this month's net change to derive starting balance
+  let monthNet = 0;
+  for (const tx of txs) {
+    const amount = Number(tx.amount);
+    monthNet += tx.type === 'credit' ? amount : -amount;
+  }
+  const startingBalance = currentTotalBalance - monthNet;
+
   // Aggregate by day
   const dailyMap = new Map<string, { income: number; expenses: number }>();
 
@@ -44,7 +63,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
     }
   }
 
-  let runningBalance = 0;
+  let runningBalance = startingBalance;
   const days = Array.from(dailyMap.entries()).map(([date, { income, expenses }]) => {
     const net = income - expenses;
     runningBalance += net;

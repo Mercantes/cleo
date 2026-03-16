@@ -41,11 +41,11 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
   const income = current.filter((t) => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0);
   const expenses = current.filter((t) => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
   const balance = income - expenses;
-  const savingsRate = income > 0 ? Number(((income - expenses) / income * 100).toFixed(1)) : 0;
+  const savingsRate = income > 0 ? Math.round((income - expenses) / income * 1000) / 10 : 0;
 
   const prevExpenses = prev.filter((t) => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
   const percentChange = prevExpenses > 0
-    ? Number(((expenses - prevExpenses) / prevExpenses * 100).toFixed(1))
+    ? Math.round((expenses - prevExpenses) / prevExpenses * 1000) / 10
     : 0;
 
   return NextResponse.json({

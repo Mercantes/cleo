@@ -12,7 +12,11 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  const totalBalance = (accounts || []).reduce((sum, acc) => sum + (acc.balance || 0), 0);
+  const totalBalance = (accounts || []).reduce((sum, acc) => {
+    const balance = acc.balance || 0;
+    // Credit card balances represent debt — subtract from net worth
+    return acc.type === 'credit' ? sum - balance : sum + balance;
+  }, 0);
 
   return NextResponse.json({
     accounts: (accounts || []).map((acc) => {

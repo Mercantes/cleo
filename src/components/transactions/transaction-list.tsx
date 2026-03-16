@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, ArrowLeftRight, ArrowDown, ArrowUp, Loader2, Receipt } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionRow } from './transaction-item';
@@ -54,6 +54,7 @@ export function TransactionList() {
   const filtersRef = useRef<Filters>({});
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [summary, setSummary] = useState<{ income: number; expenses: number; balance: number }>({ income: 0, expenses: 0, balance: 0 });
 
   const fetchTransactions = useCallback(
     async (currentFilters: Filters, pageNum: number, append = false) => {
@@ -76,6 +77,9 @@ export function TransactionList() {
           setTransactions((prev) => [...prev, ...data.data]);
         } else {
           setTransactions(data.data);
+          if (data.summary) {
+            setSummary(data.summary);
+          }
         }
         setTotal(data.total);
         setError(null);
@@ -135,16 +139,6 @@ export function TransactionList() {
   }
 
   const hasMore = transactions.length < total;
-
-  const summary = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    for (const tx of transactions) {
-      if (tx.type === 'credit') income += tx.amount;
-      else expenses += Math.abs(tx.amount);
-    }
-    return { income, expenses, balance: income - expenses };
-  }, [transactions]);
 
   if (isInitialLoad) {
     return (

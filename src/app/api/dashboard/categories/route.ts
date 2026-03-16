@@ -79,7 +79,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
       name,
       amount,
       categoryId: id,
-      percentage: totalExpenses > 0 ? Number((amount / totalExpenses * 100).toFixed(1)) : 0,
+      percentage: totalExpenses > 0 ? Math.round(amount / totalExpenses * 1000) / 10 : 0,
       color: COLORS[i],
       change,
     };
@@ -91,14 +91,14 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
     if (existingOutros) {
       existingOutros.amount += othersSum;
       existingOutros.percentage = totalExpenses > 0
-        ? Number((existingOutros.amount / totalExpenses * 100).toFixed(1))
+        ? Math.round(existingOutros.amount / totalExpenses * 1000) / 10
         : 0;
     } else {
       categories.push({
         name: 'Demais',
         amount: othersSum,
         categoryId: '_others',
-        percentage: totalExpenses > 0 ? Number((othersSum / totalExpenses * 100).toFixed(1)) : 0,
+        percentage: totalExpenses > 0 ? Math.round(othersSum / totalExpenses * 1000) / 10 : 0,
         color: COLORS[5],
         change: null,
       });

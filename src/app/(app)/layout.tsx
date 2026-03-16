@@ -10,6 +10,7 @@ import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts';
 import { PwaInstallPrompt } from '@/components/layout/pwa-install-prompt';
 import { QuickChatFab } from '@/components/chat/quick-chat-fab';
 import { RoutePrefetch } from '@/components/layout/route-prefetch';
+import { RealtimeListener } from '@/components/layout/realtime-listener';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -65,6 +66,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <PwaInstallPrompt />
       <QuickChatFab />
       <RoutePrefetch />
+      <RealtimeListener />
     </div>
   );
 }
