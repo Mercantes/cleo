@@ -9,6 +9,7 @@ import {
   isKnownSubscription,
   isKnownIncomeSource,
   isExcludedMerchant,
+  isBillPayment,
   hasMultiplePerMonth,
 } from '@/lib/finance/recurring-detector';
 
@@ -452,28 +453,30 @@ describe('detectRecurringFromTransactions', () => {
 });
 
 describe('isExcludedMerchant', () => {
-  it('excludes bank names', () => {
-    expect(isExcludedMerchant('banco xp s.a')).toBe(true);
-    expect(isExcludedMerchant('banco c6 s.a.')).toBe(true);
-  });
-
-  it('excludes credit card bills', () => {
-    expect(isExcludedMerchant('fatura cartao nubank')).toBe(true);
-  });
-
   it('excludes transfers', () => {
     expect(isExcludedMerchant('pix joao silva')).toBe(true);
     expect(isExcludedMerchant('ted recebida')).toBe(true);
+    expect(isExcludedMerchant('transferencia bancaria')).toBe(true);
+  });
+
+  it('excludes investments', () => {
+    expect(isExcludedMerchant('investimento cdb')).toBe(true);
+    expect(isExcludedMerchant('aplicacao tesouro')).toBe(true);
   });
 
   it('does not exclude regular merchants', () => {
     expect(isExcludedMerchant('netflix')).toBe(false);
     expect(isExcludedMerchant('spotify')).toBe(false);
   });
+
+  it('does not exclude banks (those are bill payments)', () => {
+    expect(isExcludedMerchant('banco xp s.a')).toBe(false);
+    expect(isExcludedMerchant('banco c6 s.a.')).toBe(false);
+  });
 });
 
-describe('detectRecurringFromTransactions — excluded merchants', () => {
-  it('does not flag credit card bill as subscription', () => {
+describe('detectRecurringFromTransactions — bill payments', () => {
+  it('classifies credit card bill as installment, not subscription', () => {
     const transactions = [
       makeTx({ id: '1', date: '2025-11-15', amount: 7169, merchant: 'BANCO XP S.A' }),
       makeTx({ id: '2', date: '2025-12-15', amount: 6800, merchant: 'BANCO XP S.A' }),
@@ -482,7 +485,22 @@ describe('detectRecurringFromTransactions — excluded merchants', () => {
     ];
 
     const results = detectRecurringFromTransactions(transactions);
-    expect(results).toHaveLength(0);
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe('installment');
+    expect(results[0].confidence).toBe('high');
+  });
+
+  it('classifies Banco Santander as installment', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-11-10', amount: 3200, merchant: 'Banco Santander (Brasil)' }),
+      makeTx({ id: '2', date: '2025-12-10', amount: 2900, merchant: 'Banco Santander (Brasil)' }),
+      makeTx({ id: '3', date: '2026-01-10', amount: 3100, merchant: 'Banco Santander (Brasil)' }),
+      makeTx({ id: '4', date: '2026-02-10', amount: 3000, merchant: 'Banco Santander (Brasil)' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    expect(results).toHaveLength(1);
+    expect(results[0].type).toBe('installment');
   });
 });
 

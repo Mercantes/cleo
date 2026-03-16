@@ -24,12 +24,11 @@ interface Transaction {
 
 // Known income sources in Brazil — fast-path classification
 const KNOWN_INCOME_SOURCES: string[] = [
-  'salario', 'salary', 'folha', 'holerite', 'pagamento',
+  'salario', 'salary', 'folha', 'holerite',
   'freelance', 'freela', 'pj', 'nota fiscal',
   'aluguel', 'aluguer', 'rent',
   'dividendo', 'rendimento', 'juros', 'yield',
   'pensao', 'aposentadoria', 'inss', 'beneficio',
-  'pix recebido', 'transferencia recebida', 'ted recebida', 'doc recebida',
   'reembolso', 'cashback',
 ];
 
@@ -37,15 +36,22 @@ function isKnownIncomeSource(normalizedMerchant: string): boolean {
   return KNOWN_INCOME_SOURCES.some(known => normalizedMerchant.includes(known));
 }
 
-// Excluded merchants — these are NOT recurring expenses (credit card bills, bank transfers, etc.)
-const EXCLUDED_MERCHANTS: string[] = [
+// Bank/credit card bill merchants — force-classify as installment (credit card bills)
+const KNOWN_BILL_PAYERS: string[] = [
   'banco', 'bank', 'fatura', 'cartao', 'cartão',
   'pagamento fatura', 'pgto fatura', 'pgto cartao',
+];
+
+function isBillPayment(normalizedMerchant: string): boolean {
+  return KNOWN_BILL_PAYERS.some(known => normalizedMerchant.includes(known));
+}
+
+// Excluded from recurring detection — ad-hoc transfers, not recurring patterns
+const EXCLUDED_MERCHANTS: string[] = [
   'transferencia', 'transferência', 'ted', 'doc', 'pix',
   'saldo', 'aplicacao', 'aplicação', 'resgate',
   'investimento', 'cdb', 'lci', 'lca', 'tesouro',
-  'emprestimo', 'empréstimo', 'financiamento',
-  'boleto', 'darf', 'gps', 'imposto', 'taxa',
+  'darf', 'gps', 'imposto',
 ];
 
 function isExcludedMerchant(normalizedMerchant: string): boolean {
@@ -256,11 +262,38 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
   }
 
   for (const [merchantKey, txs] of grouped) {
-    // Skip excluded merchants (credit card bills, bank transfers, investments, etc.)
+    // Skip ad-hoc transfers (PIX, TED, DOC, investments, taxes)
     if (isExcludedMerchant(merchantKey)) continue;
 
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
+
+    // Bank/credit card bill payments → force-classify as installment
+    if (isBillPayment(merchantKey) && sorted.length >= 2) {
+      const intervals: number[] = [];
+      for (let i = 1; i < sorted.length; i++) {
+        intervals.push(daysBetween(sorted[i].date, sorted[i - 1].date));
+      }
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const isMonthly = avgInterval >= 25 && avgInterval <= 35;
+      if (isMonthly) {
+        const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
+        const isActive = daysSinceLast <= 65;
+        results.push({
+          merchant: latest.merchant || latest.description,
+          amount: latest.amount,
+          frequency: 'monthly',
+          type: 'installment',
+          status: isActive ? 'active' : 'completed',
+          confidence: 'high',
+          installments_remaining: null,
+          next_expected_date: isActive ? addMonths(latest.date, 1) : latest.date,
+          occurrences: sorted.length,
+          transaction_pattern: merchantKey,
+        });
+      }
+      continue;
+    }
 
     // STEP 1: Installment pattern X/Y has absolute precedence
     const installment = detectInstallmentPattern(sorted[sorted.length - 1].description);
@@ -487,4 +520,4 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
   return results;
 }
 
-export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS };
+export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, isBillPayment, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS, KNOWN_BILL_PAYERS };
