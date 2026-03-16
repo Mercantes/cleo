@@ -210,9 +210,9 @@ export function ChatInterface() {
   const showSuggestions = isHistoryLoaded && messages.length === 0;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {messages.length > 0 && (
-        <div className="flex items-center justify-end border-b px-4 py-2">
+        <div className="flex shrink-0 items-center justify-end border-b px-4 py-2">
           <button
             onClick={clearChat}
             aria-label="Iniciar novo chat"
@@ -223,18 +223,20 @@ export function ChatInterface() {
           </button>
         </div>
       )}
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollContainerRef} className="min-h-0 flex-1 overflow-y-auto">
         {showSuggestions && <ChatSuggestions onSelect={handleSuggestionSelect} />}
-        {messages.map((msg) => (
-          <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} />
-        ))}
-        <div aria-live="polite" aria-atomic="true">
-          {isLoading && <TypingIndicator />}
+        <div className="mx-auto max-w-3xl">
+          {messages.map((msg) => (
+            <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} />
+          ))}
+          <div aria-live="polite" aria-atomic="true">
+            {isLoading && <TypingIndicator />}
+          </div>
+          <div ref={messagesEndRef} />
         </div>
-        <div ref={messagesEndRef} />
       </div>
       {lastFailedMessage && !isLoading && (
-        <div className="flex justify-center border-t px-4 py-2">
+        <div className="flex shrink-0 justify-center border-t px-4 py-2">
           <button
             onClick={() => sendMessage(lastFailedMessage)}
             className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
@@ -244,12 +246,14 @@ export function ChatInterface() {
           </button>
         </div>
       )}
-      <ChatInput
-        value={input}
-        onChange={setInput}
-        onSend={() => sendMessage()}
-        disabled={isLoading}
-      />
+      <div className="shrink-0">
+        <ChatInput
+          value={input}
+          onChange={setInput}
+          onSend={() => sendMessage()}
+          disabled={isLoading}
+        />
+      </div>
     </div>
   );
 }

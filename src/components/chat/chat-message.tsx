@@ -40,11 +40,25 @@ function renderMarkdown(text: string): React.ReactNode[] {
   let inCodeBlock = false;
   let codeLines: string[] = [];
   let codeKey = 0;
+  let listItems: React.ReactNode[] = [];
+  let listKey = 0;
+
+  function flushList() {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`list-${listKey++}`} className="my-1.5 space-y-0.5 pl-1">
+          {listItems}
+        </ul>,
+      );
+      listItems = [];
+    }
+  }
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     if (line.startsWith('```')) {
+      flushList();
       if (inCodeBlock) {
         const code = codeLines.join('\n');
         elements.push(
@@ -63,8 +77,47 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    elements.push(<span key={i}>{formatInline(line)}{i < lines.length - 1 ? '\n' : ''}</span>);
+    // List items: - text or * text or numbered 1. text
+    const listMatch = line.match(/^[-*•]\s+(.+)/) || line.match(/^\d+\.\s+(.+)/);
+    if (listMatch) {
+      listItems.push(
+        <li key={`li-${i}`} className="flex gap-1.5 text-sm">
+          <span className="mt-0.5 shrink-0 text-muted-foreground">•</span>
+          <span>{formatInline(listMatch[1])}</span>
+        </li>,
+      );
+      continue;
+    }
+
+    flushList();
+
+    // Empty line = paragraph break
+    if (line.trim() === '') {
+      elements.push(<div key={`br-${i}`} className="h-2" />);
+      continue;
+    }
+
+    // Headers
+    if (line.startsWith('### ')) {
+      elements.push(<p key={i} className="mt-2 mb-0.5 text-sm font-semibold">{formatInline(line.slice(4))}</p>);
+      continue;
+    }
+    if (line.startsWith('## ')) {
+      elements.push(<p key={i} className="mt-2 mb-0.5 text-sm font-semibold">{formatInline(line.slice(3))}</p>);
+      continue;
+    }
+
+    // Bold-only line (acts like a sub-header): **Title:**
+    if (/^\*\*[^*]+\*\*:?\s*$/.test(line.trim())) {
+      elements.push(<p key={i} className="mt-2 mb-0.5 text-sm font-semibold">{formatInline(line)}</p>);
+      continue;
+    }
+
+    // Regular text
+    elements.push(<p key={i} className="text-sm leading-relaxed">{formatInline(line)}</p>);
   }
+
+  flushList();
 
   if (inCodeBlock && codeLines.length > 0) {
     elements.push(
@@ -134,12 +187,14 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt 
       )}
       <div
         className={cn(
-          'max-w-[80%] rounded-lg px-3 py-2 text-sm',
-          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted',
+          'rounded-lg px-3 py-2 text-sm',
+          isUser
+            ? 'max-w-[80%] bg-primary text-primary-foreground'
+            : 'max-w-[85%] bg-muted lg:max-w-2xl',
         )}
       >
         {text && (
-          <div className="whitespace-pre-wrap">
+          <div className={isUser ? 'whitespace-pre-wrap' : ''}>
             {isUser ? text : renderMarkdown(text)}
           </div>
         )}
