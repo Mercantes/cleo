@@ -93,9 +93,10 @@ function formatPrice(price: number) {
 interface PlanComparisonProps {
   onSelectPlan: (plan: 'pro' | 'premium') => void;
   loading?: string | null;
+  currentTier?: 'free' | 'pro';
 }
 
-export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
+export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: PlanComparisonProps) {
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const isAnnual = billing === 'annual';
 
@@ -164,7 +165,7 @@ export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.free.description}</p>
             <Button variant="outline" disabled className="mt-4 w-full">
-              Plano Atual
+              {currentTier === 'free' ? 'Plano Atual' : 'Plano Grátis'}
             </Button>
           </div>
         </div>
@@ -195,14 +196,37 @@ export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.pro.description}</p>
-            <Button
-              onClick={() => onSelectPlan('pro')}
-              disabled={loading === 'pro'}
-              className="mt-4 w-full"
-            >
-              {loading === 'pro' ? 'Redirecionando...' : PLANS.pro.cta}
-            </Button>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.pro.ctaNote}</p>
+            {currentTier === 'pro' ? (
+              <>
+                <Button variant="outline" disabled className="mt-4 w-full">
+                  Plano Atual
+                </Button>
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  <button
+                    type="button"
+                    className="text-primary hover:underline"
+                    onClick={async () => {
+                      const res = await fetch('/api/stripe/portal');
+                      const data = await res.json();
+                      if (data.url) window.location.href = data.url;
+                    }}
+                  >
+                    Gerenciar assinatura
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => onSelectPlan('pro')}
+                  disabled={loading === 'pro'}
+                  className="mt-4 w-full"
+                >
+                  {loading === 'pro' ? 'Redirecionando...' : PLANS.pro.cta}
+                </Button>
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.pro.ctaNote}</p>
+              </>
+            )}
           </div>
         </div>
 
@@ -243,9 +267,11 @@ export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
               disabled={loading === 'premium'}
               className="mt-4 w-full"
             >
-              {loading === 'premium' ? 'Redirecionando...' : PLANS.premium.cta}
+              {loading === 'premium' ? 'Redirecionando...' : currentTier === 'pro' ? 'Upgrade para Premium' : PLANS.premium.cta}
             </Button>
-            <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.premium.ctaNote}</p>
+            {currentTier !== 'pro' && (
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.premium.ctaNote}</p>
+            )}
           </div>
         </div>
       </div>

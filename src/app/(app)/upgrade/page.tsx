@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { PlanComparison } from '@/components/paywall/plan-comparison';
+import { useTier } from '@/hooks/use-tier';
 
 export default function UpgradePage() {
   const searchParams = useSearchParams();
   const wasCanceled = searchParams.get('canceled') === 'true';
+  const { tier } = useTier();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,7 +60,7 @@ export default function UpgradePage() {
         </div>
       )}
 
-      <PlanComparison onSelectPlan={handleSelectPlan} loading={loading} />
+      <PlanComparison onSelectPlan={handleSelectPlan} loading={loading} currentTier={tier} />
 
       <p className="text-center text-xs text-muted-foreground">
         Cancele a qualquer momento. Sem compromisso.
