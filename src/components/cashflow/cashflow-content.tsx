@@ -28,6 +28,19 @@ interface DayData {
   balance: number;
 }
 
+interface CategoryBreakdown {
+  name: string;
+  icon: string;
+  total: number;
+}
+
+interface TopExpense {
+  description: string;
+  amount: number;
+  date: string;
+  category: { name: string; icon: string } | null;
+}
+
 interface CashFlowData {
   month: string;
   totalIncome: number;
@@ -36,6 +49,8 @@ interface CashFlowData {
   bestDay: DayData | null;
   worstDay: DayData | null;
   days: DayData[];
+  categoryBreakdown: CategoryBreakdown[];
+  topExpenses: TopExpense[];
 }
 
 type ChartView = 'balance' | 'daily';
@@ -102,10 +117,13 @@ export function CashFlowContent() {
     );
   }
 
-  const { totalIncome, totalExpenses, totalNet, bestDay, worstDay, days } = data!;
+  const { totalIncome, totalExpenses, totalNet, bestDay, worstDay, days, categoryBreakdown, topExpenses } = data!;
 
   // Filter days with activity for the table
   const activeDays = days.filter((d) => d.income > 0 || d.expenses > 0);
+
+  // Max category total for percentage bar
+  const maxCategoryTotal = categoryBreakdown.length > 0 ? categoryBreakdown[0].total : 1;
 
   return (
     <div className="space-y-6">
@@ -302,6 +320,69 @@ export function CashFlowContent() {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Category breakdown + Top expenses */}
+      {(categoryBreakdown.length > 0 || topExpenses.length > 0) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {/* Category breakdown */}
+          {categoryBreakdown.length > 0 && (
+            <div className="rounded-xl border bg-card">
+              <div className="border-b px-4 py-3">
+                <h2 className="text-sm font-semibold">Gastos por Categoria</h2>
+              </div>
+              <div className="divide-y">
+                {categoryBreakdown.map((cat) => (
+                  <div key={cat.name} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="text-base">{cat.icon}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-medium">{cat.name}</span>
+                        <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">
+                          {formatCurrency(cat.total)}
+                        </span>
+                      </div>
+                      <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-red-500/70 transition-all dark:bg-red-400/70"
+                          style={{ width: `${(cat.total / maxCategoryTotal) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top expenses */}
+          {topExpenses.length > 0 && (
+            <div className="rounded-xl border bg-card">
+              <div className="border-b px-4 py-3">
+                <h2 className="text-sm font-semibold">Maiores Gastos</h2>
+              </div>
+              <div className="divide-y">
+                {topExpenses.map((tx, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium">{tx.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDay(tx.date)}
+                        {tx.category && ` · ${tx.category.icon} ${tx.category.name}`}
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">
+                      {formatCurrency(tx.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Daily breakdown table */}
       <div className="rounded-xl border bg-card">

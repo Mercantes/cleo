@@ -13,7 +13,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
 
   const { data, error } = await supabase
     .from('transactions')
-    .select('amount, type, date')
+    .select('amount, type, date, description, merchant, category_id, categories(name, icon)')
     .eq('user_id', user.id)
     .gte('date', startDate)
     .lte('date', endDate)
@@ -71,6 +71,37 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
     ? daysWithActivity.reduce((worst, d) => d.net < worst.net ? d : worst)
     : null;
 
+  // Aggregate expenses by category
+  const categoryMap = new Map<string, { name: string; icon: string; total: number }>();
+  for (const tx of txs) {
+    if (tx.type !== 'debit') continue;
+    const catRaw = tx.categories as unknown;
+    const cat = Array.isArray(catRaw) ? (catRaw[0] as { name: string; icon: string } | undefined) ?? null : catRaw as { name: string; icon: string } | null;
+    const key = cat ? cat.name : 'Sem categoria';
+    const icon = cat ? cat.icon : '📦';
+    const existing = categoryMap.get(key);
+    if (existing) {
+      existing.total += Number(tx.amount);
+    } else {
+      categoryMap.set(key, { name: key, icon, total: Number(tx.amount) });
+    }
+  }
+  const categoryBreakdown = Array.from(categoryMap.values())
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 8);
+
+  // Top 5 biggest expenses
+  const topExpenses = txs
+    .filter((tx) => tx.type === 'debit')
+    .sort((a, b) => Number(b.amount) - Number(a.amount))
+    .slice(0, 5)
+    .map((tx) => ({
+      description: (tx.merchant as string) || tx.description,
+      amount: Number(tx.amount),
+      date: tx.date,
+      category: (() => { const r = tx.categories as unknown; return Array.isArray(r) ? (r[0] as { name: string; icon: string } | undefined) ?? null : r as { name: string; icon: string } | null; })(),
+    }));
+
   return NextResponse.json({
     month: monthParam,
     totalIncome,
@@ -79,6 +110,8 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
     bestDay,
     worstDay,
     days,
+    categoryBreakdown,
+    topExpenses,
   }, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },
   });
