@@ -167,9 +167,6 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
   }
 
   for (const [merchantKey, txs] of grouped) {
-    // Skip bank transfers, investments, etc. — not recurring income
-    if (isExcludedMerchant(merchantKey)) continue;
-
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
     const isKnown = isKnownIncomeSource(merchantKey);
@@ -208,12 +205,12 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     const intervalStdDev = standardDeviation(intervals);
     const amountCV = coefficientOfVariation(amounts);
 
-    // Check if intervals are roughly monthly (25-35 days)
-    const isMonthly = avgInterval >= 25 && avgInterval <= 35;
+    // Check if intervals are roughly monthly (20-40 days — wider range for income)
+    const isMonthly = avgInterval >= 20 && avgInterval <= 40;
     if (!isMonthly) continue;
 
-    // Regularity check — irregular intervals = not recurring income
-    const isRegular = intervalStdDev <= 10;
+    // Regularity check — more lenient for income (payday can shift)
+    const isRegular = intervalStdDev <= 12;
     if (!isRegular) continue;
 
     // Reject if multiple per month (random transfers, not salary)
@@ -222,15 +219,16 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
     const isActive = daysSinceLast <= 65;
 
-    // Income can have higher amount variation than subscriptions (bonuses, overtime)
-    // Accept up to 40% CV for known sources, 30% for unknown
-    const maxCV = isKnown ? 0.40 : 0.30;
+    // Income tolerates higher amount variation (bonuses, overtime, commissions)
+    // Known sources: up to 50% CV, unknown: up to 40%
+    const maxCV = isKnown ? 0.50 : 0.40;
     if (amountCV > maxCV) continue;
 
     let confidence: 'high' | 'medium' | 'low';
     if (isKnown && sorted.length >= 3) confidence = 'high';
-    else if (sorted.length >= 3 && amountCV <= 0.10) confidence = 'high';
-    else if (sorted.length >= 2) confidence = 'medium';
+    else if (sorted.length >= 3 && amountCV <= 0.15) confidence = 'high';
+    else if (sorted.length >= 3) confidence = 'medium';
+    else if (sorted.length >= 2 && isKnown) confidence = 'medium';
     else confidence = 'low';
 
     results.push({
