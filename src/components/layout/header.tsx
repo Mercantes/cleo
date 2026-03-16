@@ -145,11 +145,9 @@ export function Header({ userName }: HeaderProps) {
             <Settings className="mr-2 h-4 w-4" />
             Configurações
           </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/upgrade">
-              <CreditCard className="mr-2 h-4 w-4" />
-              Planos
-            </Link>
+          <DropdownMenuItem onClick={() => window.location.href = '/upgrade'}>
+            <CreditCard className="mr-2 h-4 w-4" />
+            Planos
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>
