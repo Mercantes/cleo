@@ -91,11 +91,11 @@ function formatPrice(price: number) {
 }
 
 interface PlanComparisonProps {
-  onSelectPro: () => void;
-  loading?: boolean;
+  onSelectPlan: (plan: 'pro' | 'premium') => void;
+  loading?: string | null;
 }
 
-export function PlanComparison({ onSelectPro, loading }: PlanComparisonProps) {
+export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const isAnnual = billing === 'annual';
 
@@ -195,8 +195,8 @@ export function PlanComparison({ onSelectPro, loading }: PlanComparisonProps) {
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.pro.description}</p>
-            <Button onClick={onSelectPro} disabled={loading} className="mt-4 w-full">
-              {loading ? 'Redirecionando...' : PLANS.pro.cta}
+            <Button onClick={() => onSelectPlan('pro')} disabled={!!loading} className="mt-4 w-full">
+              {loading === 'pro' ? 'Redirecionando...' : PLANS.pro.cta}
             </Button>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.pro.ctaNote}</p>
           </div>
@@ -234,8 +234,8 @@ export function PlanComparison({ onSelectPro, loading }: PlanComparisonProps) {
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.premium.description}</p>
-            <Button onClick={onSelectPro} disabled={loading} className="mt-4 w-full">
-              {loading ? 'Redirecionando...' : PLANS.premium.cta}
+            <Button onClick={() => onSelectPlan('premium')} disabled={!!loading} className="mt-4 w-full">
+              {loading === 'premium' ? 'Redirecionando...' : PLANS.premium.cta}
             </Button>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.premium.ctaNote}</p>
           </div>

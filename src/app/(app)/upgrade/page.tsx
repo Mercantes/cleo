@@ -7,14 +7,18 @@ import { PlanComparison } from '@/components/paywall/plan-comparison';
 export default function UpgradePage() {
   const searchParams = useSearchParams();
   const wasCanceled = searchParams.get('canceled') === 'true';
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSelectPro = async () => {
-    setLoading(true);
+  const handleSelectPlan = async (plan: 'pro' | 'premium') => {
+    setLoading(plan);
     setError(null);
     try {
-      const response = await fetch('/api/stripe/checkout', { method: 'POST' });
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
       if (!response.ok) {
         throw new Error('checkout_failed');
       }
@@ -26,7 +30,7 @@ export default function UpgradePage() {
       }
     } catch {
       setError('Não foi possível iniciar o checkout. Verifique sua conexão e tente novamente.');
-      setLoading(false);
+      setLoading(null);
     }
   };
 
@@ -54,7 +58,7 @@ export default function UpgradePage() {
         </div>
       )}
 
-      <PlanComparison onSelectPro={handleSelectPro} loading={loading} />
+      <PlanComparison onSelectPlan={handleSelectPlan} loading={loading} />
 
       <p className="text-center text-xs text-muted-foreground">
         Cancele a qualquer momento. Sem compromisso.
