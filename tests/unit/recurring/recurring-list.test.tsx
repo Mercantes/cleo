@@ -29,7 +29,7 @@ describe('RecurringList', () => {
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it('shows empty state when no recurring found', () => {
+  it('shows auto-detecting state when no recurring found', () => {
     mockUseApi.mockReturnValue({
       data: { subscriptions: [], installments: [], income: [], monthlyTotal: 0, monthlyIncome: 0 },
       isLoading: false,
@@ -38,7 +38,7 @@ describe('RecurringList', () => {
     });
 
     render(<RecurringList />);
-    expect(screen.getByText('Nenhuma recorrência detectada')).toBeInTheDocument();
+    expect(screen.getByText('Analisando suas transações...')).toBeInTheDocument();
   });
 
   it('renders subscriptions and installments', () => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Repeat,
@@ -112,6 +112,16 @@ export function RecurringList() {
   const monthlyIncome = data?.monthlyIncome || 0;
   const hasExpenseData = subscriptions.length > 0 || installments.length > 0;
   const hasIncomeData = income.length > 0;
+  const hasAnyData = hasExpenseData || hasIncomeData;
+
+  // Auto-detect recurring transactions when data loads empty
+  const autoDetectRan = useRef(false);
+  useEffect(() => {
+    if (!isLoading && data && !hasAnyData && !autoDetectRan.current && !isDetecting) {
+      autoDetectRan.current = true;
+      handleDetect();
+    }
+  }, [isLoading, data, hasAnyData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Calculate summary values
   const installmentsTotal = installments.reduce((s, i) => s + Number(i.amount), 0);
@@ -219,17 +229,25 @@ export function RecurringList() {
       {tab === 'income' ? (
         !hasIncomeData ? (
           <div className="space-y-4">
-            <EmptyState
-              icon={TrendingUp}
-              title="Nenhuma receita recorrente detectada"
-              description="Clique abaixo para analisar suas transações e detectar receitas recorrentes como salário, freelance e aluguéis."
-            />
-            <div className="flex justify-center">
-              <Button onClick={handleDetect} disabled={isDetecting}>
-                {isDetecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Detectar receitas
-              </Button>
-            </div>
+            {isDetecting ? (
+              <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16 text-center">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground">Analisando suas transações...</p>
+              </div>
+            ) : (
+              <>
+                <EmptyState
+                  icon={TrendingUp}
+                  title="Nenhuma receita recorrente detectada"
+                  description="Nenhuma receita recorrente foi encontrada nas suas transações."
+                />
+                <div className="flex justify-center">
+                  <Button onClick={handleDetect} disabled={isDetecting}>
+                    Detectar novamente
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -302,17 +320,25 @@ export function RecurringList() {
         )
       ) : !hasExpenseData ? (
         <div className="space-y-4">
-          <EmptyState
-            icon={Repeat}
-            title="Nenhuma recorrência detectada"
-            description="Clique abaixo para analisar suas transações e detectar assinaturas e parcelas."
-          />
-          <div className="flex justify-center">
-            <Button onClick={handleDetect} disabled={isDetecting}>
-              {isDetecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Detectar recorrências
-            </Button>
-          </div>
+          {isDetecting ? (
+            <div className="flex flex-col items-center justify-center gap-3 rounded-xl border bg-card py-16 text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">Analisando suas transações...</p>
+            </div>
+          ) : (
+            <>
+              <EmptyState
+                icon={Repeat}
+                title="Nenhuma recorrência detectada"
+                description="Nenhuma assinatura ou parcela recorrente foi encontrada nas suas transações."
+              />
+              <div className="flex justify-center">
+                <Button onClick={handleDetect} disabled={isDetecting}>
+                  Detectar novamente
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <>

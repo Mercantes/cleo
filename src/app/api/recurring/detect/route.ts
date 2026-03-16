@@ -10,6 +10,7 @@ export const POST = withAuth(async (_request, { user }) => {
       detected: results.length,
       subscriptions: results.filter((r) => r.type === 'subscription').length,
       installments: results.filter((r) => r.type === 'installment').length,
+      income: results.filter((r) => r.type === 'income').length,
     });
   } catch (error) {
     console.error('[recurring/detect] detection failed:', error);
