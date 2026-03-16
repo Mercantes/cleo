@@ -12,6 +12,7 @@ import {
   ChevronRight,
   TrendingDown,
   TrendingUp,
+  RefreshCw,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
@@ -265,7 +266,7 @@ export function RecurringList() {
                   </p>
                 </div>
               </div>
-              <div className="mt-4 flex flex-wrap gap-6 border-t pt-3 text-sm">
+              <div className="mt-4 flex flex-wrap items-center gap-6 border-t pt-3 text-sm">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
                   <span className="text-muted-foreground">Fontes ativas:</span>
@@ -275,6 +276,16 @@ export function RecurringList() {
                   <span className="text-muted-foreground">Anual estimado:</span>
                   <span className="font-medium">{fmt(monthlyIncome * 12)}</span>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDetect}
+                  disabled={isDetecting}
+                  className="ml-auto"
+                >
+                  <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5', isDetecting && 'animate-spin')} />
+                  {isDetecting ? 'Detectando...' : 'Atualizar'}
+                </Button>
               </div>
             </div>
 
@@ -374,7 +385,7 @@ export function RecurringList() {
             </div>
 
             {/* Legend */}
-            <div className="mt-4 flex flex-wrap gap-6 border-t pt-3 text-sm">
+            <div className="mt-4 flex flex-wrap items-center gap-6 border-t pt-3 text-sm">
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                 <span className="text-muted-foreground">Parcelas:</span>
@@ -385,6 +396,16 @@ export function RecurringList() {
                 <span className="text-muted-foreground">Recorrentes:</span>
                 <span className="font-medium">{fmt(subscriptionsTotal)}</span>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDetect}
+                disabled={isDetecting}
+                className="ml-auto"
+              >
+                <RefreshCw className={cn('h-3.5 w-3.5 mr-1.5', isDetecting && 'animate-spin')} />
+                {isDetecting ? 'Detectando...' : 'Atualizar'}
+              </Button>
             </div>
           </div>
 
