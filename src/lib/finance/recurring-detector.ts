@@ -171,15 +171,25 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     const latest = sorted[sorted.length - 1];
     const isKnown = isKnownIncomeSource(merchantKey);
 
-    // Need at least 2 occurrences for pattern detection
-    if (sorted.length < 2) {
-      // Known income source with single recent occurrence
+    // Aggregate by month: sum all transactions from same sender per month
+    const monthlyTotals = new Map<string, number>();
+    for (const tx of sorted) {
+      const monthKey = tx.date.slice(0, 7); // YYYY-MM
+      monthlyTotals.set(monthKey, (monthlyTotals.get(monthKey) || 0) + tx.amount);
+    }
+
+    const months = [...monthlyTotals.keys()].sort();
+    const monthlyAmounts = months.map(m => monthlyTotals.get(m)!);
+
+    // Need sender to appear in at least 2 different months
+    if (months.length < 2) {
+      // Known income source with single recent month
       if (isKnown) {
         const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
         if (daysSinceLast <= 45) {
           results.push({
             merchant: latest.merchant || latest.description,
-            amount: latest.amount,
+            amount: monthlyAmounts[0],
             frequency: 'monthly',
             type: 'income',
             status: 'active',
@@ -193,53 +203,44 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
       continue;
     }
 
-    // Calculate intervals and amount statistics
-    const intervals: number[] = [];
-    const amounts: number[] = sorted.map(tx => tx.amount);
-
-    for (let i = 1; i < sorted.length; i++) {
-      intervals.push(daysBetween(sorted[i].date, sorted[i - 1].date));
+    // Calculate month-to-month intervals (should be ~1 month apart)
+    const monthIntervals: number[] = [];
+    for (let i = 1; i < months.length; i++) {
+      const [y1, m1] = months[i - 1].split('-').map(Number);
+      const [y2, m2] = months[i].split('-').map(Number);
+      monthIntervals.push((y2 - y1) * 12 + (m2 - m1));
     }
 
-    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-    const intervalStdDev = standardDeviation(intervals);
-    const amountCV = coefficientOfVariation(amounts);
+    // Average month gap should be <= 2 (allows for occasional skipped months)
+    const avgMonthGap = monthIntervals.reduce((a, b) => a + b, 0) / monthIntervals.length;
+    if (avgMonthGap > 2) continue;
 
-    // Check if intervals are roughly monthly (20-40 days — wider range for income)
-    const isMonthly = avgInterval >= 20 && avgInterval <= 40;
-    if (!isMonthly) continue;
+    // Check amount variation on monthly totals
+    const monthlyCV = coefficientOfVariation(monthlyAmounts);
+    // Very lenient for income: employer may send varying amounts (bonuses, splits)
+    const maxCV = isKnown ? 0.80 : 0.60;
+    if (monthlyCV > maxCV) continue;
 
-    // Regularity check — more lenient for income (payday can shift)
-    const isRegular = intervalStdDev <= 12;
-    if (!isRegular) continue;
-
-    // Reject if multiple per month (random transfers, not salary)
-    if (hasMultiplePerMonth(sorted)) continue;
-
+    const avgMonthlyAmount = monthlyAmounts.reduce((a, b) => a + b, 0) / monthlyAmounts.length;
+    const latestMonthAmount = monthlyAmounts[monthlyAmounts.length - 1];
     const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
     const isActive = daysSinceLast <= 65;
 
-    // Income tolerates higher amount variation (bonuses, overtime, commissions)
-    // Known sources: up to 50% CV, unknown: up to 40%
-    const maxCV = isKnown ? 0.50 : 0.40;
-    if (amountCV > maxCV) continue;
-
     let confidence: 'high' | 'medium' | 'low';
-    if (isKnown && sorted.length >= 3) confidence = 'high';
-    else if (sorted.length >= 3 && amountCV <= 0.15) confidence = 'high';
-    else if (sorted.length >= 3) confidence = 'medium';
-    else if (sorted.length >= 2 && isKnown) confidence = 'medium';
+    if (months.length >= 3 && monthlyCV <= 0.30) confidence = 'high';
+    else if (months.length >= 3) confidence = 'medium';
+    else if (months.length >= 2 && isKnown) confidence = 'medium';
     else confidence = 'low';
 
     results.push({
       merchant: latest.merchant || latest.description,
-      amount: latest.amount,
+      amount: Math.round(avgMonthlyAmount * 100) / 100,
       frequency: 'monthly',
       type: 'income',
       status: isActive ? 'active' : 'cancelled',
       confidence,
       next_expected_date: addMonths(latest.date, 1),
-      occurrences: sorted.length,
+      occurrences: months.length,
       transaction_pattern: `income:${merchantKey}`,
     });
   }
