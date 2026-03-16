@@ -284,7 +284,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
           type: 'installment',
           status: isActive ? 'active' : 'completed',
           confidence: 'high',
-          installments_remaining: null,
+          installments_remaining: undefined,
           next_expected_date: isActive ? addMonths(latest.date, 1) : latest.date,
           occurrences: sorted.length,
           transaction_pattern: merchantKey,
