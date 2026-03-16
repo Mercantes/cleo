@@ -35,7 +35,7 @@ export default function UpgradePage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8 pb-12">
+    <div className="space-y-8 pb-12">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
           Escolha um plano

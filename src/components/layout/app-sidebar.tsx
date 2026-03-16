@@ -105,7 +105,7 @@ export function AppSidebar() {
                     {!collapsed && (
                       <span className="flex flex-1 items-center justify-between">
                         {item.label}
-                        {item.pro && (
+                        {item.pro && !isPro && (
                           <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary">
                             PRO
                           </span>

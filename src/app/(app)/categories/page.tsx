@@ -115,7 +115,7 @@ export default function CategoriesPage() {
 
   if (allCategories.length === 0) {
     return (
-      <div className="mx-auto max-w-5xl space-y-6">
+      <div className="space-y-6">
         <h1 className="text-2xl font-bold">Categorias</h1>
         <EmptyState
           icon={Grid3X3}
@@ -127,7 +127,7 @@ export default function CategoriesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
