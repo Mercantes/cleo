@@ -2,18 +2,18 @@ import Image from 'next/image';
 
 function C6Logo({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 84 52" className={className} aria-label="C6 Bank">
-      <rect width="84" height="52" rx="10" ry="10" fill="#121212" className="dark:fill-white" />
-      <text x="42" y="38" textAnchor="middle" fontFamily="'Helvetica Neue', Arial, sans-serif" fontWeight="bold" fontSize="34" letterSpacing="-1" fill="#fff" className="dark:fill-[#121212]">C6</text>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 52" className={className} aria-label="C6 Bank">
+      <rect width="140" height="52" rx="10" ry="10" fill="#121212" className="dark:fill-white" />
+      <text x="70" y="37" textAnchor="middle" fontFamily="'Helvetica Neue', Arial, sans-serif" fontWeight="bold" fontSize="28" letterSpacing="-0.5" fill="#fff" className="dark:fill-[#121212]">C6 Bank</text>
     </svg>
   );
 }
 
 function XPLogo({ className }: { className?: string }) {
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" className={className} aria-label="XP Investimentos">
-      <rect width="100" height="100" rx="18" ry="18" fill="#1e1e1e" className="dark:fill-white"/>
-      <text x="50" y="68" textAnchor="middle" fontFamily="'Helvetica Neue', Arial, sans-serif" fontWeight="bold" fontSize="52" letterSpacing="-2" fill="#fff" className="dark:fill-[#1e1e1e]">XP</text>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 100" className={className} aria-label="XP Investimentos">
+      <rect width="120" height="100" rx="18" ry="18" fill="#1e1e1e" className="dark:fill-white"/>
+      <text x="60" y="66" textAnchor="middle" fontFamily="'Helvetica Neue', Arial, sans-serif" fontWeight="bold" fontSize="48" letterSpacing="-1" fill="#fff" className="dark:fill-[#1e1e1e]">XP</text>
     </svg>
   );
 }
