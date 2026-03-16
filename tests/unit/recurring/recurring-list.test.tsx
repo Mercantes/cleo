@@ -60,7 +60,7 @@ describe('RecurringList', () => {
     render(<RecurringList />);
     expect(screen.getByText('Netflix')).toBeInTheDocument();
     expect(screen.getByText('Loja ABC')).toBeInTheDocument();
-    expect(screen.getByText('4 parcelas restantes')).toBeInTheDocument();
+    expect(screen.getByText(/4 parcelas restantes/)).toBeInTheDocument();
   });
 
   it('shows reclassify buttons', () => {

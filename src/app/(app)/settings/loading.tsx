@@ -2,7 +2,7 @@ import { PageSkeleton } from '@/components/ui/page-skeleton';
 
 export default function SettingsLoading() {
   return (
-    <div className="mx-auto max-w-7xl">
+    <div>
       <PageSkeleton variant="list" />
     </div>
   );

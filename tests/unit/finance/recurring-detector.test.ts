@@ -228,13 +228,20 @@ describe('detectRecurringFromTransactions', () => {
     expect(results[0].confidence).toBe('high'); // Known merchant (vivo)
   });
 
-  it('marks subscription as cancelled when last charge > 45 days ago', () => {
+  it('marks subscription as cancelled when last charge > 65 days ago', () => {
+    // Use dates relative to today to avoid test becoming stale
+    const today = new Date();
+    const daysAgo = (n: number) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - n);
+      return d.toISOString().split('T')[0];
+    };
     const transactions = [
-      makeTx({ id: '1', date: '2025-09-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '2', date: '2025-10-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '3', date: '2025-11-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '4', date: '2025-12-15', amount: 39.9, merchant: 'Netflix' }),
-      makeTx({ id: '5', date: '2026-01-15', amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '1', date: daysAgo(190), amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '2', date: daysAgo(160), amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '3', date: daysAgo(130), amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '4', date: daysAgo(100), amount: 39.9, merchant: 'Netflix' }),
+      makeTx({ id: '5', date: daysAgo(70), amount: 39.9, merchant: 'Netflix' }),
     ];
 
     const results = detectRecurringFromTransactions(transactions);

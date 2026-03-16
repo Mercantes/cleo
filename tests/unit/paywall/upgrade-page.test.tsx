@@ -6,10 +6,15 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+vi.mock('@/hooks/use-tier', () => ({
+  useTier: () => ({ tier: 'free', isPro: false, isLoading: false }),
+}));
+
 vi.mock('@/components/paywall/plan-comparison', () => ({
-  PlanComparison: ({ onSelectPro }: { onSelectPro: () => void }) => (
-    <div data-testid="plan-comparison">
-      <button onClick={onSelectPro}>Mock Pro</button>
+  PlanComparison: ({ onSelectPlan, currentTier }: { onSelectPlan: (plan: string) => void; currentTier?: string }) => (
+    <div data-testid="plan-comparison" data-tier={currentTier}>
+      <button onClick={() => onSelectPlan('pro')}>Mock Pro</button>
+      <button onClick={() => onSelectPlan('premium')}>Mock Premium</button>
     </div>
   ),
 }));
@@ -20,12 +25,17 @@ describe('UpgradePage', () => {
   it('renders title and plan comparison', () => {
     render(<UpgradePage />);
 
-    expect(screen.getByText('Escolha seu plano')).toBeInTheDocument();
+    expect(screen.getByText('Faturamento e Assinatura')).toBeInTheDocument();
     expect(screen.getByTestId('plan-comparison')).toBeInTheDocument();
   });
 
   it('renders cancellation notice', () => {
     render(<UpgradePage />);
     expect(screen.getByText(/Cancele a qualquer momento/)).toBeInTheDocument();
+  });
+
+  it('passes currentTier to PlanComparison', () => {
+    render(<UpgradePage />);
+    expect(screen.getByTestId('plan-comparison').getAttribute('data-tier')).toBe('free');
   });
 });

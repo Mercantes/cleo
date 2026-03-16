@@ -1,67 +1,69 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 
-// Mock next/navigation
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
+// Mock next/image
+vi.mock('next/image', () => ({
+  default: (props: Record<string, unknown>) => <img {...props} />,
 }));
 
-// Mock react-pluggy-connect
-vi.mock('react-pluggy-connect', () => ({
-  PluggyConnect: () => null,
+// Mock ConnectBankButton
+vi.mock('@/components/bank/connect-bank-button', () => ({
+  ConnectBankButton: () => <button>Conectar banco</button>,
 }));
 
-// Mock Supabase browser client
-const mockSelect = vi.fn();
-vi.mock('@supabase/ssr', () => ({
-  createBrowserClient: () => ({
-    from: () => ({
-      select: () => ({
-        order: mockSelect,
-      }),
-    }),
-  }),
+// Mock toast
+vi.mock('@/components/ui/toast', () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
 }));
 
-import { BankConnectionList } from '@/components/bank/bank-connection-list';
+import { BankList } from '@/components/settings/bank-list';
 
-describe('BankConnectionList', () => {
-  it('should render loading skeleton initially', () => {
-    mockSelect.mockReturnValue(new Promise(() => {})); // never resolves
-    const { container } = render(<BankConnectionList />);
+describe('BankList', () => {
+  it('should render empty state when no connections', () => {
+    render(<BankList connections={[]} onDisconnect={vi.fn()} />);
 
-    const skeletons = container.querySelectorAll('.animate-pulse');
-    expect(skeletons.length).toBeGreaterThan(0);
+    expect(screen.getByText(/nenhum banco conectado/i)).toBeDefined();
   });
 
-  it('should render empty state when no connections', async () => {
-    mockSelect.mockResolvedValue({ data: [] });
+  it('should render bank connections', () => {
+    const connections = [
+      {
+        id: 'conn-1',
+        connector_name: 'Banco do Brasil',
+        connector_logo_url: null,
+        status: 'active',
+        last_sync_at: '2026-03-10T10:00:00Z',
+      },
+    ];
 
-    render(<BankConnectionList />);
+    render(<BankList connections={connections} onDisconnect={vi.fn()} />);
 
-    const emptyText = await screen.findByText(/nenhum banco conectado/i);
-    expect(emptyText).toBeDefined();
+    expect(screen.getByText('Banco do Brasil')).toBeDefined();
+    expect(screen.getByText('Ativo')).toBeDefined();
   });
 
-  it('should render bank connections', async () => {
-    mockSelect.mockResolvedValue({
-      data: [
-        {
-          id: 'conn-1',
-          connector_name: 'Banco do Brasil',
-          status: 'active',
-          last_sync_at: '2026-03-10T10:00:00Z',
-          accounts: [{ id: 'acc-1', name: 'Conta Corrente', type: 'checking', balance: 1500 }],
-        },
-      ],
-    });
+  it('should render multiple connections', () => {
+    const connections = [
+      {
+        id: 'conn-1',
+        connector_name: 'Banco do Brasil',
+        connector_logo_url: null,
+        status: 'active',
+        last_sync_at: '2026-03-10T10:00:00Z',
+      },
+      {
+        id: 'conn-2',
+        connector_name: 'Nubank',
+        connector_logo_url: 'https://example.com/nu.png',
+        status: 'active',
+        last_sync_at: null,
+      },
+    ];
 
-    render(<BankConnectionList />);
+    render(<BankList connections={connections} onDisconnect={vi.fn()} />);
 
-    const bankName = await screen.findByText('Banco do Brasil');
-    expect(bankName).toBeDefined();
-
-    const accountName = await screen.findByText('Conta Corrente');
-    expect(accountName).toBeDefined();
+    expect(screen.getByText('Banco do Brasil')).toBeDefined();
+    expect(screen.getByText('Nubank')).toBeDefined();
+    expect(screen.getByText('Nunca sincronizado')).toBeDefined();
   });
 });
