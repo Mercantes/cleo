@@ -195,7 +195,11 @@ export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.pro.description}</p>
-            <Button onClick={() => onSelectPlan('pro')} disabled={!!loading} className="mt-4 w-full">
+            <Button
+              onClick={() => onSelectPlan('pro')}
+              disabled={loading === 'pro'}
+              className="mt-4 w-full"
+            >
               {loading === 'pro' ? 'Redirecionando...' : PLANS.pro.cta}
             </Button>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.pro.ctaNote}</p>
@@ -234,7 +238,11 @@ export function PlanComparison({ onSelectPlan, loading }: PlanComparisonProps) {
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.premium.description}</p>
-            <Button onClick={() => onSelectPlan('premium')} disabled={!!loading} className="mt-4 w-full">
+            <Button
+              onClick={() => onSelectPlan('premium')}
+              disabled={loading === 'premium'}
+              className="mt-4 w-full"
+            >
               {loading === 'premium' ? 'Redirecionando...' : PLANS.premium.cta}
             </Button>
             <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.premium.ctaNote}</p>

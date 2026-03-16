@@ -1,42 +1,80 @@
 export interface PricingTier {
   name: string;
   price: string;
+  annualPrice?: string;
   period: string;
+  subtitle: string;
   description: string;
   features: string[];
   cta: string;
+  ctaNote?: string;
   highlighted?: boolean;
+  badge?: string;
 }
 
 export const pricingTiers: PricingTier[] = [
   {
-    name: 'Free',
-    price: 'R$0',
-    period: '/mês',
-    description: 'Para começar a organizar suas finanças.',
+    name: 'Grátis',
+    price: 'R$ 0,00',
+    period: '',
+    subtitle: '1 Conexão bancária',
+    description: 'Visualização básica das suas finanças.',
     features: [
-      '1 conta bancária',
-      '100 transações/mês',
-      '30 perguntas ao chat/mês',
-      'Dashboard básico',
+      '1 conexão bancária',
       'Categorização automática',
+      'Transações e contas manuais',
+      'Suporte via e-mail',
+      'Sincronização 1x/dia',
     ],
-    cta: 'Começar grátis',
+    cta: 'Criar conta',
   },
   {
     name: 'Pro',
-    price: 'R$19,90',
+    price: 'R$ 19,90',
+    annualPrice: 'R$ 16,58',
     period: '/mês',
-    description: 'Para quem quer controle total das finanças.',
+    subtitle: 'Até 3 Conexões bancárias',
+    description: 'Suas finanças no piloto automático.',
     features: [
-      'Bancos ilimitados',
-      'Perguntas ilimitadas',
-      'Projeções avançadas',
-      'Planejamento de aposentadoria',
-      'Exportação de dados',
-      'Dashboard completo',
+      'Até 3 conexões bancárias',
+      'Categorização automática',
+      'Transações e contas manuais',
+      'Suporte via e-mail e chat',
+      'Acesso completo à plataforma',
+      'Histórico completo',
+      'Detecção de parcelas e assinaturas',
+      'Regras customizadas',
+      'Tags',
+      'Projeção de saldo (12 meses)',
+      'Assistente de IA',
     ],
-    cta: 'Começar com Pro',
+    cta: 'Criar conta',
+    ctaNote: '7 dias grátis — sem cartão de crédito',
     highlighted: true,
+  },
+  {
+    name: 'Premium',
+    price: 'R$ 39,90',
+    annualPrice: 'R$ 33,25',
+    period: '/mês',
+    subtitle: 'Conexões ilimitadas',
+    description: 'Todas as suas contas em um só lugar.',
+    features: [
+      'Conexões ilimitadas',
+      'Categorização automática',
+      'Transações e contas manuais',
+      'Suporte via e-mail e chat',
+      'Acesso completo à plataforma',
+      'Histórico completo',
+      'Detecção de parcelas e assinaturas',
+      'Regras customizadas',
+      'Tags',
+      'Projeção de saldo (12 meses)',
+      'Conecte suas contas PJs',
+      'Assistente de IA',
+    ],
+    cta: 'Criar conta',
+    ctaNote: '7 dias grátis — sem cartão de crédito',
+    badge: 'MELHOR OFERTA',
   },
 ];

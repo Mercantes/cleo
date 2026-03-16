@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Settings, User, Info, type LucideIcon } from 'lucide-react';
+import { Settings, User, Info, Bell, CreditCard, type LucideIcon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,10 +11,12 @@ import { AppearanceSettings } from './appearance-settings';
 import { ProfileForm } from './profile-form';
 import { ChangePassword } from './change-password';
 import { DangerZone } from './danger-zone';
+import { NotificationPreferences } from './notification-preferences';
+import { TierStatus } from '@/components/layout/tier-status';
 import { useApi } from '@/hooks/use-api';
 import { cn } from '@/lib/utils';
 
-type Section = 'geral' | 'conta' | 'sobre';
+type Section = 'geral' | 'conta' | 'notificacoes' | 'plano' | 'sobre';
 
 interface SectionDef {
   key: Section;
@@ -25,6 +27,8 @@ interface SectionDef {
 const sections: SectionDef[] = [
   { key: 'geral', label: 'Geral', icon: Settings },
   { key: 'conta', label: 'Conta', icon: User },
+  { key: 'notificacoes', label: 'Notificações', icon: Bell },
+  { key: 'plano', label: 'Plano', icon: CreditCard },
   { key: 'sobre', label: 'Sobre', icon: Info },
 ];
 
@@ -141,6 +145,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <h2 className="mb-5 text-lg font-bold">{sectionTitle}</h2>
           {activeSection === 'geral' && <GeneralSection />}
           {activeSection === 'conta' && <AccountSection profile={profile} loading={isLoading} />}
+          {activeSection === 'notificacoes' && <NotificationPreferences />}
+          {activeSection === 'plano' && <TierStatus />}
           {activeSection === 'sobre' && <AboutSection />}
         </div>
       </DialogContent>

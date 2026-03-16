@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Settings, HelpCircle, Sparkles } from 'lucide-react';
+import { MessageSquare, HelpCircle, Sparkles } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
@@ -139,18 +139,6 @@ export function AppSidebar() {
               </Link>
             )}
             <Link
-              href="/settings"
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                pathname === '/settings' || pathname.startsWith('/settings/')
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-            >
-              <Settings className="h-4 w-4 shrink-0" />
-              Configurações
-            </Link>
-            <Link
               href="/support"
               className={cn(
                 'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
@@ -174,18 +162,6 @@ export function AppSidebar() {
                 <Sparkles className="h-4 w-4" />
               </Link>
             )}
-            <Link
-              href="/settings"
-              title="Configurações"
-              className={cn(
-                'rounded-md p-2 transition-colors',
-                pathname === '/settings' || pathname.startsWith('/settings/')
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-            >
-              <Settings className="h-4 w-4" />
-            </Link>
             <Link
               href="/support"
               title="Ajuda"

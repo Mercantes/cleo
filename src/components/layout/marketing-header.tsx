@@ -8,7 +8,7 @@ import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
-  { href: '#como-funciona', label: 'Como funciona' },
+  { href: '#funcionalidades', label: 'Funcionalidades' },
   { href: '#planos', label: 'Planos' },
   { href: '#seguranca', label: 'Segurança' },
 ];
@@ -24,7 +24,7 @@ export function MarketingHeader() {
             <Image src="/logo.png" alt="Cleo" width={32} height={32} className="rounded-lg" />
             Cleo
           </Link>
-          <nav aria-label="Navegação do site" className="hidden items-center gap-4 text-sm text-muted-foreground md:flex">
+          <nav aria-label="Navegação do site" className="hidden items-center gap-5 text-sm text-muted-foreground md:flex">
             {navLinks.map((link) => (
               <a
                 key={link.href}
@@ -46,9 +46,9 @@ export function MarketingHeader() {
           </Link>
           <Link
             href="/signup"
-            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+            className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Começar grátis
+            Criar conta
           </Link>
           <Button
             variant="ghost"

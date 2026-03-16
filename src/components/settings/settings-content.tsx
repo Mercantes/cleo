@@ -4,15 +4,13 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import { BankList } from './bank-list';
-import { NotificationPreferences } from './notification-preferences';
-import { TierStatus } from '@/components/layout/tier-status';
 import { GoalsEditor } from './goals-editor';
 import { DangerZone } from './danger-zone';
 import { ChangePassword } from './change-password';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
 
-type Tab = 'profile' | 'banks' | 'goals' | 'notifications' | 'plan' | 'account';
+type Tab = 'profile' | 'banks' | 'goals' | 'account';
 
 interface ProfileData {
   full_name: string | null;
@@ -27,7 +25,7 @@ interface BankConnection {
   last_sync_at: string | null;
 }
 
-const VALID_TABS: Tab[] = ['profile', 'banks', 'goals', 'notifications', 'plan', 'account'];
+const VALID_TABS: Tab[] = ['profile', 'banks', 'goals', 'account'];
 
 function getInitialTab(searchParams: URLSearchParams): Tab {
   const param = searchParams.get('tab');
@@ -70,8 +68,6 @@ export function SettingsContent() {
     { key: 'profile', label: 'Perfil' },
     { key: 'banks', label: 'Bancos' },
     { key: 'goals', label: 'Metas' },
-    { key: 'notifications', label: 'Notificações' },
-    { key: 'plan', label: 'Plano' },
     { key: 'account', label: 'Conta' },
   ];
 
@@ -114,8 +110,6 @@ export function SettingsContent() {
         <BankList connections={banks} onDisconnect={handleDisconnect} onRefresh={refreshBanks} />
       )}
       {activeTab === 'goals' && <GoalsEditor />}
-      {activeTab === 'notifications' && <NotificationPreferences />}
-      {activeTab === 'plan' && <TierStatus />}
       {activeTab === 'account' && <DangerZone />}
     </div>
   );
