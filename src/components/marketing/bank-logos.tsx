@@ -4,11 +4,11 @@ const BANKS = [
   { name: 'Itaú', logo: '/logos/itau.svg', width: 40, height: 40 },
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 72, height: 40 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 100, height: 20 },
-  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 160, height: 40, darkInvert: true },
+  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 40, height: 40, darkInvert: true },
   { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18 },
   { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40, darkInvert: true },
   { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36, darkInvert: true },
-  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 100, height: 24, darkInvert: true },
+  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 56, height: 35, darkInvert: true },
   { name: 'Santander', logo: '/logos/santander.svg', width: 100, height: 18 },
   { name: 'Inter', logo: '/logos/inter.svg', width: 80, height: 20 },
 ];
