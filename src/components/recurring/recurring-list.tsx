@@ -395,12 +395,6 @@ export function RecurringList() {
             </section>
           )}
 
-          <div className="flex justify-center pt-2">
-            <Button variant="outline" onClick={handleDetect} disabled={isDetecting} size="sm">
-              {isDetecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Re-analisar
-            </Button>
-          </div>
         </>
       )}
     </div>
