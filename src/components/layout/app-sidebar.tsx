@@ -4,10 +4,11 @@ import { useSyncExternalStore } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageSquare, Bug, HelpCircle, Crown } from 'lucide-react';
+import { MessageSquare, Settings, HelpCircle, Sparkles } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
+import { useTier } from '@/hooks/use-tier';
 
 
 const STORAGE_KEY = 'cleo-sidebar-collapsed';
@@ -39,6 +40,7 @@ export function useSidebarCollapsed(): boolean {
 export function AppSidebar() {
   const pathname = usePathname();
   const collapsed = useSidebarCollapsed();
+  const { isPro } = useTier();
 
   return (
     <aside
@@ -118,51 +120,83 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* Footer links */}
+      {/* Footer */}
       <div className={cn('border-t', collapsed ? 'px-2 py-2' : 'px-3 py-2')}>
         {!collapsed ? (
-          <div className="space-y-0.5">
-            <a
-              href="https://github.com/Mercantes/cleo/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Bug className="h-4 w-4 shrink-0" />
-              Feedback e Bugs
-            </a>
+          <div className="space-y-1">
+            {!isPro && (
+              <Link
+                href="/upgrade"
+                className="mb-1 flex items-center gap-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-indigo-500/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:from-violet-500/20 hover:to-indigo-500/20"
+              >
+                <Sparkles className="h-4 w-4 shrink-0 text-violet-500" />
+                <span className="flex flex-1 items-center justify-between">
+                  Upgrade Pro
+                  <span className="rounded-full bg-violet-500/15 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:text-violet-400">
+                    7 dias grátis
+                  </span>
+                </span>
+              </Link>
+            )}
             <Link
-              href="/upgrade"
-              className="flex items-center gap-3 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              href="/settings"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                pathname === '/settings' || pathname.startsWith('/settings/')
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
             >
-              <Crown className="h-4 w-4 shrink-0" />
-              Plano
+              <Settings className="h-4 w-4 shrink-0" />
+              Configurações
             </Link>
             <Link
               href="/support"
-              className="flex items-center gap-3 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className={cn(
+                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                pathname === '/support'
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
             >
               <HelpCircle className="h-4 w-4 shrink-0" />
-              Suporte
+              Ajuda
             </Link>
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1">
-            <a
-              href="https://github.com/Mercantes/cleo/issues"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Feedback e Bugs"
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <Bug className="h-4 w-4" />
-            </a>
+            {!isPro && (
+              <Link
+                href="/upgrade"
+                title="Upgrade Pro"
+                className="rounded-md p-2 text-violet-500 transition-colors hover:bg-violet-500/10"
+              >
+                <Sparkles className="h-4 w-4" />
+              </Link>
+            )}
             <Link
-              href="/upgrade"
-              title="Plano"
-              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              href="/settings"
+              title="Configurações"
+              className={cn(
+                'rounded-md p-2 transition-colors',
+                pathname === '/settings' || pathname.startsWith('/settings/')
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
             >
-              <Crown className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/support"
+              title="Ajuda"
+              className={cn(
+                'rounded-md p-2 transition-colors',
+                pathname === '/support'
+                  ? 'text-primary'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+              )}
+            >
+              <HelpCircle className="h-4 w-4" />
             </Link>
           </div>
         )}

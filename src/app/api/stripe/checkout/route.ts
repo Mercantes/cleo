@@ -22,6 +22,9 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
+    subscription_data: {
+      trial_period_days: 7,
+    },
     success_url: `${process.env.NEXT_PUBLIC_APP_URL}/upgrade/success`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/upgrade?canceled=true`,
     metadata: { userId: user.id },

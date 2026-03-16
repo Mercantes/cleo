@@ -9,6 +9,7 @@ import {
   Landmark,
   Grid3X3,
   Crosshair,
+  CalendarDays,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -30,6 +31,7 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Visão Geral', href: '/dashboard', icon: LayoutDashboard },
       { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
+      { label: 'Fluxo de Caixa', href: '/cashflow', icon: CalendarDays },
       { label: 'Recorrentes', href: '/subscriptions', icon: Repeat, pro: true },
     ],
   },
