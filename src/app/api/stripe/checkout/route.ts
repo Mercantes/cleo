@@ -1,3 +1,4 @@
+import Stripe from 'stripe';
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { stripe } from '@/lib/stripe/client';
@@ -37,7 +38,7 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     const hasActiveSubscription = existingSubs.data.length > 0;
 
     const baseUrl = appUrl || `https://${host}`;
-    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
