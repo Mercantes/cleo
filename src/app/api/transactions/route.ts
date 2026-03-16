@@ -32,7 +32,15 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
   if (search) {
     // Escape SQL wildcards and limit length to prevent pattern abuse
     const sanitized = search.slice(0, 100).replace(/[%_\\]/g, '\\$&');
-    query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
+    // Normalize Brazilian number format (comma → dot) and try to match amount
+    const normalized = search.replace(',', '.');
+    const numericValue = parseFloat(normalized);
+    if (!isNaN(numericValue) && isFinite(numericValue)) {
+      const abs = Math.abs(numericValue);
+      query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%,amount.eq.${abs},amount.eq.${-abs}`);
+    } else {
+      query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
+    }
   }
 
   const { data, error, count } = await query;

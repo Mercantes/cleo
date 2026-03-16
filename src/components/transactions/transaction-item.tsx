@@ -113,6 +113,13 @@ export function TransactionRow({
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId || '');
   const displayAmount = type === 'credit' ? amount : -amount;
   const isIncome = type === 'credit';
+  const amountMatchesSearch = (() => {
+    if (!searchQuery || searchQuery.length < 2) return false;
+    const normalized = searchQuery.replace(',', '.');
+    const num = parseFloat(normalized);
+    if (isNaN(num)) return false;
+    return Math.abs(amount) === Math.abs(num);
+  })();
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -178,6 +185,7 @@ export function TransactionRow({
               className={cn(
                 'shrink-0 text-sm font-semibold',
                 isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
+                amountMatchesSearch && 'rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-800',
               )}
             >
               {formatCurrency(Math.abs(displayAmount))}
@@ -258,6 +266,7 @@ export function TransactionRow({
           className={cn(
             'text-right text-sm font-semibold',
             isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
+            amountMatchesSearch && 'rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-800',
           )}
         >
           {formatCurrency(Math.abs(displayAmount))}
