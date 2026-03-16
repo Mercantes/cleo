@@ -4,11 +4,11 @@ const BANKS = [
   { name: 'Itaú', logo: '/logos/itau.svg', width: 40, height: 40 },
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 72, height: 40 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 100, height: 20 },
-  { name: 'XP', logo: '/logos/xp.svg', width: 80, height: 20 },
-  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18 },
+  { name: 'XP', logo: '/logos/xp.svg', width: 80, height: 20, darkInvert: true },
+  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18, darkInvert: true },
   { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40 },
-  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36 },
-  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 90, height: 18 },
+  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36, darkInvert: true },
+  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 90, height: 18, darkInvert: true },
   { name: 'Santander', logo: '/logos/santander.svg', width: 100, height: 18 },
   { name: 'Inter', logo: '/logos/inter.svg', width: 80, height: 20 },
 ];
@@ -25,8 +25,8 @@ export function BankLogos() {
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-20 bg-gradient-to-r from-muted/30 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-muted/30 to-transparent" />
 
-          {/* Scrolling logos with names */}
-          <div className="flex animate-scroll items-center gap-14">
+          {/* Scrolling logos - w-max ensures translateX(-50%) = exactly one copy */}
+          <div className="flex w-max animate-scroll items-center gap-14">
             {[...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
@@ -38,7 +38,11 @@ export function BankLogos() {
                     alt={bank.name}
                     width={bank.width}
                     height={bank.height}
-                    className="max-h-10 w-auto object-contain"
+                    className={`max-h-10 w-auto object-contain${
+                      'darkInvert' in bank && bank.darkInvert
+                        ? ' dark:brightness-0 dark:invert'
+                        : ''
+                    }`}
                   />
                 </div>
                 <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
