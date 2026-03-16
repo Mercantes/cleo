@@ -2,6 +2,7 @@
 
 import { Target, Flame, Trophy, Star } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
 import type { GoalProgress, Gamification } from '@/types/dashboard';
@@ -42,6 +43,8 @@ export function GoalProgressCard() {
     );
   }
 
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { progress, gamification } = data;
   const isGoalMet = progress.percentage >= 100;
   const xpProgress = gamification.xpToNextLevel > 0
@@ -62,9 +65,9 @@ export function GoalProgressCard() {
 
         <div className="mt-3 flex items-end justify-between">
           <div>
-            <p className="text-2xl font-bold">{formatCurrency(progress.currentSavings)}</p>
+            <p className="text-2xl font-bold">{fmt(progress.currentSavings)}</p>
             <p className="text-xs text-muted-foreground">
-              de {formatCurrency(progress.target)}
+              de {fmt(progress.target)}
             </p>
           </div>
           <p className={`text-lg font-bold ${isGoalMet ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>

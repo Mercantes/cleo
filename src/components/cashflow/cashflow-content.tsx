@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, TrendingUp, TrendingDown, CalendarDays } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/empty-state';
 
@@ -84,6 +85,8 @@ export function CashFlowContent() {
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [month, setMonth] = useState(currentMonth);
   const [chartView, setChartView] = useState<ChartView>('balance');
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   const currentIdx = monthOptions.findIndex((o) => o.value === month);
   const canPrev = currentIdx < monthOptions.length - 1;
@@ -166,7 +169,7 @@ export function CashFlowContent() {
             Entradas
           </div>
           <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
-            {formatCurrency(totalIncome)}
+            {fmt(totalIncome)}
           </p>
         </div>
         <div className="rounded-xl border bg-card p-4">
@@ -175,7 +178,7 @@ export function CashFlowContent() {
             Saídas
           </div>
           <p className="mt-1 text-2xl font-bold text-red-500 dark:text-red-400">
-            {formatCurrency(totalExpenses)}
+            {fmt(totalExpenses)}
           </p>
         </div>
         <div className="rounded-xl border bg-card p-4">
@@ -191,7 +194,7 @@ export function CashFlowContent() {
             'mt-1 text-2xl font-bold',
             totalNet >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
           )}>
-            {formatCurrency(totalNet)}
+            {fmt(totalNet)}
           </p>
         </div>
       </div>
@@ -207,7 +210,7 @@ export function CashFlowContent() {
               <div>
                 <p className="text-xs text-muted-foreground">Melhor dia</p>
                 <p className="text-sm font-medium">
-                  {formatDay(bestDay.date)} — <span className="text-green-600 dark:text-green-400">{formatCurrency(bestDay.net)}</span>
+                  {formatDay(bestDay.date)} — <span className="text-green-600 dark:text-green-400">{fmt(bestDay.net)}</span>
                 </p>
               </div>
             </div>
@@ -220,7 +223,7 @@ export function CashFlowContent() {
               <div>
                 <p className="text-xs text-muted-foreground">Pior dia</p>
                 <p className="text-sm font-medium">
-                  {formatDay(worstDay.date)} — <span className="text-red-500 dark:text-red-400">{formatCurrency(worstDay.net)}</span>
+                  {formatDay(worstDay.date)} — <span className="text-red-500 dark:text-red-400">{fmt(worstDay.net)}</span>
                 </p>
               </div>
             </div>
@@ -278,7 +281,7 @@ export function CashFlowContent() {
                   tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
                 />
                 <Tooltip
-                  formatter={(v) => [formatCurrency(Number(v)), 'Saldo']}
+                  formatter={(v) => [hideValues ? HIDDEN_VALUE : formatCurrency(Number(v)), 'Saldo']}
                   labelFormatter={(day) => `Dia ${day}`}
                   contentStyle={{ borderRadius: 8, fontSize: 13 }}
                 />
@@ -307,7 +310,7 @@ export function CashFlowContent() {
                 />
                 <Tooltip
                   formatter={(v, name) => [
-                    formatCurrency(Number(v)),
+                    hideValues ? HIDDEN_VALUE : formatCurrency(Number(v)),
                     name === 'income' ? 'Entradas' : 'Saídas',
                   ]}
                   labelFormatter={(day) => `Dia ${day}`}
@@ -338,7 +341,7 @@ export function CashFlowContent() {
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm font-medium">{cat.name}</span>
                         <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">
-                          {formatCurrency(cat.total)}
+                          {fmt(cat.total)}
                         </span>
                       </div>
                       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -374,7 +377,7 @@ export function CashFlowContent() {
                       </p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">
-                      {formatCurrency(tx.amount)}
+                      {fmt(tx.amount)}
                     </span>
                   </div>
                 ))}
@@ -404,22 +407,22 @@ export function CashFlowContent() {
               <span className="w-24 text-muted-foreground">{formatDay(day.date)}</span>
               <span className="w-16 text-center text-xs text-muted-foreground">{formatWeekday(day.date)}</span>
               <span className="flex-1 text-right text-green-600 dark:text-green-400">
-                {day.income > 0 ? formatCurrency(day.income) : '—'}
+                {day.income > 0 ? fmt(day.income) : '—'}
               </span>
               <span className="flex-1 text-right text-red-500 dark:text-red-400">
-                {day.expenses > 0 ? formatCurrency(day.expenses) : '—'}
+                {day.expenses > 0 ? fmt(day.expenses) : '—'}
               </span>
               <span className={cn(
                 'flex-1 text-right font-medium',
                 day.net >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
               )}>
-                {formatCurrency(day.net)}
+                {fmt(day.net)}
               </span>
               <span className={cn(
                 'flex-1 text-right font-medium',
                 day.balance >= 0 ? 'text-foreground' : 'text-red-500 dark:text-red-400',
               )}>
-                {formatCurrency(day.balance)}
+                {fmt(day.balance)}
               </span>
             </div>
           ))}

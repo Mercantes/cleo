@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Target, Save, Loader2, TrendingUp, Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { toast } from '@/components/ui/toast';
 import { useFormSubmit } from '@/hooks/use-form-submit';
 import { useApi } from '@/hooks/use-api';
@@ -20,6 +21,8 @@ interface BudgetItem {
 }
 
 function CategoryBudgetsEditor() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data: budgetsData, mutate: mutateBudgets } = useApi<{ budgets: BudgetItem[] }>('/api/budgets');
   const { data: catsData } = useApi<{ categories: { id: string; name: string }[] }>('/api/categories');
   const budgets = budgetsData?.budgets || [];
@@ -78,7 +81,7 @@ function CategoryBudgetsEditor() {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-muted-foreground">
-                  {formatCurrency(b.monthlyLimit)}/mês
+                  {fmt(b.monthlyLimit)}/mês
                 </span>
                 <button
                   onClick={() => handleDelete(b.id)}
@@ -146,6 +149,8 @@ interface GoalsData {
 }
 
 export function GoalsEditor() {
+  const [hideValues] = useHideValues();
+  const fmtGoal = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data: goalsData, isLoading: loading, error: loadError } = useApi<GoalsData>('/api/goals');
   const [savingsTarget, setSavingsTarget] = useState('');
   const [retirementAge, setRetirementAge] = useState('');
@@ -204,8 +209,8 @@ export function GoalsEditor() {
           </div>
           <div className="mt-3 flex items-end justify-between">
             <div>
-              <p className="text-xl font-bold">{formatCurrency(currentSavings)}</p>
-              <p className="text-xs text-muted-foreground">de {formatCurrency(target)}</p>
+              <p className="text-xl font-bold">{fmtGoal(currentSavings)}</p>
+              <p className="text-xs text-muted-foreground">de {fmtGoal(target)}</p>
             </div>
             <p className={`text-lg font-bold ${currentProgress >= 100 ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>
               {currentProgress}%

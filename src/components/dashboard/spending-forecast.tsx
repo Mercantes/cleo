@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 
 interface Prediction {
@@ -25,6 +26,8 @@ export function SpendingForecast() {
   const predictions = data?.predictions || [];
   const monthProgress = data?.monthProgress || 0;
   const hasData = data?.hasEnoughData || false;
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const [showAll, setShowAll] = useState(false);
 
   if (loading) {
@@ -91,8 +94,8 @@ export function SpendingForecast() {
                 <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(spendPct, 100)}%` }} />
               </div>
               <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                <span>{formatCurrency(p.currentSpending)}</span>
-                <span>média {formatCurrency(p.avgMonthly)}</span>
+                <span>{fmt(p.currentSpending)}</span>
+                <span>média {fmt(p.avgMonthly)}</span>
               </div>
             </div>
           );

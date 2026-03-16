@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { CreditCard, Landmark, Unplug, ChevronUp, ChevronDown, RefreshCw, Loader2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import { ConnectBankButton } from '@/components/bank/connect-bank-button';
@@ -109,6 +110,8 @@ function CollapsibleSection({
 
 export function AccountsContent() {
   const { data, isLoading, mutate } = useApi<AccountsData>('/api/accounts');
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
 
@@ -189,7 +192,7 @@ export function AccountsContent() {
                   </div>
                 </div>
                 <p className="text-sm font-semibold text-red-500 dark:text-red-400">
-                  {formatCurrency(card.balance)}
+                  {fmt(card.balance)}
                 </p>
               </div>
             ))}
@@ -199,7 +202,7 @@ export function AccountsContent() {
                 <span className="text-sm font-medium">TOTAL</span>
               </div>
               <span className="text-sm font-bold text-red-500 dark:text-red-400">
-                {formatCurrency(data?.creditTotal || 0)}
+                {fmt(data?.creditTotal || 0)}
               </span>
             </div>
           </div>
@@ -225,7 +228,7 @@ export function AccountsContent() {
                     'text-sm font-semibold',
                     acc.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
                   )}>
-                    {formatCurrency(acc.balance)}
+                    {fmt(acc.balance)}
                   </p>
                   <p className="text-xs text-muted-foreground">Saldo atual</p>
                 </div>
@@ -240,7 +243,7 @@ export function AccountsContent() {
                 'text-sm font-bold',
                 (data?.bankTotal || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
               )}>
-                {formatCurrency(data?.bankTotal || 0)}
+                {fmt(data?.bankTotal || 0)}
               </span>
             </div>
           </div>

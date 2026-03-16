@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import type { ProjectionResult, ProjectionScenario } from '@/lib/finance/projection-engine';
 
@@ -17,6 +18,8 @@ const scenarioLabels: Record<string, { name: string; description: string }> = {
 
 export function ProjectionCards({ data }: ProjectionCardsProps) {
   const [selectedLabel, setSelectedLabel] = useState<string>('realistic');
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const scenario = data.scenarios.find((s) => s.label === selectedLabel) as ProjectionScenario | undefined;
   if (!scenario) return null;
 
@@ -55,13 +58,13 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
           <div key={h.label} className="rounded-lg border bg-card p-3">
             <p className="text-xs text-muted-foreground">{h.label}</p>
             <p className="text-lg font-semibold">
-              {formatCurrency(scenario.monthlyData[h.index]?.balance ?? 0)}
+              {fmt(scenario.monthlyData[h.index]?.balance ?? 0)}
             </p>
           </div>
         ))}
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Economia mensal</p>
-          <p className="text-lg font-semibold">{formatCurrency(scenario.monthlySavings)}</p>
+          <p className="text-lg font-semibold">{fmt(scenario.monthlySavings)}</p>
         </div>
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Taxa de poupança</p>
@@ -69,7 +72,7 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
         </div>
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Saldo atual</p>
-          <p className="text-lg font-semibold">{formatCurrency(data.currentBalance)}</p>
+          <p className="text-lg font-semibold">{fmt(data.currentBalance)}</p>
         </div>
       </div>
     </div>

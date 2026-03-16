@@ -7,6 +7,7 @@ import { TransactionRow } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 
 interface AccountInfo {
@@ -42,6 +43,8 @@ interface Filters {
 }
 
 export function TransactionList() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -186,13 +189,13 @@ export function TransactionList() {
             <div className="flex items-center gap-1.5">
               <ArrowDown className="h-3.5 w-3.5 text-red-500" />
               <span className="font-semibold text-red-500 dark:text-red-400">
-                {formatCurrency(summary.expenses)}
+                {fmt(summary.expenses)}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
               <ArrowUp className="h-3.5 w-3.5 text-green-500" />
               <span className="font-semibold text-green-600 dark:text-green-400">
-                {formatCurrency(summary.income)}
+                {fmt(summary.income)}
               </span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -203,7 +206,7 @@ export function TransactionList() {
                   ? 'text-green-600 dark:text-green-400'
                   : 'text-red-500 dark:text-red-400',
               )}>
-                {formatCurrency(summary.balance)}
+                {fmt(summary.balance)}
               </span>
             </div>
           </div>

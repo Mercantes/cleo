@@ -2,9 +2,12 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { PieChartData } from '@/lib/ai/visual-types';
 
 export function ChatPieChart({ data, title }: { data: PieChartData[]; title: string }) {
+  const [hideValues] = useHideValues();
+
   return (
     <div className="my-2 w-full max-w-md">
       <p className="mb-1 text-xs font-medium text-muted-foreground">{title}</p>
@@ -16,7 +19,7 @@ export function ChatPieChart({ data, title }: { data: PieChartData[]; title: str
                 <Cell key={entry.name} fill={entry.color} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+            <Tooltip formatter={(value) => hideValues ? HIDDEN_VALUE : formatCurrency(Number(value))} />
           </PieChart>
         </ResponsiveContainer>
         <div className="space-y-1">

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 
 interface Command {
   id: string;
@@ -40,6 +41,7 @@ interface SearchResult {
 
 export function KeyboardShortcuts() {
   const router = useRouter();
+  const [hideValues] = useHideValues();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -151,7 +153,7 @@ export function KeyboardShortcuts() {
   const transactionCommands = useMemo<Command[]>(() => {
     return searchResults.map((tx) => {
       const displayName = tx.merchant || tx.description;
-      const amount = formatCurrency(Math.abs(tx.amount));
+      const amount = hideValues ? HIDDEN_VALUE : formatCurrency(Math.abs(tx.amount));
       const sign = tx.type === 'credit' ? '+' : '-';
       return {
         id: `tx-${tx.id}`,
@@ -164,7 +166,7 @@ export function KeyboardShortcuts() {
         },
       };
     });
-  }, [searchResults, router]);
+  }, [searchResults, router, hideValues]);
 
   const filtered = useMemo(() => {
     if (query.length >= 2 && transactionCommands.length > 0) {

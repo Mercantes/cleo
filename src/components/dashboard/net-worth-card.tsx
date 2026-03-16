@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { TrendingUp, TrendingDown, Clock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 
@@ -48,11 +49,14 @@ function generateHistoricalData(currentBalance: number, period: Period) {
 }
 
 function WorthTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number }>; label?: string }) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
+
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg border bg-popover p-2.5 shadow-lg">
       <p className="text-[10px] text-muted-foreground">{label}</p>
-      <p className="text-sm font-bold">{formatCurrency(payload[0].value)}</p>
+      <p className="text-sm font-bold">{fmt(payload[0].value)}</p>
     </div>
   );
 }
@@ -61,6 +65,8 @@ export function NetWorthCard() {
   const { data } = useApi<AccountsData>('/api/dashboard/accounts');
   const [period, setPeriod] = useState<Period>('1M');
 
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const balance = data?.totalBalance ?? 0;
   const chartData = useMemo(() => generateHistoricalData(balance, period), [balance, period]);
 
@@ -79,7 +85,7 @@ export function NetWorthCard() {
       </div>
 
       <div className="mt-2">
-        <span className="text-2xl font-bold">{formatCurrency(balance)}</span>
+        <span className="text-2xl font-bold">{fmt(balance)}</span>
       </div>
 
       {!hasData ? (

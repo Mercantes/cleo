@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, Loader2, MoreVertical, Tags, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDateTime, formatRelativeDate } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { HighlightText } from '@/components/ui/highlight-text';
 
 interface CategoryOption {
@@ -106,6 +107,7 @@ export function TransactionRow({
   onCategoryChange,
 }: TransactionRowProps) {
   const router = useRouter();
+  const [hideValues] = useHideValues();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCategories, setShowCategories] = useState(false);
   const [categories, setCategories] = useState<CategoryOption[]>(categoriesCache || []);
@@ -188,7 +190,7 @@ export function TransactionRow({
                 amountMatchesSearch && 'rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-800',
               )}
             >
-              {formatCurrency(Math.abs(displayAmount))}
+              {hideValues ? HIDDEN_VALUE : formatCurrency(Math.abs(displayAmount))}
             </span>
           </div>
         </div>
@@ -269,7 +271,7 @@ export function TransactionRow({
             amountMatchesSearch && 'rounded-sm bg-yellow-200 px-0.5 dark:bg-yellow-800',
           )}
         >
-          {formatCurrency(Math.abs(displayAmount))}
+          {hideValues ? HIDDEN_VALUE : formatCurrency(Math.abs(displayAmount))}
         </span>
 
         {/* Action menu */}

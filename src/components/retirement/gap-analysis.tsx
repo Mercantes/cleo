@@ -1,6 +1,7 @@
 'use client';
 
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { RetirementResult } from '@/lib/finance/retirement-engine';
 
 interface GapAnalysisProps {
@@ -8,6 +9,8 @@ interface GapAnalysisProps {
 }
 
 export function GapAnalysis({ data }: GapAnalysisProps) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const isOnTrack = data.gap <= 0;
 
   return (
@@ -18,7 +21,7 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
           {data.yearsToFI >= 0 ? `${data.yearsToFI} anos` : '50+ anos'}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Meta FIRE: {formatCurrency(data.fiNumber)}
+          Meta FIRE: {fmt(data.fiNumber)}
         </p>
       </div>
 
@@ -27,10 +30,10 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
           {isOnTrack ? 'Você está no caminho certo!' : 'Gap mensal'}
         </p>
         <p className="text-lg font-semibold">
-          {isOnTrack ? 'Economia suficiente' : `${formatCurrency(Math.abs(data.gap))} a mais/mês`}
+          {isOnTrack ? 'Economia suficiente' : `${fmt(Math.abs(data.gap))} a mais/mês`}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Necessário: {formatCurrency(Math.max(0, data.requiredMonthlySavings))}/mês para aposentar em 20 anos
+          Necessário: {fmt(Math.max(0, data.requiredMonthlySavings))}/mês para aposentar em 20 anos
         </p>
       </div>
 
@@ -40,7 +43,7 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
           <div className="space-y-2">
             {data.scenarios.map((s) => (
               <div key={s.extraMonthly} className="flex items-center justify-between text-sm">
-                <span>+{formatCurrency(s.extraMonthly)}/mês</span>
+                <span>+{fmt(s.extraMonthly)}/mês</span>
                 <span className="text-green-600 dark:text-green-400">
                   {s.yearsSaved > 0 ? `${s.yearsSaved} anos antes` : '—'}
                 </span>

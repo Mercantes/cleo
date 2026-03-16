@@ -24,7 +24,8 @@ import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { NotificationBell } from '@/components/layout/notification-bell';
+
+import { PrivacyToggle } from '@/components/layout/privacy-toggle';
 import { toggleSidebar, useSidebarCollapsed } from '@/components/layout/app-sidebar';
 import { SettingsDialog } from '@/components/settings/settings-dialog';
 
@@ -128,7 +129,7 @@ export function Header({ userName }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1">
-      <NotificationBell />
+      <PrivacyToggle />
       <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger

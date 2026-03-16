@@ -3,6 +3,7 @@
 import { Flame, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 
 interface MonthData {
@@ -31,6 +32,8 @@ export function StreakCard() {
     return null;
   }
 
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { months, currentStreak, bestStreak } = data;
   // Show last 6 months for compact display
   const displayMonths = months.slice(-6);
@@ -71,7 +74,7 @@ export function StreakCard() {
                 : `${currentStreak} meses consecutivos`}
           </p>
           <p className="text-xs text-muted-foreground">
-            Meta: {formatCurrency(data.target)}/mês
+            Meta: {fmt(data.target)}/mês
           </p>
         </div>
       </div>
@@ -89,7 +92,7 @@ export function StreakCard() {
                     ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
                     : 'bg-muted text-muted-foreground',
               )}
-              title={`${m.month}: ${formatCurrency(m.savings)} economizado`}
+              title={`${m.month}: ${fmt(m.savings)} economizado`}
             >
               {m.metGoal ? '✓' : m.savings > 0 ? '~' : '—'}
             </div>

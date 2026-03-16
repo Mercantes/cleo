@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Landmark, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 
@@ -26,6 +27,8 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 export function AccountsCard() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data, isLoading } = useApi<AccountsData>('/api/dashboard/accounts');
 
   const accounts = data?.accounts || [];
@@ -72,7 +75,7 @@ export function AccountsCard() {
                   : 'text-red-500 dark:text-red-400',
               )}
             >
-              {formatCurrency(acc.balance)}
+              {fmt(acc.balance)}
             </span>
           </div>
         ))}
@@ -87,7 +90,7 @@ export function AccountsCard() {
               : 'text-red-500 dark:text-red-400',
           )}
         >
-          {formatCurrency(totalBalance)}
+          {fmt(totalBalance)}
         </span>
       </div>
     </div>

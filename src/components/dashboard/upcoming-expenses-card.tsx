@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 import type { RecurringItem } from '@/types/dashboard';
 
@@ -33,6 +34,8 @@ function formatDueDate(dateStr: string): string {
 }
 
 export function UpcomingExpensesCard() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data } = useApi<RecurringData>('/api/recurring');
 
   if (!data) return null;
@@ -70,7 +73,7 @@ export function UpcomingExpensesCard() {
                 <p className="text-xs text-muted-foreground">{formatDueDate(item.next_expected_date)}</p>
               </div>
               <span className="shrink-0 text-sm font-medium tabular-nums">
-                {formatCurrency(Math.abs(item.amount))}
+                {fmt(Math.abs(item.amount))}
               </span>
             </div>
           ))}

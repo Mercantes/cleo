@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { TableData } from '@/lib/ai/visual-types';
 
 type SortDirection = 'asc' | 'desc' | null;
@@ -10,6 +11,8 @@ type SortDirection = 'asc' | 'desc' | null;
 export function ChatTable({ data, title }: { data: TableData; title: string }) {
   const [sortCol, setSortCol] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>(null);
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   function handleSort(colIndex: number) {
     if (sortCol === colIndex) {
@@ -67,7 +70,7 @@ export function ChatTable({ data, title }: { data: TableData; title: string }) {
             <tr key={`row-${i}-${row[0]}`} className="border-b last:border-0">
               {row.map((cell, j) => (
                 <td key={`${i}-${j}`} className="px-2 py-1">
-                  {typeof cell === 'number' ? formatCurrency(cell) : cell}
+                  {typeof cell === 'number' ? fmt(cell) : cell}
                 </td>
               ))}
             </tr>

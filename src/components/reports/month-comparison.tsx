@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 
 interface ComparisonData {
   comparison: {
@@ -43,6 +44,8 @@ export function MonthComparison() {
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   const [month1, setMonth1] = useState(currentMonth);
   const [year1, setYear1] = useState(currentYear);
@@ -149,11 +152,11 @@ export function MonthComparison() {
                     <ChangeIndicator change={cat.changePercent} positiveIsGood={false} />
                   </div>
                   <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatCurrency(cat.amount1)}</span>
+                    <span>{fmt(cat.amount1)}</span>
                     <span className={`font-medium ${cat.diff > 0 ? 'text-red-500' : cat.diff < 0 ? 'text-green-500' : ''}`}>
-                      {cat.diff > 0 ? '+' : ''}{cat.diff !== 0 ? formatCurrency(cat.diff) : '='}
+                      {cat.diff > 0 ? '+' : ''}{cat.diff !== 0 ? fmt(cat.diff) : '='}
                     </span>
-                    <span>{formatCurrency(cat.amount2)}</span>
+                    <span>{fmt(cat.amount2)}</span>
                   </div>
                   {/* Visual bar comparison */}
                   <div className="mt-1 flex gap-1">
@@ -230,17 +233,20 @@ function ComparisonRow({
   change: number;
   positiveIsGood: boolean;
 }) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
+
   return (
     <div className="grid grid-cols-3 border-b">
       <div className="p-3 text-center">
-        <p className="text-sm font-medium">{formatCurrency(Math.abs(value1))}</p>
+        <p className="text-sm font-medium">{fmt(Math.abs(value1))}</p>
       </div>
       <div className="flex items-center justify-center gap-1 border-x p-3">
         <p className="text-xs text-muted-foreground">{label}</p>
         {change !== 0 && <ChangeIndicator change={change} positiveIsGood={positiveIsGood} />}
       </div>
       <div className="p-3 text-center">
-        <p className="text-sm font-medium">{formatCurrency(Math.abs(value2))}</p>
+        <p className="text-sm font-medium">{fmt(Math.abs(value2))}</p>
       </div>
     </div>
   );

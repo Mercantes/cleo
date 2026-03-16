@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { ProjectionScenario } from '@/lib/finance/projection-engine';
 
 const SCENARIO_COLORS = {
@@ -23,6 +24,7 @@ interface ProjectionChartProps {
 
 export function ProjectionChart({ scenarios }: ProjectionChartProps) {
   const [activeScenario, setActiveScenario] = useState<string | null>(null);
+  const [hideValues] = useHideValues();
 
   if (scenarios.length === 0) return null;
 
@@ -59,7 +61,7 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
         <LineChart data={chartData}>
           <XAxis dataKey="month" fontSize={11} />
           <YAxis fontSize={11} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
-          <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+          <Tooltip formatter={(value) => hideValues ? HIDDEN_VALUE : formatCurrency(Number(value))} />
           <Legend formatter={(value) => SCENARIO_LABELS[value as keyof typeof SCENARIO_LABELS] || value} />
           {scenarios.map((s) => (
             <Line

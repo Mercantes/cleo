@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 
 interface Transaction {
@@ -62,6 +63,8 @@ function getCategoryBadgeColor(name: string): string {
 }
 
 export function RecentTransactionsCard() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data, isLoading } = useApi<RecentData>('/api/dashboard/recent');
 
   const transactions = data?.transactions || [];
@@ -112,7 +115,7 @@ export function RecentTransactionsCard() {
                     </span>
 
                     <span className="shrink-0 text-sm font-medium tabular-nums">
-                      {formatCurrency(Math.abs(tx.amount))}
+                      {fmt(Math.abs(tx.amount))}
                     </span>
                   </Link>
                 );

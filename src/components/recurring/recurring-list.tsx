@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { Button } from '@/components/ui/button';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
@@ -89,6 +90,8 @@ function formatEndDate(dateStr: string, remaining: number | null) {
 }
 
 export function RecurringList() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const router = useRouter();
   const { data, isLoading, error: fetchError, mutate } = useApi<RecurringData>('/api/recurring');
   const [isDetecting, setIsDetecting] = useState(false);
@@ -235,7 +238,7 @@ export function RecurringList() {
                 <div>
                   <p className="text-xs text-muted-foreground">Total</p>
                   <p className="text-xl font-bold">
-                    {formatCurrency(monthlyTotal)}
+                    {fmt(monthlyTotal)}
                     <span className="text-base font-normal text-muted-foreground">/mês</span>
                   </p>
                 </div>
@@ -263,12 +266,12 @@ export function RecurringList() {
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
                 <span className="text-muted-foreground">Parcelas:</span>
-                <span className="font-medium">{formatCurrency(installmentsTotal)}</span>
+                <span className="font-medium">{fmt(installmentsTotal)}</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
                 <span className="text-muted-foreground">Recorrentes:</span>
-                <span className="font-medium">{formatCurrency(subscriptionsTotal)}</span>
+                <span className="font-medium">{fmt(subscriptionsTotal)}</span>
               </div>
             </div>
           </div>
@@ -282,7 +285,7 @@ export function RecurringList() {
                   Parcelas
                 </h2>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{formatCurrency(installmentsRemainingTotal)} Restante</p>
+                  <p className="text-sm font-semibold">{fmt(installmentsRemainingTotal)} Restante</p>
                   <p className="text-xs text-muted-foreground">
                     {installments.length} parcela{installments.length !== 1 ? 's' : ''} ativa{installments.length !== 1 ? 's' : ''}
                   </p>
@@ -325,7 +328,7 @@ export function RecurringList() {
                         >
                           <ArrowRightLeft className="h-3.5 w-3.5" />
                         </button>
-                        <span className="shrink-0 text-sm font-semibold">{formatCurrency(inst.amount)}</span>
+                        <span className="shrink-0 text-sm font-semibold">{fmt(inst.amount)}</span>
                       </div>
                     </div>
                   );
@@ -343,9 +346,9 @@ export function RecurringList() {
                   Assinaturas
                 </h2>
                 <div className="text-right">
-                  <p className="text-sm font-semibold">{formatCurrency(subscriptionsTotal)}/mês</p>
+                  <p className="text-sm font-semibold">{fmt(subscriptionsTotal)}/mês</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatCurrency(subscriptionsTotal * 12)}/ano
+                    {fmt(subscriptionsTotal * 12)}/ano
                   </p>
                 </div>
               </div>
@@ -377,14 +380,14 @@ export function RecurringList() {
                         <ArrowRightLeft className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${sub.merchant} de ${formatCurrency(sub.amount)}/mês?`)}`)}
+                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${sub.merchant} de ${fmt(sub.amount)}/mês?`)}`)}
                         aria-label={`Perguntar sobre ${sub.merchant}`}
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         title="Perguntar para a Cleo"
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
                       </button>
-                      <span className="shrink-0 text-sm font-semibold">{formatCurrency(sub.amount)}</span>
+                      <span className="shrink-0 text-sm font-semibold">{fmt(sub.amount)}</span>
                     </div>
                   </div>
                 ))}

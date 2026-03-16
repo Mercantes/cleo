@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { SummaryData } from '@/types/dashboard';
 
 interface SpendingPaceCardProps {
@@ -34,6 +35,9 @@ function buildDailyData(expenses: number, percentChange: number) {
 }
 
 function PaceTooltip({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; dataKey: string }>; label?: number }) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
+
   if (!active || !payload?.length) return null;
   const current = payload.find((p) => p.dataKey === 'current');
   const last = payload.find((p) => p.dataKey === 'last');
@@ -48,7 +52,7 @@ function PaceTooltip({ active, payload, label }: { active?: boolean; payload?: A
               <div className="h-2 w-2 rounded-full bg-green-500" />
               <span className="text-xs text-muted-foreground">Este mês</span>
             </div>
-            <span className="text-xs font-medium">{formatCurrency(current.value)}</span>
+            <span className="text-xs font-medium">{fmt(current.value)}</span>
           </div>
         )}
         {last?.value != null && (
@@ -57,7 +61,7 @@ function PaceTooltip({ active, payload, label }: { active?: boolean; payload?: A
               <div className="h-2 w-2 rounded-full bg-slate-400" />
               <span className="text-xs text-muted-foreground">Mês passado</span>
             </div>
-            <span className="text-xs font-medium">{formatCurrency(last.value)}</span>
+            <span className="text-xs font-medium">{fmt(last.value)}</span>
           </div>
         )}
       </div>
@@ -66,6 +70,8 @@ function PaceTooltip({ active, payload, label }: { active?: boolean; payload?: A
 }
 
 export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const dailyData = useMemo(() => buildDailyData(data.expenses, data.percentChange), [data.expenses, data.percentChange]);
 
   const isOver = data.percentChange > 0;
@@ -84,7 +90,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
       </div>
 
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-bold">{formatCurrency(data.expenses)}</span>
+        <span className="text-2xl font-bold">{fmt(data.expenses)}</span>
         <span className={`text-sm font-medium ${isOver ? 'text-red-500' : 'text-green-500'}`}>
           {isOver ? 'acima' : 'abaixo'}
         </span>
@@ -98,7 +104,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
           {isOver ? '+' : ''}{data.percentChange}%
         </span>
         <span className="text-xs text-muted-foreground">
-          vs {formatCurrency(lastMonthTotal)} mês anterior
+          vs {fmt(lastMonthTotal)} mês anterior
         </span>
       </div>
 

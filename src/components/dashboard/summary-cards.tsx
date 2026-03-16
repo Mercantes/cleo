@@ -4,6 +4,7 @@ import { memo } from 'react';
 import Link from 'next/link';
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 
 interface SummaryData {
   income: number;
@@ -15,31 +16,33 @@ interface SummaryData {
 }
 
 export const SummaryCards = memo(function SummaryCards({ data }: { data: SummaryData }) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const cards = [
     {
       label: 'Receita',
-      value: formatCurrency(data.income),
+      value: fmt(data.income),
       icon: TrendingUp,
       color: 'text-green-600 dark:text-green-400',
       href: '/transactions?type=credit',
     },
     {
       label: 'Despesas',
-      value: formatCurrency(data.expenses),
+      value: fmt(data.expenses),
       icon: TrendingDown,
       color: 'text-red-600 dark:text-red-400',
       href: '/transactions?type=debit',
     },
     {
       label: 'Saldo',
-      value: formatCurrency(data.balance),
+      value: fmt(data.balance),
       icon: Wallet,
       color: data.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
       href: '/transactions',
     },
     {
       label: 'Taxa de poupança',
-      value: `${data.savingsRate}%`,
+      value: hideValues ? '••%' : `${data.savingsRate}%`,
       icon: PiggyBank,
       color: data.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
       href: '/projections',
@@ -123,7 +126,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
                     ? 'Dentro do ritmo esperado para o mês'
                     : budgetUsed <= 100
                       ? 'Um pouco acima do ritmo, mas dentro do orçamento'
-                      : `${formatCurrency(data.expenses - lastMonthExpenses)} acima do mês anterior`}
+                      : `${fmt(data.expenses - lastMonthExpenses)} acima do mês anterior`}
                 </p>
               </div>
             )}

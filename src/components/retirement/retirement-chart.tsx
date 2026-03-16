@@ -2,6 +2,7 @@
 
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 
 interface RetirementChartProps {
   timeline: { year: number; balance: number }[];
@@ -9,6 +10,8 @@ interface RetirementChartProps {
 }
 
 export function RetirementChart({ timeline, fiNumber }: RetirementChartProps) {
+  const [hideValues] = useHideValues();
+
   return (
     <div className="w-full">
       <p className="mb-2 text-xs font-medium text-muted-foreground">Crescimento do patrimônio</p>
@@ -17,7 +20,7 @@ export function RetirementChart({ timeline, fiNumber }: RetirementChartProps) {
           <XAxis dataKey="year" fontSize={11} tickFormatter={(v) => `${v}a`} />
           <YAxis fontSize={11} tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`} />
           <Tooltip
-            formatter={(value) => formatCurrency(Number(value))}
+            formatter={(value) => hideValues ? HIDDEN_VALUE : formatCurrency(Number(value))}
             labelFormatter={(label) => `Ano ${label}`}
           />
           <ReferenceLine

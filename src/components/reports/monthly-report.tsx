@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Download, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 
 interface ReportData {
   report: {
@@ -40,6 +41,8 @@ export function MonthlyReport() {
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   const { data, isLoading } = useApi<ReportData>(
     `/api/reports/monthly?year=${year}&month=${month}`
@@ -131,7 +134,7 @@ export function MonthlyReport() {
             <div key={cat.name}>
               <div className="flex items-center justify-between text-sm">
                 <span>{cat.icon} {cat.name}</span>
-                <span className="font-medium">{formatCurrency(cat.total)} ({cat.percentage}%)</span>
+                <span className="font-medium">{fmt(cat.total)} ({cat.percentage}%)</span>
               </div>
               <div className="mt-1 h-2 rounded-full bg-muted">
                 <div
@@ -157,10 +160,10 @@ export function MonthlyReport() {
                 key={day.date}
                 className="group relative flex-1 rounded-t bg-primary/60 transition-colors hover:bg-primary"
                 style={{ height: `${(day.amount / maxDailySpending) * 100}%`, minHeight: '2px' }}
-                title={`${day.date}: ${formatCurrency(day.amount)}`}
+                title={`${day.date}: ${fmt(day.amount)}`}
               >
                 <div className="absolute -top-8 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded bg-foreground px-2 py-0.5 text-xs text-background group-hover:block">
-                  {formatCurrency(day.amount)}
+                  {fmt(day.amount)}
                 </div>
               </div>
             ))}
@@ -180,7 +183,7 @@ export function MonthlyReport() {
                   <span className="text-sm">{tx.category}</span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-red-600">{formatCurrency(tx.amount)}</p>
+                  <p className="text-sm font-medium text-red-600">{fmt(tx.amount)}</p>
                   <p className="text-xs text-muted-foreground">{tx.date}</p>
                 </div>
               </div>
@@ -203,11 +206,14 @@ function SummaryCard({
   change?: number;
   positive?: boolean;
 }) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
+
   return (
     <div className="rounded-lg border bg-card p-3">
       <p className="text-xs text-muted-foreground">{label}</p>
       <p className={`text-xl font-bold ${value >= 0 ? '' : 'text-red-600'}`}>
-        {formatCurrency(Math.abs(value))}
+        {fmt(Math.abs(value))}
       </p>
       {change !== undefined && change !== 0 && (
         <div className={`flex items-center gap-0.5 text-xs ${

@@ -3,11 +3,14 @@
 import Link from 'next/link';
 import { AlertTriangle, CheckCircle2, ChevronRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import type { BudgetItem } from '@/types/dashboard';
 
 export function CategoryBudgetsCard() {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data: budgetsData, isLoading: loading } = useApi<{ budgets: BudgetItem[] }>('/api/budgets');
   const budgets = budgetsData?.budgets || [];
 
@@ -68,7 +71,7 @@ export function CategoryBudgetsCard() {
                 <span className="font-medium">{b.categoryName}</span>
               </span>
               <span className="text-muted-foreground">
-                {formatCurrency(b.spent)} / {formatCurrency(b.monthlyLimit)}
+                {fmt(b.spent)} / {fmt(b.monthlyLimit)}
               </span>
             </div>
             <div className="mt-1 flex items-center gap-2">

@@ -2,6 +2,7 @@
 
 import { Repeat } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
 import type { RecurringItem } from '@/types/dashboard';
@@ -14,6 +15,9 @@ interface RecurringData {
 
 export function SubscriptionsCard() {
   const { data } = useApi<RecurringData>('/api/recurring');
+
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   if (!data || (data.subscriptions.length === 0 && data.installments.length === 0)) {
     return null;
@@ -33,7 +37,7 @@ export function SubscriptionsCard() {
         </div>
         <span className="text-xs text-muted-foreground">{total} ativo{total > 1 ? 's' : ''}</span>
       </div>
-      <p className="mt-1 text-lg font-bold">{formatCurrency(data.monthlyTotal)}/mês</p>
+      <p className="mt-1 text-lg font-bold">{fmt(data.monthlyTotal)}/mês</p>
 
       {topItems.length > 0 && (
         <div className="mt-3 space-y-1.5 border-t pt-3">
@@ -47,7 +51,7 @@ export function SubscriptionsCard() {
                   </span>
                 )}
               </span>
-              <span className="shrink-0 font-medium">{formatCurrency(Math.abs(item.amount))}</span>
+              <span className="shrink-0 font-medium">{fmt(Math.abs(item.amount))}</span>
             </div>
           ))}
           {total > 3 && (

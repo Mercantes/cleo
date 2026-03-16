@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
+import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { CategoryData } from '@/types/dashboard';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -32,6 +33,9 @@ interface CategoriesTableCardProps {
 }
 
 export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
+
   if (data.length === 0) return null;
 
   const maxAmount = Math.max(...data.map((d) => d.amount));
@@ -85,7 +89,7 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
 
               {/* Amount */}
               <span className="w-24 shrink-0 text-right text-sm font-medium">
-                {formatCurrency(cat.amount)}
+                {fmt(cat.amount)}
               </span>
 
               {/* Progress bar */}
@@ -117,7 +121,7 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
 
               {/* Previous month amount */}
               <span className="hidden w-24 shrink-0 text-right text-xs text-muted-foreground xl:block">
-                {prevAmount != null ? formatCurrency(prevAmount) : '—'}
+                {prevAmount != null ? fmt(prevAmount) : '—'}
               </span>
             </Link>
           );
