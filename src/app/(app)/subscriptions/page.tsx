@@ -1,9 +1,7 @@
-import type { Metadata } from 'next';
-import { RecurringList } from '@/components/recurring/recurring-list';
+'use client';
 
-export const metadata: Metadata = {
-  title: 'Recorrentes',
-};
+import { RecurringList } from '@/components/recurring/recurring-list';
+import { ProGate } from '@/components/paywall/pro-gate';
 
 export default function SubscriptionsPage() {
   return (
@@ -14,7 +12,9 @@ export default function SubscriptionsPage() {
           Acompanhe suas assinaturas e parcelas mensais.
         </p>
       </div>
-      <RecurringList />
+      <ProGate feature="Detecção de parcelas e assinaturas">
+        <RecurringList />
+      </ProGate>
     </div>
   );
 }
