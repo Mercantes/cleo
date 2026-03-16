@@ -78,13 +78,15 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const now = new Date();
   const dayOfMonth = now.getDate();
   const lastMonthTotal = data.percentChange !== 0 ? data.expenses / (1 + data.percentChange / 100) : data.expenses;
-  const diff = Math.abs(data.expenses - lastMonthTotal);
+
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
 
   return (
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ritmo de Gastos</p>
-        <Link href="/transactions?type=debit" className="text-xs font-medium text-primary hover:underline">
+        <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>
       </div>

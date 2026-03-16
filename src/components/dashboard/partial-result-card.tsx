@@ -20,7 +20,7 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado Parcial</p>
-        <Link href="/transactions" className="text-xs font-medium text-primary hover:underline">
+        <Link href="/cashflow" className="text-xs font-medium text-primary hover:underline">
           Fluxo de caixa ↗
         </Link>
       </div>

@@ -67,6 +67,10 @@ export function RecentTransactionsCard() {
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data, isLoading } = useApi<RecentData>('/api/dashboard/recent');
 
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
+
   const transactions = data?.transactions || [];
 
   if (isLoading) {
@@ -81,7 +85,7 @@ export function RecentTransactionsCard() {
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
-        <Link href="/transactions" className="text-xs font-medium text-primary hover:underline">
+        <Link href={`/transactions?from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>
       </div>

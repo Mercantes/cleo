@@ -38,6 +38,10 @@ export function UpcomingExpensesCard() {
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data } = useApi<RecurringData>('/api/recurring');
 
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
+
   if (!data) return null;
 
   const allItems = [...data.subscriptions, ...data.installments];
@@ -49,7 +53,7 @@ export function UpcomingExpensesCard() {
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Próximas Despesas</p>
-        <Link href="/subscriptions" className="text-xs font-medium text-primary hover:underline">
+        <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>
       </div>

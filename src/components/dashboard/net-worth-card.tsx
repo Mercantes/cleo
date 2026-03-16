@@ -79,7 +79,7 @@ export function NetWorthCard() {
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Patrimônio</p>
-        <Link href="/retirement" className="text-xs font-medium text-primary hover:underline">
+        <Link href="/accounts" className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>
       </div>

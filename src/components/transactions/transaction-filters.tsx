@@ -31,7 +31,17 @@ interface TransactionFiltersProps {
 export function TransactionFilters({ onFiltersChange, onExportCSV }: TransactionFiltersProps) {
   const searchParams = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get('search') || '');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const from = searchParams.get('from');
+    const to = searchParams.get('to');
+    if (from || to) {
+      return {
+        from: from ? new Date(from + 'T12:00:00') : undefined,
+        to: to ? new Date(to + 'T12:00:00') : undefined,
+      };
+    }
+    return undefined;
+  });
   const [type, setType] = useState(() => searchParams.get('type') || '');
   const [category, setCategory] = useState('');
   const [bank, setBank] = useState(() => searchParams.get('bank') || '');
