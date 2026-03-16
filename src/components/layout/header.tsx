@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
+import { CreditCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -144,6 +144,12 @@ export function Header({ userName }: HeaderProps) {
           <DropdownMenuItem onClick={() => setSettingsOpen(true)}>
             <Settings className="mr-2 h-4 w-4" />
             Configurações
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/upgrade">
+              <CreditCard className="mr-2 h-4 w-4" />
+              Planos
+            </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()}>
