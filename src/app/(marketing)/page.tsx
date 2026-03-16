@@ -12,7 +12,6 @@ import {
   Eye,
   Scale,
   Server,
-  Check,
   ArrowRight,
   Sparkles,
   MessageSquare,
@@ -219,26 +218,15 @@ export default function LandingPage() {
                     <p className="mt-2 text-sm text-muted-foreground/70">{step.detail}</p>
                   )}
                 </div>
-                <div className={cn('rounded-2xl border bg-background p-6 shadow-sm', i % 2 === 1 && 'lg:[direction:ltr]')}>
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                      <step.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold">{step.preview.title}</p>
-                      <p className="text-xs text-muted-foreground">{step.preview.subtitle}</p>
-                    </div>
-                  </div>
-                  {step.preview.items && (
-                    <div className="mt-4 space-y-2">
-                      {step.preview.items.map((item) => (
-                        <div key={item} className="flex items-center gap-2 rounded-lg bg-muted/50 px-3 py-2 text-sm">
-                          <Check className="h-3.5 w-3.5 text-green-500" />
-                          {item}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                <div className={cn('overflow-hidden rounded-2xl border bg-background shadow-lg', i % 2 === 1 && 'lg:[direction:ltr]')}>
+                  <Image
+                    src={step.screenshot}
+                    alt={step.title}
+                    width={1280}
+                    height={720}
+                    className="w-full"
+                    unoptimized
+                  />
                 </div>
               </div>
             ))}
@@ -367,31 +355,19 @@ const STEPS = [
     description: 'Integração segura via Open Finance com todos os principais bancos do Brasil. Leva menos de 2 minutos.',
     detail: 'Nubank, Itaú, Bradesco, Santander, BTG, Inter e mais.',
     icon: Smartphone,
-    preview: {
-      title: 'Contas conectadas',
-      subtitle: '3 bancos sincronizados',
-      items: ['Nubank — Conta corrente', 'Itaú — Poupança', 'BTG — Investimentos'],
-    },
+    screenshot: '/screenshots/contas.png',
   },
   {
     title: 'Tenha clareza instantânea',
     description: 'Categorização automática, análise de recorrentes e organização total — sem trabalho manual nenhum.',
     icon: PieChart,
-    preview: {
-      title: 'Resumo do mês',
-      subtitle: 'Março 2026',
-      items: ['Alimentação — R$ 1.847', 'Moradia — R$ 2.100', 'Transporte — R$ 435'],
-    },
+    screenshot: '/screenshots/dashboard.png',
   },
   {
     title: 'Tome decisões com confiança',
     description: 'Projeções inteligentes, metas e o assistente Cleo IA para responder qualquer dúvida sobre suas finanças.',
     icon: MessageSquare,
-    preview: {
-      title: 'Cleo IA',
-      subtitle: 'Assistente financeira',
-      items: ['"Posso viajar em julho?"', '"Quanto gastei com delivery?"', '"Meu saldo vai ficar negativo?"'],
-    },
+    screenshot: '/screenshots/chat.png',
   },
 ];
 
