@@ -21,17 +21,20 @@ export default function UpgradePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan }),
       });
-      if (!response.ok) {
-        throw new Error('checkout_failed');
-      }
       const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'checkout_failed');
+      }
       if (data.url) {
         window.location.href = data.url;
       } else {
         throw new Error('no_url');
       }
-    } catch {
-      setError('Não foi possível iniciar o checkout. Verifique sua conexão e tente novamente.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(msg && msg !== 'checkout_failed' && msg !== 'no_url'
+        ? `Erro no checkout: ${msg}`
+        : 'Não foi possível iniciar o checkout. Verifique sua conexão e tente novamente.');
       setLoading(null);
     }
   };

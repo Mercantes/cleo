@@ -28,18 +28,30 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
   try {
     const customerId = await getOrCreateCustomer(user.id, user.email!);
 
+    // Check if customer already has an active subscription (skip trial for upgrades)
+    const existingSubs = await stripe.subscriptions.list({
+      customer: customerId,
+      status: 'active',
+      limit: 1,
+    });
+    const hasActiveSubscription = existingSubs.data.length > 0;
+
     const baseUrl = appUrl || `https://${host}`;
-    const session = await stripe.checkout.sessions.create({
+    const sessionParams: Parameters<typeof stripe.checkout.sessions.create>[0] = {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      subscription_data: {
-        trial_period_days: 7,
-      },
       success_url: `${baseUrl}/upgrade/success`,
       cancel_url: `${baseUrl}/upgrade?canceled=true`,
       metadata: { userId: user.id, plan },
-    });
+    };
+
+    // Only offer trial to new subscribers
+    if (!hasActiveSubscription) {
+      sessionParams.subscription_data = { trial_period_days: 7 };
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
