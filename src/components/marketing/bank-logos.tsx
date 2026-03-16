@@ -26,16 +26,16 @@ type Bank = {
 };
 
 const BANKS: Bank[] = [
-  { name: 'Itaú', logo: '/logos/itau.svg', width: 40, height: 40 },
-  { name: 'Nubank', logo: '/logos/nubank.svg', width: 72, height: 40 },
-  { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 100, height: 20 },
-  { name: 'XP Investimentos', logo: '', width: 36, height: 36, inline: 'xp' },
-  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18 },
-  { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40, darkInvert: true },
-  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36, darkInvert: true },
-  { name: 'C6 Bank', logo: '', width: 56, height: 35, inline: 'c6' },
-  { name: 'Santander', logo: '/logos/santander.svg', width: 100, height: 18 },
-  { name: 'Inter', logo: '/logos/inter.svg', width: 80, height: 20 },
+  { name: 'Itaú', logo: '/logos/itau.svg', width: 80, height: 80 },
+  { name: 'Nubank', logo: '/logos/nubank.svg', width: 144, height: 80 },
+  { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
+  { name: 'XP Investimentos', logo: '', width: 48, height: 48, inline: 'xp' },
+  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80, darkInvert: true },
+  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52, darkInvert: true },
+  { name: 'C6 Bank', logo: '', width: 80, height: 50, inline: 'c6' },
+  { name: 'Santander', logo: '/logos/santander.svg', width: 140, height: 26 },
+  { name: 'Inter', logo: '/logos/inter.svg', width: 120, height: 30 },
 ];
 
 export function BankLogos() {
@@ -55,12 +55,12 @@ export function BankLogos() {
             {[...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-12 shrink-0 items-center"
+                className="flex h-10 shrink-0 items-center"
               >
                 {bank.inline === 'c6' ? (
-                  <C6Logo className="h-5 w-auto text-foreground" />
+                  <C6Logo className="h-6 w-auto text-foreground" />
                 ) : bank.inline === 'xp' ? (
-                  <XPLogo className="h-10 w-auto text-foreground" />
+                  <XPLogo className="h-9 w-auto text-foreground" />
                 ) : (
                   <Image
                     src={bank.logo}
@@ -68,7 +68,7 @@ export function BankLogos() {
                     width={bank.width}
                     height={bank.height}
                     unoptimized
-                    className={`max-h-10 w-auto object-contain${
+                    className={`max-h-8 w-auto object-contain${
                       bank.darkInvert
                         ? ' dark:brightness-0 dark:invert'
                         : ''
