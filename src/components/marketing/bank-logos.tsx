@@ -1,16 +1,16 @@
 import Image from 'next/image';
 
 const BANKS = [
-  { name: 'Itaú', logo: '/logos/itau.svg' },
-  { name: 'Nubank', logo: '/logos/nubank.svg' },
-  { name: 'Bradesco', logo: '/logos/bradesco.svg' },
-  { name: 'XP', logo: '/logos/xp.svg' },
-  { name: 'Banco do Brasil', logo: '/logos/bb.svg' },
-  { name: 'Safra', logo: '/logos/safra.svg' },
-  { name: 'BTG Pactual', logo: '/logos/btg.svg' },
-  { name: 'C6 Bank', logo: '/logos/c6bank.svg' },
-  { name: 'Santander', logo: '/logos/santander.svg' },
-  { name: 'Inter', logo: '/logos/inter.svg' },
+  { name: 'Itaú', logo: '/logos/itau.svg', width: 40, height: 40 },
+  { name: 'Nubank', logo: '/logos/nubank.svg', width: 72, height: 40 },
+  { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 100, height: 20 },
+  { name: 'XP', logo: '/logos/xp.svg', width: 80, height: 20 },
+  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18 },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40 },
+  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36 },
+  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 90, height: 18 },
+  { name: 'Santander', logo: '/logos/santander.svg', width: 100, height: 18 },
+  { name: 'Inter', logo: '/logos/inter.svg', width: 80, height: 20 },
 ];
 
 export function BankLogos() {
@@ -30,15 +30,17 @@ export function BankLogos() {
             {[...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex shrink-0 flex-col items-center gap-2 opacity-70 grayscale transition-all hover:opacity-100 hover:grayscale-0"
+                className="flex h-16 shrink-0 flex-col items-center justify-center gap-2"
               >
-                <Image
-                  src={bank.logo}
-                  alt={bank.name}
-                  width={48}
-                  height={48}
-                  className="h-12 w-auto object-contain"
-                />
+                <div className="flex h-10 items-center">
+                  <Image
+                    src={bank.logo}
+                    alt={bank.name}
+                    width={bank.width}
+                    height={bank.height}
+                    className="max-h-10 w-auto object-contain"
+                  />
+                </div>
                 <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
                   {bank.name}
                 </span>
