@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { RecurringList } from '@/components/recurring/recurring-list';
 
 vi.mock('next/navigation', () => ({
@@ -31,7 +31,7 @@ describe('RecurringList', () => {
 
   it('shows empty state when no recurring found', () => {
     mockUseApi.mockReturnValue({
-      data: { subscriptions: [], installments: [], monthlyTotal: 0 },
+      data: { subscriptions: [], installments: [], income: [], monthlyTotal: 0, monthlyIncome: 0 },
       isLoading: false,
       error: undefined,
       mutate: vi.fn(),
@@ -50,7 +50,9 @@ describe('RecurringList', () => {
         installments: [
           { id: '2', merchant: 'Loja ABC', amount: 150, frequency: 'monthly', type: 'installment', user_override: null, installments_remaining: 4, next_expected_date: '2026-04-10', status: 'active' },
         ],
+        income: [],
         monthlyTotal: 189.9,
+        monthlyIncome: 0,
       },
       isLoading: false,
       error: undefined,
@@ -70,7 +72,9 @@ describe('RecurringList', () => {
           { id: '1', merchant: 'Netflix', amount: 39.9, frequency: 'monthly', type: 'subscription', user_override: null, installments_remaining: null, next_expected_date: '2026-04-15', status: 'active' },
         ],
         installments: [],
+        income: [],
         monthlyTotal: 39.9,
+        monthlyIncome: 0,
       },
       isLoading: false,
       error: undefined,
@@ -79,5 +83,27 @@ describe('RecurringList', () => {
 
     render(<RecurringList />);
     expect(screen.getByLabelText('Reclassificar Netflix como parcela')).toBeInTheDocument();
+  });
+
+  it('renders income items in the Receitas tab', () => {
+    mockUseApi.mockReturnValue({
+      data: {
+        subscriptions: [],
+        installments: [],
+        income: [
+          { id: '3', merchant: 'Empresa ABC', amount: 5000, frequency: 'monthly', type: 'income', user_override: null, installments_remaining: null, next_expected_date: '2026-04-05', status: 'active' },
+        ],
+        monthlyTotal: 0,
+        monthlyIncome: 5000,
+      },
+      isLoading: false,
+      error: undefined,
+      mutate: vi.fn(),
+    });
+
+    render(<RecurringList />);
+    fireEvent.click(screen.getByText('Receitas'));
+    expect(screen.getByText('Empresa ABC')).toBeInTheDocument();
+    expect(screen.getByText('Receitas Recorrentes')).toBeInTheDocument();
   });
 });

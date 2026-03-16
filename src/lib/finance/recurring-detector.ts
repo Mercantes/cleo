@@ -4,7 +4,7 @@ export interface RecurringResult {
   merchant: string;
   amount: number;
   frequency: 'monthly' | 'weekly' | 'yearly';
-  type: 'subscription' | 'installment';
+  type: 'subscription' | 'installment' | 'income';
   status: 'active' | 'cancelled' | 'completed';
   confidence: 'high' | 'medium' | 'low';
   installments_remaining?: number;
@@ -20,6 +20,21 @@ interface Transaction {
   merchant: string | null;
   date: string;
   type: 'debit' | 'credit';
+}
+
+// Known income sources in Brazil — fast-path classification
+const KNOWN_INCOME_SOURCES: string[] = [
+  'salario', 'salary', 'folha', 'holerite', 'pagamento',
+  'freelance', 'freela', 'pj', 'nota fiscal',
+  'aluguel', 'aluguer', 'rent',
+  'dividendo', 'rendimento', 'juros', 'yield',
+  'pensao', 'aposentadoria', 'inss', 'beneficio',
+  'pix recebido', 'transferencia recebida', 'ted recebida', 'doc recebida',
+  'reembolso', 'cashback',
+];
+
+function isKnownIncomeSource(normalizedMerchant: string): boolean {
+  return KNOWN_INCOME_SOURCES.some(known => normalizedMerchant.includes(known));
 }
 
 // Known subscription services in Brazil — fast-path classification
@@ -118,11 +133,103 @@ function mapStatus(isActive: boolean, type: 'subscription' | 'installment'): 'ac
   return type === 'installment' ? 'completed' : 'cancelled';
 }
 
+function detectRecurringIncomeFromTransactions(transactions: Transaction[]): RecurringResult[] {
+  const results: RecurringResult[] = [];
+  const grouped = new Map<string, Transaction[]>();
+
+  // Only process credit (income) transactions
+  for (const tx of transactions) {
+    if (tx.type !== 'credit') continue;
+    const key = normalizeMerchant(tx.description, tx.merchant);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key)!.push(tx);
+  }
+
+  for (const [merchantKey, txs] of grouped) {
+    const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
+    const latest = sorted[sorted.length - 1];
+    const isKnown = isKnownIncomeSource(merchantKey);
+
+    // Need at least 2 occurrences for pattern detection
+    if (sorted.length < 2) {
+      // Known income source with single recent occurrence
+      if (isKnown) {
+        const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
+        if (daysSinceLast <= 45) {
+          results.push({
+            merchant: latest.merchant || latest.description,
+            amount: latest.amount,
+            frequency: 'monthly',
+            type: 'income',
+            status: 'active',
+            confidence: 'low',
+            next_expected_date: addMonths(latest.date, 1),
+            occurrences: 1,
+            transaction_pattern: `income:${merchantKey}`,
+          });
+        }
+      }
+      continue;
+    }
+
+    // Calculate intervals and amount statistics
+    const intervals: number[] = [];
+    const amounts: number[] = sorted.map(tx => tx.amount);
+
+    for (let i = 1; i < sorted.length; i++) {
+      intervals.push(daysBetween(sorted[i].date, sorted[i - 1].date));
+    }
+
+    const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+    const intervalStdDev = standardDeviation(intervals);
+    const amountCV = coefficientOfVariation(amounts);
+
+    // Check if intervals are roughly monthly (25-35 days)
+    const isMonthly = avgInterval >= 25 && avgInterval <= 35;
+    if (!isMonthly) continue;
+
+    // Regularity check — irregular intervals = not recurring income
+    const isRegular = intervalStdDev <= 10;
+    if (!isRegular) continue;
+
+    // Reject if multiple per month (random transfers, not salary)
+    if (hasMultiplePerMonth(sorted)) continue;
+
+    const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
+    const isActive = daysSinceLast <= 65;
+
+    // Income can have higher amount variation than subscriptions (bonuses, overtime)
+    // Accept up to 40% CV for known sources, 30% for unknown
+    const maxCV = isKnown ? 0.40 : 0.30;
+    if (amountCV > maxCV) continue;
+
+    let confidence: 'high' | 'medium' | 'low';
+    if (isKnown && sorted.length >= 3) confidence = 'high';
+    else if (sorted.length >= 3 && amountCV <= 0.10) confidence = 'high';
+    else if (sorted.length >= 2) confidence = 'medium';
+    else confidence = 'low';
+
+    results.push({
+      merchant: latest.merchant || latest.description,
+      amount: latest.amount,
+      frequency: 'monthly',
+      type: 'income',
+      status: isActive ? 'active' : 'cancelled',
+      confidence,
+      next_expected_date: addMonths(latest.date, 1),
+      occurrences: sorted.length,
+      transaction_pattern: `income:${merchantKey}`,
+    });
+  }
+
+  return results;
+}
+
 export function detectRecurringFromTransactions(transactions: Transaction[]): RecurringResult[] {
   const results: RecurringResult[] = [];
   const grouped = new Map<string, Transaction[]>();
 
-  // Filter credits and group by normalized merchant
+  // Filter credits and group debit by normalized merchant
   for (const tx of transactions) {
     if (tx.type === 'credit') continue;
     const key = normalizeMerchant(tx.description, tx.merchant);
@@ -298,6 +405,10 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
     }
   }
 
+  // Detect recurring income from credit transactions
+  const incomeResults = detectRecurringIncomeFromTransactions(transactions);
+  results.push(...incomeResults);
+
   return results;
 }
 
@@ -355,4 +466,4 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
   return results;
 }
 
-export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS };
+export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES };

@@ -7,6 +7,7 @@ import {
   coefficientOfVariation,
   standardDeviation,
   isKnownSubscription,
+  isKnownIncomeSource,
   hasMultiplePerMonth,
 } from '@/lib/finance/recurring-detector';
 
@@ -302,7 +303,7 @@ describe('detectRecurringFromTransactions', () => {
     expect(results).toHaveLength(0);
   });
 
-  it('skips credit transactions', () => {
+  it('classifies credit transactions as income, not subscription', () => {
     const transactions = [
       makeTx({ id: '1', date: '2026-01-15', type: 'credit', merchant: 'Salary' }),
       makeTx({ id: '2', date: '2026-02-15', type: 'credit', merchant: 'Salary' }),
@@ -310,7 +311,8 @@ describe('detectRecurringFromTransactions', () => {
     ];
 
     const results = detectRecurringFromTransactions(transactions);
-    expect(results).toHaveLength(0);
+    expect(results.every(r => r.type === 'income')).toBe(true);
+    expect(results.filter(r => r.type === 'subscription')).toHaveLength(0);
   });
 
   it('does not flag wildly inconsistent amounts', () => {
@@ -371,5 +373,93 @@ describe('detectRecurringFromTransactions', () => {
 
     const results = detectRecurringFromTransactions(transactions);
     expect(results).toHaveLength(0);
+  });
+
+  // ===== RECURRING INCOME DETECTION =====
+
+  it('detects recurring salary (credit transactions)', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-11-05', amount: 5000, merchant: 'Empresa ABC', type: 'credit' }),
+      makeTx({ id: '2', date: '2025-12-05', amount: 5000, merchant: 'Empresa ABC', type: 'credit' }),
+      makeTx({ id: '3', date: '2026-01-05', amount: 5000, merchant: 'Empresa ABC', type: 'credit' }),
+      makeTx({ id: '4', date: '2026-02-05', amount: 5000, merchant: 'Empresa ABC', type: 'credit' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    const incomeResults = results.filter(r => r.type === 'income');
+    expect(incomeResults).toHaveLength(1);
+    expect(incomeResults[0].type).toBe('income');
+    expect(incomeResults[0].status).toBe('active');
+    expect(incomeResults[0].confidence).toBe('high');
+  });
+
+  it('detects known income source with 3 occurrences', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-12-10', amount: 3500, merchant: 'Salario', description: 'Salario Dez', type: 'credit' }),
+      makeTx({ id: '2', date: '2026-01-10', amount: 3500, merchant: 'Salario', description: 'Salario Jan', type: 'credit' }),
+      makeTx({ id: '3', date: '2026-02-10', amount: 3500, merchant: 'Salario', description: 'Salario Fev', type: 'credit' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    const incomeResults = results.filter(r => r.type === 'income');
+    expect(incomeResults).toHaveLength(1);
+    expect(incomeResults[0].type).toBe('income');
+    expect(incomeResults[0].confidence).toBe('high'); // Known source + 3 occurrences
+  });
+
+  it('detects recurring income with variable amounts (overtime/bonuses)', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-11-05', amount: 5000, merchant: 'Empresa XYZ', type: 'credit' }),
+      makeTx({ id: '2', date: '2025-12-05', amount: 5200, merchant: 'Empresa XYZ', type: 'credit' }),
+      makeTx({ id: '3', date: '2026-01-05', amount: 4800, merchant: 'Empresa XYZ', type: 'credit' }),
+      makeTx({ id: '4', date: '2026-02-05', amount: 5100, merchant: 'Empresa XYZ', type: 'credit' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    const incomeResults = results.filter(r => r.type === 'income');
+    expect(incomeResults).toHaveLength(1);
+    expect(incomeResults[0].type).toBe('income');
+  });
+
+  it('does not flag irregular credit transactions as income', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2026-01-05', amount: 500, merchant: 'Amigo', type: 'credit' }),
+      makeTx({ id: '2', date: '2026-01-20', amount: 200, merchant: 'Amigo', type: 'credit' }),
+      makeTx({ id: '3', date: '2026-02-28', amount: 800, merchant: 'Amigo', type: 'credit' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    const incomeResults = results.filter(r => r.type === 'income');
+    expect(incomeResults).toHaveLength(0);
+  });
+
+  it('does not mix credit and debit from same merchant', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-11-15', amount: 39.9, merchant: 'Netflix', type: 'debit' }),
+      makeTx({ id: '2', date: '2025-12-15', amount: 39.9, merchant: 'Netflix', type: 'debit' }),
+      makeTx({ id: '3', date: '2026-01-15', amount: 39.9, merchant: 'Netflix', type: 'debit' }),
+      makeTx({ id: '4', date: '2026-02-15', amount: 39.9, merchant: 'Netflix', type: 'debit' }),
+      makeTx({ id: '5', date: '2026-01-20', amount: 10, merchant: 'Netflix', type: 'credit' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    const subs = results.filter(r => r.type === 'subscription');
+    const incomes = results.filter(r => r.type === 'income');
+    expect(subs).toHaveLength(1);
+    expect(incomes).toHaveLength(0); // Single credit = not recurring
+  });
+});
+
+describe('isKnownIncomeSource', () => {
+  it('detects salario', () => {
+    expect(isKnownIncomeSource('salario janeiro')).toBe(true);
+  });
+
+  it('detects aluguel', () => {
+    expect(isKnownIncomeSource('aluguel apt 302')).toBe(true);
+  });
+
+  it('returns false for unknown source', () => {
+    expect(isKnownIncomeSource('empresa abc')).toBe(false);
   });
 });

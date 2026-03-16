@@ -22,10 +22,13 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   const subscriptions = items.filter((r) => r.type === 'subscription');
   const installments = items.filter((r) => r.type === 'installment');
-  const monthlyTotal = items.reduce((sum, r) => sum + Number(r.amount), 0);
+  const income = items.filter((r) => r.type === 'income');
+  const expenseItems = items.filter((r) => r.type !== 'income');
+  const monthlyTotal = expenseItems.reduce((sum, r) => sum + Number(r.amount), 0);
+  const monthlyIncome = income.reduce((sum, r) => sum + Number(r.amount), 0);
 
   return NextResponse.json(
-    { subscriptions, installments, monthlyTotal },
+    { subscriptions, installments, income, monthlyTotal, monthlyIncome },
     { headers: { 'Cache-Control': 'private, no-cache' } },
   );
 });
@@ -35,8 +38,8 @@ export const PATCH = withAuth(async (request: NextRequest, { supabase, user }) =
   const body = await request.json();
   const { id, type } = body;
 
-  if (!id || !type || !['subscription', 'installment'].includes(type)) {
-    return NextResponse.json({ error: 'id and type (subscription|installment) are required' }, { status: 400 });
+  if (!id || !type || !['subscription', 'installment', 'income'].includes(type)) {
+    return NextResponse.json({ error: 'id and type (subscription|installment|income) are required' }, { status: 400 });
   }
 
   const { error } = await supabase

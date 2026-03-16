@@ -26,7 +26,7 @@ interface RecurringItem {
   merchant: string;
   amount: number;
   frequency: string;
-  type: 'subscription' | 'installment';
+  type: 'subscription' | 'installment' | 'income';
   user_override: string | null;
   installments_remaining: number | null;
   next_expected_date: string;
@@ -36,7 +36,9 @@ interface RecurringItem {
 interface RecurringData {
   subscriptions: RecurringItem[];
   installments: RecurringItem[];
+  income: RecurringItem[];
   monthlyTotal: number;
+  monthlyIncome: number;
 }
 
 type Tab = 'expenses' | 'income';
@@ -105,8 +107,11 @@ export function RecurringList() {
 
   const subscriptions = data?.subscriptions || [];
   const installments = data?.installments || [];
+  const income = data?.income || [];
   const monthlyTotal = data?.monthlyTotal || 0;
-  const hasData = subscriptions.length > 0 || installments.length > 0;
+  const monthlyIncome = data?.monthlyIncome || 0;
+  const hasExpenseData = subscriptions.length > 0 || installments.length > 0;
+  const hasIncomeData = income.length > 0;
 
   // Calculate summary values
   const installmentsTotal = installments.reduce((s, i) => s + Number(i.amount), 0);
@@ -138,12 +143,14 @@ export function RecurringList() {
     setTogglingId(item.id);
 
     if (data) {
-      const allItems = [...data.subscriptions, ...data.installments];
-      const updated = allItems.map(i => i.id === item.id ? { ...i, type: newType as 'subscription' | 'installment' } : i);
+      const allItems = [...data.subscriptions, ...data.installments, ...data.income];
+      const updated = allItems.map(i => i.id === item.id ? { ...i, type: newType as 'subscription' | 'installment' | 'income' } : i);
       mutate({
         subscriptions: updated.filter(i => i.type === 'subscription'),
         installments: updated.filter(i => i.type === 'installment'),
+        income: updated.filter(i => i.type === 'income'),
         monthlyTotal: data.monthlyTotal,
+        monthlyIncome: data.monthlyIncome,
       }, false);
     }
 
@@ -210,11 +217,90 @@ export function RecurringList() {
       )}
 
       {tab === 'income' ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border bg-card py-16 text-center">
-          <TrendingUp className="h-10 w-10 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">Nenhuma receita recorrente detectada</p>
-        </div>
-      ) : !hasData ? (
+        !hasIncomeData ? (
+          <div className="space-y-4">
+            <EmptyState
+              icon={TrendingUp}
+              title="Nenhuma receita recorrente detectada"
+              description="Clique abaixo para analisar suas transações e detectar receitas recorrentes como salário, freelance e aluguéis."
+            />
+            <div className="flex justify-center">
+              <Button onClick={handleDetect} disabled={isDetecting}>
+                {isDetecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Detectar receitas
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Income summary card */}
+            <div className="rounded-xl border bg-card p-5">
+              <div className="flex items-center gap-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
+                  <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Receita recorrente</p>
+                  <p className="text-xl font-bold">
+                    {fmt(monthlyIncome)}
+                    <span className="text-base font-normal text-muted-foreground">/mês</span>
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-6 border-t pt-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-muted-foreground">Fontes ativas:</span>
+                  <span className="font-medium">{income.length}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Anual estimado:</span>
+                  <span className="font-medium">{fmt(monthlyIncome * 12)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Income items */}
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="flex items-center gap-2 text-base font-semibold">
+                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                  Receitas Recorrentes
+                </h2>
+                <div className="text-right">
+                  <p className="text-sm font-semibold">{fmt(monthlyIncome)}/mês</p>
+                  <p className="text-xs text-muted-foreground">
+                    {income.length} fonte{income.length !== 1 ? 's' : ''} ativa{income.length !== 1 ? 's' : ''}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {income.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between rounded-lg border bg-card p-3.5"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-950">
+                        <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">{item.merchant}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.frequency === 'monthly' ? 'Mensal' : item.frequency === 'yearly' ? 'Anual' : item.frequency}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                      +{fmt(item.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )
+      ) : !hasExpenseData ? (
         <div className="space-y-4">
           <EmptyState
             icon={Repeat}
