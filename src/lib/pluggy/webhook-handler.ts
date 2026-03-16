@@ -3,6 +3,7 @@ import { getAccounts } from './client';
 import { mapPluggyAccountToDb } from './account-mapper';
 import { syncTransactions } from './sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
+import { clearContextCache } from '@/lib/ai/financial-context';
 
 export interface PluggyWebhookEvent {
   event: string;
@@ -44,6 +45,8 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
             { onConflict: 'pluggy_account_id' },
           );
         }
+        // Invalidate AI context cache so Cleo chat reflects new balances
+        clearContextCache(connection.user_id);
       }
       break;
     }
@@ -60,6 +63,9 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
         event.data.itemId,
         fromDate,
       );
+
+      // Invalidate AI context cache so Cleo chat uses fresh data
+      clearContextCache(connection.user_id);
 
       // Categorize new transactions
       if (syncResult.imported > 0) {
