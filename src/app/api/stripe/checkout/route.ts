@@ -5,8 +5,8 @@ import { stripe } from '@/lib/stripe/client';
 import { getOrCreateCustomer } from '@/lib/stripe/subscription';
 
 const PRICE_IDS: Record<string, string | undefined> = {
-  pro: process.env.STRIPE_PRO_PRICE_ID,
-  premium: process.env.STRIPE_PREMIUM_PRICE_ID,
+  pro: process.env.STRIPE_PRO_PRICE_ID?.trim(),
+  premium: process.env.STRIPE_PREMIUM_PRICE_ID?.trim(),
 };
 
 export const POST = withAuth(async (request: NextRequest, { user }) => {
