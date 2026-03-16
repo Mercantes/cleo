@@ -1,6 +1,3 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -20,17 +17,12 @@ import {
   Sparkles,
   MessageSquare,
   PieChart,
-  Crown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { pricingTiers } from '@/lib/data/pricing';
-
-type BillingCycle = 'monthly' | 'annual';
+import { PricingSection } from '@/components/marketing/pricing-section';
+import { BankLogos } from '@/components/marketing/bank-logos';
 
 export default function LandingPage() {
-  const [billing, setBilling] = useState<BillingCycle>('monthly');
-  const isAnnual = billing === 'annual';
-
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
@@ -128,18 +120,11 @@ export default function LandingPage() {
                       <p className="text-sm font-semibold text-primary">R$ 3.270</p>
                     </div>
                   </div>
-                  {/* Mini chart placeholder */}
+                  {/* Mini chart */}
                   <div className="flex h-24 items-end gap-1">
                     {[40, 55, 35, 65, 50, 75, 60, 80, 70, 90, 85, 95].map((h, i) => (
-                      <div
-                        key={i}
-                        className="flex-1 rounded-t bg-primary/20"
-                        style={{ height: `${h}%` }}
-                      >
-                        <div
-                          className="w-full rounded-t bg-primary transition-all"
-                          style={{ height: `${Math.min(h + 10, 100)}%` }}
-                        />
+                      <div key={i} className="flex-1 rounded-t bg-primary/20" style={{ height: `${h}%` }}>
+                        <div className="w-full rounded-t bg-primary transition-all" style={{ height: `${Math.min(h + 10, 100)}%` }} />
                       </div>
                     ))}
                   </div>
@@ -172,20 +157,7 @@ export default function LandingPage() {
       </section>
 
       {/* Bank logos trust bar */}
-      <section className="border-y bg-muted/30 py-6">
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
-          <p className="mb-4 text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Integrado com os maiores bancos
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-3 opacity-50 grayscale">
-            {['Nubank', 'Itaú', 'Bradesco', 'Santander', 'BTG', 'Inter', 'C6 Bank', 'Safra'].map((bank) => (
-              <span key={bank} className="text-sm font-semibold tracking-wide text-foreground">
-                {bank}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
+      <BankLogos />
 
       {/* Features */}
       <section id="funcionalidades" className="py-20 md:py-28">
@@ -213,7 +185,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How it works — stacked steps */}
+      {/* How it works */}
       <section id="como-funciona" className="border-t bg-muted/30 py-20 md:py-28">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center">
@@ -299,124 +271,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing */}
-      <section id="planos" className="border-t bg-muted/30 py-20 md:py-28">
-        <div className="mx-auto max-w-6xl px-4 md:px-6">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-wider text-primary">
-            Planos
-          </p>
-          <h2 className="mt-2 text-center text-3xl font-bold md:text-4xl">
-            Suas Finanças no Piloto Automático
-          </h2>
-
-          {/* Billing toggle */}
-          <div className="mt-8 flex flex-col items-center gap-2">
-            {isAnnual && (
-              <span className="rounded-full bg-green-500/15 px-3 py-1 text-xs font-semibold text-green-500">
-                2 meses grátis
-              </span>
-            )}
-            <div className="inline-flex rounded-lg border bg-muted/50 p-1">
-              <button
-                onClick={() => setBilling('monthly')}
-                className={cn(
-                  'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  !isAnnual
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                Mensal
-              </button>
-              <button
-                onClick={() => setBilling('annual')}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors',
-                  isAnnual
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground',
-                )}
-              >
-                Anual
-                <span
-                  className={cn(
-                    'rounded px-1.5 py-0.5 text-[10px] font-bold',
-                    isAnnual
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-green-500/15 text-green-500',
-                  )}
-                >
-                  17% OFF
-                </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Plan cards */}
-          <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {pricingTiers.map((tier) => (
-              <div
-                key={tier.name}
-                className={cn(
-                  'relative flex flex-col rounded-2xl border p-8',
-                  tier.badge && 'border-2 border-primary',
-                  tier.highlighted && 'border-2 border-primary/50',
-                  !tier.highlighted && !tier.badge && 'border',
-                )}
-              >
-                {tier.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    {tier.badge}
-                  </span>
-                )}
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Plano
-                  </p>
-                  <h3 className="flex items-center gap-2 text-2xl font-bold">
-                    {tier.name}
-                    {tier.badge && <Crown className="h-5 w-5 text-primary" />}
-                  </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{tier.subtitle}</p>
-                </div>
-
-                <ul className="mt-6 space-y-2.5">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2 text-sm">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-auto pt-8">
-                  <p className="text-3xl font-bold">
-                    {tier.annualPrice && isAnnual ? tier.annualPrice : tier.price}
-                    {tier.period && (
-                      <span className="text-sm font-normal text-muted-foreground">{tier.period}</span>
-                    )}
-                  </p>
-                  <p className="mt-1 text-xs text-muted-foreground">{tier.description}</p>
-                  <Link
-                    href="/signup"
-                    className={cn(
-                      'mt-4 flex h-10 w-full items-center justify-center rounded-lg text-sm font-medium transition-colors',
-                      tier.highlighted || tier.badge
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'border border-border bg-background hover:bg-muted hover:text-foreground',
-                    )}
-                  >
-                    {tier.cta}
-                  </Link>
-                  {tier.ctaNote && (
-                    <p className="mt-2 text-center text-[11px] text-muted-foreground">{tier.ctaNote}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Pricing (client component) */}
+      <PricingSection />
 
       {/* FAQ */}
       <section className="py-20 md:py-28">
@@ -476,46 +332,39 @@ const FEATURES = [
   {
     icon: Smartphone,
     title: 'Visão completa',
-    description:
-      'Todas as suas contas em um só lugar. Veja seu patrimônio total atualizado automaticamente.',
+    description: 'Todas as suas contas em um só lugar. Veja seu patrimônio total atualizado automaticamente.',
   },
   {
     icon: TrendingUp,
     title: 'Projeções de futuro',
-    description:
-      'Quanto vai ter em 6 e 12 meses? Receba projeções automáticas baseadas no seu comportamento real.',
+    description: 'Quanto vai ter em 6 e 12 meses? Receba projeções automáticas baseadas no seu comportamento real.',
   },
   {
     icon: Brain,
     title: 'Planejamento inteligente',
-    description:
-      'Descubra quanto pode economizar, quando ajustar gastos e como atingir suas metas financeiras.',
+    description: 'Descubra quanto pode economizar, quando ajustar gastos e como atingir suas metas financeiras.',
   },
   {
     icon: Repeat,
     title: 'Detecção de recorrentes',
-    description:
-      'Identifica automaticamente parcelas e assinaturas. Nunca mais se surpreenda com cobranças repetidas.',
+    description: 'Identifica automaticamente parcelas e assinaturas. Nunca mais se surpreenda com cobranças repetidas.',
   },
   {
     icon: PieChart,
     title: 'Categorização automática',
-    description:
-      'Suas transações são categorizadas por IA. Entenda exatamente para onde seu dinheiro está indo.',
+    description: 'Suas transações são categorizadas por IA. Entenda exatamente para onde seu dinheiro está indo.',
   },
   {
     icon: BarChart3,
     title: 'Relatórios e insights',
-    description:
-      'Gráficos, tendências e análises que transformam dados financeiros em decisões concretas.',
+    description: 'Gráficos, tendências e análises que transformam dados financeiros em decisões concretas.',
   },
 ];
 
 const STEPS = [
   {
     title: 'Conecte suas contas',
-    description:
-      'Integração segura via Open Finance com todos os principais bancos do Brasil. Leva menos de 2 minutos.',
+    description: 'Integração segura via Open Finance com todos os principais bancos do Brasil. Leva menos de 2 minutos.',
     detail: 'Nubank, Itaú, Bradesco, Santander, BTG, Inter e mais.',
     icon: Smartphone,
     preview: {
@@ -526,8 +375,7 @@ const STEPS = [
   },
   {
     title: 'Tenha clareza instantânea',
-    description:
-      'Categorização automática, análise de recorrentes e organização total — sem trabalho manual nenhum.',
+    description: 'Categorização automática, análise de recorrentes e organização total — sem trabalho manual nenhum.',
     icon: PieChart,
     preview: {
       title: 'Resumo do mês',
@@ -537,17 +385,12 @@ const STEPS = [
   },
   {
     title: 'Tome decisões com confiança',
-    description:
-      'Projeções inteligentes, metas e o assistente Cleo IA para responder qualquer dúvida sobre suas finanças.',
+    description: 'Projeções inteligentes, metas e o assistente Cleo IA para responder qualquer dúvida sobre suas finanças.',
     icon: MessageSquare,
     preview: {
       title: 'Cleo IA',
       subtitle: 'Assistente financeira',
-      items: [
-        '"Posso viajar em julho?"',
-        '"Quanto gastei com delivery?"',
-        '"Meu saldo vai ficar negativo?"',
-      ],
+      items: ['"Posso viajar em julho?"', '"Quanto gastei com delivery?"', '"Meu saldo vai ficar negativo?"'],
     },
   },
 ];
@@ -556,38 +399,32 @@ const SECURITY_FEATURES = [
   {
     icon: Shield,
     title: 'Open Finance Regulado',
-    description:
-      'Operamos via Open Finance, regulado pelo Banco Central. Seus dados são compartilhados com seu consentimento explícito.',
+    description: 'Operamos via Open Finance, regulado pelo Banco Central. Seus dados são compartilhados com seu consentimento explícito.',
   },
   {
     icon: Lock,
     title: 'Criptografia AES-256',
-    description:
-      'Utilizamos o mesmo padrão de criptografia de instituições financeiras para proteger seus dados.',
+    description: 'Utilizamos o mesmo padrão de criptografia de instituições financeiras para proteger seus dados.',
   },
   {
     icon: KeyRound,
     title: 'Acessos sem senhas',
-    description:
-      'Utilizamos OAuth 2.0. É o seu banco que faz a autenticação — nunca pedimos sua senha bancária.',
+    description: 'Utilizamos OAuth 2.0. É o seu banco que faz a autenticação — nunca pedimos sua senha bancária.',
   },
   {
     icon: Eye,
     title: 'Acesso Read-Only',
-    description:
-      'Nossa integração apenas visualiza dados. Não é possível movimentar dinheiro, fazer transferências ou pagamentos.',
+    description: 'Nossa integração apenas visualiza dados. Não é possível movimentar dinheiro, fazer transferências ou pagamentos.',
   },
   {
     icon: Scale,
     title: 'Conformidade LGPD',
-    description:
-      'Seus dados estão em total conformidade com a Lei Geral de Proteção de Dados (LGPD).',
+    description: 'Seus dados estão em total conformidade com a Lei Geral de Proteção de Dados (LGPD).',
   },
   {
     icon: Server,
     title: 'Servidores no Brasil',
-    description:
-      'A plataforma é hospedada em servidores em São Paulo, garantindo baixa latência e seus dados sempre no Brasil.',
+    description: 'A plataforma é hospedada em servidores em São Paulo, garantindo baixa latência e seus dados sempre no Brasil.',
   },
 ];
 
