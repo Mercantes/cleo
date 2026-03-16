@@ -37,6 +37,21 @@ function isKnownIncomeSource(normalizedMerchant: string): boolean {
   return KNOWN_INCOME_SOURCES.some(known => normalizedMerchant.includes(known));
 }
 
+// Excluded merchants — these are NOT recurring expenses (credit card bills, bank transfers, etc.)
+const EXCLUDED_MERCHANTS: string[] = [
+  'banco', 'bank', 'fatura', 'cartao', 'cartão',
+  'pagamento fatura', 'pgto fatura', 'pgto cartao',
+  'transferencia', 'transferência', 'ted', 'doc', 'pix',
+  'saldo', 'aplicacao', 'aplicação', 'resgate',
+  'investimento', 'cdb', 'lci', 'lca', 'tesouro',
+  'emprestimo', 'empréstimo', 'financiamento',
+  'boleto', 'darf', 'gps', 'imposto', 'taxa',
+];
+
+function isExcludedMerchant(normalizedMerchant: string): boolean {
+  return EXCLUDED_MERCHANTS.some(excluded => normalizedMerchant.includes(excluded));
+}
+
 // Known subscription services in Brazil — fast-path classification
 const KNOWN_SUBSCRIPTIONS: string[] = [
   'netflix', 'spotify', 'disney', 'hbo', 'max', 'amazon prime',
@@ -146,6 +161,9 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
   }
 
   for (const [merchantKey, txs] of grouped) {
+    // Skip bank transfers, investments, etc. — not recurring income
+    if (isExcludedMerchant(merchantKey)) continue;
+
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
     const isKnown = isKnownIncomeSource(merchantKey);
@@ -238,6 +256,9 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
   }
 
   for (const [merchantKey, txs] of grouped) {
+    // Skip excluded merchants (credit card bills, bank transfers, investments, etc.)
+    if (isExcludedMerchant(merchantKey)) continue;
+
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
 
@@ -466,4 +487,4 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
   return results;
 }
 
-export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES };
+export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS };

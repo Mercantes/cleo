@@ -8,6 +8,7 @@ import {
   standardDeviation,
   isKnownSubscription,
   isKnownIncomeSource,
+  isExcludedMerchant,
   hasMultiplePerMonth,
 } from '@/lib/finance/recurring-detector';
 
@@ -447,6 +448,41 @@ describe('detectRecurringFromTransactions', () => {
     const incomes = results.filter(r => r.type === 'income');
     expect(subs).toHaveLength(1);
     expect(incomes).toHaveLength(0); // Single credit = not recurring
+  });
+});
+
+describe('isExcludedMerchant', () => {
+  it('excludes bank names', () => {
+    expect(isExcludedMerchant('banco xp s.a')).toBe(true);
+    expect(isExcludedMerchant('banco c6 s.a.')).toBe(true);
+  });
+
+  it('excludes credit card bills', () => {
+    expect(isExcludedMerchant('fatura cartao nubank')).toBe(true);
+  });
+
+  it('excludes transfers', () => {
+    expect(isExcludedMerchant('pix joao silva')).toBe(true);
+    expect(isExcludedMerchant('ted recebida')).toBe(true);
+  });
+
+  it('does not exclude regular merchants', () => {
+    expect(isExcludedMerchant('netflix')).toBe(false);
+    expect(isExcludedMerchant('spotify')).toBe(false);
+  });
+});
+
+describe('detectRecurringFromTransactions — excluded merchants', () => {
+  it('does not flag credit card bill as subscription', () => {
+    const transactions = [
+      makeTx({ id: '1', date: '2025-11-15', amount: 7169, merchant: 'BANCO XP S.A' }),
+      makeTx({ id: '2', date: '2025-12-15', amount: 6800, merchant: 'BANCO XP S.A' }),
+      makeTx({ id: '3', date: '2026-01-15', amount: 7200, merchant: 'BANCO XP S.A' }),
+      makeTx({ id: '4', date: '2026-02-15', amount: 7100, merchant: 'BANCO XP S.A' }),
+    ];
+
+    const results = detectRecurringFromTransactions(transactions);
+    expect(results).toHaveLength(0);
   });
 });
 
