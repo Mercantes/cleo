@@ -6,9 +6,9 @@ const BANKS = [
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 100, height: 20 },
   { name: 'XP', logo: '/logos/xp.svg', width: 80, height: 20, darkInvert: true },
   { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 100, height: 18, darkInvert: true },
-  { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40 },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 60, height: 40, darkInvert: true },
   { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 90, height: 36, darkInvert: true },
-  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 90, height: 18, darkInvert: true },
+  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 100, height: 24, darkInvert: true },
   { name: 'Santander', logo: '/logos/santander.svg', width: 100, height: 18 },
   { name: 'Inter', logo: '/logos/inter.svg', width: 80, height: 20 },
 ];
@@ -30,24 +30,20 @@ export function BankLogos() {
             {[...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-16 shrink-0 flex-col items-center justify-center gap-2"
+                className="flex h-12 shrink-0 items-center"
               >
-                <div className="flex h-10 items-center">
-                  <Image
-                    src={bank.logo}
-                    alt={bank.name}
-                    width={bank.width}
-                    height={bank.height}
-                    className={`max-h-10 w-auto object-contain${
-                      'darkInvert' in bank && bank.darkInvert
-                        ? ' dark:brightness-0 dark:invert'
-                        : ''
-                    }`}
-                  />
-                </div>
-                <span className="whitespace-nowrap text-xs font-medium text-muted-foreground">
-                  {bank.name}
-                </span>
+                <Image
+                  src={bank.logo}
+                  alt={bank.name}
+                  width={bank.width}
+                  height={bank.height}
+                  unoptimized
+                  className={`max-h-10 w-auto object-contain${
+                    'darkInvert' in bank && bank.darkInvert
+                      ? ' dark:brightness-0 dark:invert'
+                      : ''
+                  }`}
+                />
               </div>
             ))}
           </div>
