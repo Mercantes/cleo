@@ -17,8 +17,8 @@ interface GoalData {
 }
 
 export function GoalProgressCard() {
-  const { data, isLoading: loading } = useApi<GoalData>('/api/goals');
   const [hideValues] = useHideValues();
+  const { data, isLoading: loading } = useApi<GoalData>('/api/goals');
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   if (loading) {

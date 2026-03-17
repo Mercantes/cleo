@@ -22,8 +22,8 @@ interface StreakData {
 }
 
 export function StreakCard() {
-  const { data, isLoading: loading } = useApi<StreakData>('/api/goals/streak');
   const [hideValues] = useHideValues();
+  const { data, isLoading: loading } = useApi<StreakData>('/api/goals/streak');
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   if (loading) {

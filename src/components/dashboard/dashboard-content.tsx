@@ -9,7 +9,10 @@ import { toast } from '@/components/ui/toast';
 import dynamic from 'next/dynamic';
 import { MonthSelector } from './month-selector';
 import { SubscriptionsCard } from './subscriptions-card';
-import { GoalProgressCard } from './goal-progress-card';
+const GoalProgressCard = dynamic(() => import('./goal-progress-card').then((m) => m.GoalProgressCard), {
+  ssr: false,
+  loading: () => <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />,
+});
 import { ChallengesCard } from './challenges-card';
 import { SpendingForecast } from './spending-forecast';
 import { InsightsBar } from './insights-bar';
@@ -18,7 +21,10 @@ import { AccountsCard } from './accounts-card';
 import { RecentTransactionsCard } from './recent-transactions-card';
 import { SetupChecklist } from './setup-checklist';
 import { CategoryBudgetsCard } from './category-budgets-card';
-import { StreakCard } from './streak-card';
+const StreakCard = dynamic(() => import('./streak-card').then((m) => m.StreakCard), {
+  ssr: false,
+  loading: () => <div className="h-[160px] animate-pulse rounded-lg border bg-muted" />,
+});
 import { EmergencyFundCard } from './emergency-fund-card';
 import { PartialResultCard } from './partial-result-card';
 import { CategoriesTableCard } from './categories-table-card';
