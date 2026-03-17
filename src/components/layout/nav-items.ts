@@ -12,7 +12,6 @@ import {
   CalendarDays,
   PieChart,
   Trophy,
-  Users,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -46,7 +45,6 @@ export const navSections: NavSection[] = [
       { label: 'Orçamentos', href: '/budgets', icon: PieChart, pro: true },
       { label: 'Metas', href: '/goals', icon: Crosshair, pro: true },
       { label: 'Desafios', href: '/challenges', icon: Trophy, pro: true },
-      { label: 'Dividir', href: '/splits', icon: Users },
     ],
   },
   {
