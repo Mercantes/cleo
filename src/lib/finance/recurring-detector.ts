@@ -52,6 +52,7 @@ const EXCLUDED_MERCHANTS: string[] = [
   'saldo', 'aplicacao', 'aplicação', 'resgate',
   'investimento', 'cdb', 'lci', 'lca', 'tesouro',
   'darf', 'gps', 'imposto',
+  'compra no débito', 'compra no debito', // Generic debit purchases (not recurring)
 ];
 
 function isExcludedMerchant(normalizedMerchant: string): boolean {

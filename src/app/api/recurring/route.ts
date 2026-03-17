@@ -55,3 +55,26 @@ export const PATCH = withAuth(async (request: NextRequest, { supabase, user }) =
 
   return NextResponse.json({ success: true });
 });
+
+// DELETE: User dismisses a recurring transaction
+export const DELETE = withAuth(async (request: NextRequest, { supabase, user }) => {
+  const body = await request.json();
+  const { id } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from('recurring_transactions')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('[recurring] delete failed:', error.message);
+    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+});

@@ -13,6 +13,7 @@ import {
   TrendingDown,
   TrendingUp,
   RefreshCw,
+  X,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
@@ -21,6 +22,14 @@ import { Button } from '@/components/ui/button';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
+
+// Clean up merchant display names — remove transaction type prefixes
+function cleanMerchantDisplay(merchant: string): string {
+  return merchant
+    .replace(/^(Transferência Recebida|Transferencia Recebida|Pagamento recebido|Compra no débito|Compra no debito)\|?/i, '')
+    .replace(/^\|/, '')
+    .trim() || merchant;
+}
 
 interface RecurringItem {
   id: string;
@@ -181,6 +190,32 @@ export function RecurringList() {
     }
   }, [data, mutate]);
 
+  const handleDismiss = useCallback(async (item: RecurringItem) => {
+    // Optimistic removal
+    if (data) {
+      mutate({
+        subscriptions: data.subscriptions.filter(i => i.id !== item.id),
+        installments: data.installments.filter(i => i.id !== item.id),
+        income: data.income.filter(i => i.id !== item.id),
+        monthlyTotal: item.type !== 'income' ? data.monthlyTotal - Number(item.amount) : data.monthlyTotal,
+        monthlyIncome: item.type === 'income' ? data.monthlyIncome - Number(item.amount) : data.monthlyIncome,
+      }, false);
+    }
+
+    try {
+      const res = await fetch('/api/recurring', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id }),
+      });
+      if (!res.ok) throw new Error();
+      toast.success('Recorrência descartada');
+    } catch {
+      await mutate();
+      toast.error('Erro ao descartar recorrência');
+    }
+  }, [data, mutate]);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -314,15 +349,25 @@ export function RecurringList() {
                         <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{item.merchant}</p>
+                        <p className="truncate text-sm font-medium">{cleanMerchantDisplay(item.merchant)}</p>
                         <p className="text-xs text-muted-foreground">
                           {item.frequency === 'monthly' ? 'Mensal' : item.frequency === 'yearly' ? 'Anual' : item.frequency}
                         </p>
                       </div>
                     </div>
-                    <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                      +{fmt(item.amount)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleDismiss(item)}
+                        aria-label={`Descartar ${cleanMerchantDisplay(item.merchant)}`}
+                        title="Descartar"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                      <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        +{fmt(item.amount)}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -437,7 +482,7 @@ export function RecurringList() {
                           <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{inst.merchant}</p>
+                          <p className="truncate text-sm font-medium">{cleanMerchantDisplay(inst.merchant)}</p>
                           <p className="text-xs text-muted-foreground">
                             {inst.installments_remaining != null
                               ? `${inst.installments_remaining} parcelas restantes`
@@ -455,11 +500,19 @@ export function RecurringList() {
                         <button
                           onClick={() => handleToggleType(inst)}
                           disabled={togglingId === inst.id}
-                          aria-label={`Reclassificar ${inst.merchant} como assinatura`}
+                          aria-label={`Reclassificar ${cleanMerchantDisplay(inst.merchant)} como assinatura`}
                           title="Reclassificar como assinatura"
                           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
                           <ArrowRightLeft className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDismiss(inst)}
+                          aria-label={`Descartar ${cleanMerchantDisplay(inst.merchant)}`}
+                          title="Descartar"
+                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                        >
+                          <X className="h-3.5 w-3.5" />
                         </button>
                         <span className="shrink-0 text-sm font-semibold">{fmt(inst.amount)}</span>
                       </div>
@@ -496,7 +549,7 @@ export function RecurringList() {
                         <Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{sub.merchant}</p>
+                        <p className="truncate text-sm font-medium">{cleanMerchantDisplay(sub.merchant)}</p>
                         <p className="text-xs text-muted-foreground">
                           {sub.frequency === 'monthly' ? 'Mensal' : sub.frequency === 'yearly' ? 'Anual' : sub.frequency}
                         </p>
@@ -506,19 +559,27 @@ export function RecurringList() {
                       <button
                         onClick={() => handleToggleType(sub)}
                         disabled={togglingId === sub.id}
-                        aria-label={`Reclassificar ${sub.merchant} como parcela`}
+                        aria-label={`Reclassificar ${cleanMerchantDisplay(sub.merchant)} como parcela`}
                         title="Reclassificar como parcela"
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
                         <ArrowRightLeft className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${sub.merchant} de ${fmt(sub.amount)}/mês?`)}`)}
-                        aria-label={`Perguntar sobre ${sub.merchant}`}
+                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${cleanMerchantDisplay(sub.merchant)} de ${fmt(sub.amount)}/mês?`)}`)}
+                        aria-label={`Perguntar sobre ${cleanMerchantDisplay(sub.merchant)}`}
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         title="Perguntar para a Cleo"
                       >
                         <MessageSquare className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDismiss(sub)}
+                        aria-label={`Descartar ${cleanMerchantDisplay(sub.merchant)}`}
+                        title="Descartar"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
+                      >
+                        <X className="h-3.5 w-3.5" />
                       </button>
                       <span className="shrink-0 text-sm font-semibold">{fmt(sub.amount)}</span>
                     </div>
