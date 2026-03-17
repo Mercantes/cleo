@@ -379,8 +379,8 @@ export function RecurringList() {
 
   return (
     <div className="space-y-6">
-      {/* Tabs */}
-      <div className="flex border-b">
+      {/* Tabs + Add button */}
+      <div className="flex items-center border-b">
         <button
           onClick={() => setTab('expenses')}
           className={cn(
@@ -404,6 +404,13 @@ export function RecurringList() {
         >
           <TrendingUp className="h-4 w-4" />
           Receitas
+        </button>
+        <button
+          onClick={() => { setAddForm(f => ({ ...f, type: tab === 'income' ? 'income' : 'subscription' })); setShowAddForm(true); }}
+          className="ml-auto mb-0.5 flex items-center gap-1.5 rounded-full bg-emerald-500 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-emerald-600"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Adicionar
         </button>
       </div>
 
@@ -802,58 +809,68 @@ export function RecurringList() {
         </>
       )}
 
-      {/* Add manual recurring */}
-      {!isLoading && (
-        <div className="border-t pt-4">
-          {showAddForm ? (
-            <div className="rounded-xl border bg-card p-4 space-y-3">
-              <h3 className="text-sm font-semibold">Adicionar recorrência</h3>
-              <div className="grid grid-cols-2 gap-3">
+      {/* Add modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}>
+          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold">Nova recorrência</h3>
+              <button onClick={() => setShowAddForm(false)} className="rounded-md p-1 text-muted-foreground hover:text-foreground">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">Nome</label>
                 <input
                   type="text"
-                  placeholder="Nome (ex: Netflix)"
+                  placeholder="Ex: Netflix, Aluguel..."
                   value={addForm.merchant}
                   onChange={(e) => setAddForm(f => ({ ...f, merchant: e.target.value }))}
-                  className="col-span-2 rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  autoFocus
                 />
-                <input
-                  type="number"
-                  placeholder="Valor (R$)"
-                  value={addForm.amount}
-                  onChange={(e) => setAddForm(f => ({ ...f, amount: e.target.value }))}
-                  className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  min="0"
-                  step="0.01"
-                />
-                <select
-                  value={addForm.type}
-                  onChange={(e) => setAddForm(f => ({ ...f, type: e.target.value as 'subscription' | 'installment' | 'income' }))}
-                  className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="subscription">Assinatura</option>
-                  <option value="installment">Parcela</option>
-                  <option value="income">Receita</option>
-                </select>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>
-                  Cancelar
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={handleAdd}
-                  disabled={isAdding || !addForm.merchant.trim() || !addForm.amount}
-                >
-                  {isAdding ? 'Adicionando...' : 'Adicionar'}
-                </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Valor (R$)</label>
+                  <input
+                    type="number"
+                    placeholder="0,00"
+                    value={addForm.amount}
+                    onChange={(e) => setAddForm(f => ({ ...f, amount: e.target.value }))}
+                    className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    min="0"
+                    step="0.01"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">Tipo</label>
+                  <select
+                    value={addForm.type}
+                    onChange={(e) => setAddForm(f => ({ ...f, type: e.target.value as 'subscription' | 'installment' | 'income' }))}
+                    className="w-full rounded-lg border bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="subscription">Assinatura</option>
+                    <option value="installment">Parcela</option>
+                    <option value="income">Receita</option>
+                  </select>
+                </div>
               </div>
             </div>
-          ) : (
-            <Button variant="outline" className="w-full" onClick={() => { setAddForm(f => ({ ...f, type: tab === 'income' ? 'income' : 'subscription' })); setShowAddForm(true); }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar manualmente
-            </Button>
-          )}
+            <div className="flex gap-2 pt-1">
+              <Button variant="ghost" className="flex-1" onClick={() => setShowAddForm(false)}>
+                Cancelar
+              </Button>
+              <Button
+                className="flex-1 bg-emerald-500 text-white hover:bg-emerald-600"
+                onClick={handleAdd}
+                disabled={isAdding || !addForm.merchant.trim() || !addForm.amount}
+              >
+                {isAdding ? 'Adicionando...' : 'Adicionar'}
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
