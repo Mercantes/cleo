@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Landmark, ChevronRight } from 'lucide-react';
+import { Landmark, ChevronRight, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,23 @@ interface Account {
 interface AccountsData {
   accounts: Account[];
   totalBalance: number;
+  lastSyncAt: string | null;
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diffMs = now - then;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH = Math.floor(diffMin / 60);
+  const diffD = Math.floor(diffH / 24);
+
+  if (diffMin < 1) return 'agora mesmo';
+  if (diffMin < 60) return `há ${diffMin} min`;
+  if (diffH < 24) return `há ${diffH}h`;
+  if (diffD === 1) return 'ontem';
+  if (diffD < 7) return `há ${diffD} dias`;
+  return new Date(dateStr).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -101,9 +118,17 @@ export function AccountsCard() {
             {fmt(totalBalance)}
           </span>
         </div>
-        <p className="mt-0.5 text-[10px] text-muted-foreground">
-          {accounts.length} conta{accounts.length !== 1 ? 's' : ''} conectada{accounts.length !== 1 ? 's' : ''}
-        </p>
+        <div className="mt-0.5 flex items-center justify-between">
+          <p className="text-[10px] text-muted-foreground">
+            {accounts.length} conta{accounts.length !== 1 ? 's' : ''} conectada{accounts.length !== 1 ? 's' : ''}
+          </p>
+          {data?.lastSyncAt && (
+            <p className="flex items-center gap-1 text-[10px] text-muted-foreground" title={`Última sincronização: ${new Date(data.lastSyncAt).toLocaleString('pt-BR')}`}>
+              <RefreshCw className="h-2.5 w-2.5" />
+              {formatRelativeTime(data.lastSyncAt)}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
