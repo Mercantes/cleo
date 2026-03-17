@@ -44,6 +44,8 @@ const pageTitles: Record<string, string> = {
   '/onboarding': 'Configuração Inicial',
   '/upgrade': 'Plano',
   '/splits': 'Dividir Despesas',
+  '/budgets': 'Orçamentos',
+  '/challenges': 'Desafios',
   '/reports': 'Relatórios',
   '/import': 'Importar Extrato',
   '/categories': 'Categorias',

@@ -10,6 +10,9 @@ import {
   Grid3X3,
   Crosshair,
   CalendarDays,
+  PieChart,
+  Trophy,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -40,7 +43,10 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Contas', href: '/accounts', icon: Landmark },
       { label: 'Categorias', href: '/categories', icon: Grid3X3 },
+      { label: 'Orçamentos', href: '/budgets', icon: PieChart, pro: true },
       { label: 'Metas', href: '/goals', icon: Crosshair, pro: true },
+      { label: 'Desafios', href: '/challenges', icon: Trophy, pro: true },
+      { label: 'Dividir', href: '/splits', icon: Users },
     ],
   },
   {
