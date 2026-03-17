@@ -23,14 +23,21 @@ describe('formatDate', () => {
   });
 });
 
+// Helper: get local YYYY-MM-DD string (timezone-safe, unlike toISOString which uses UTC)
+function localDateStr(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 describe('formatRelativeDate', () => {
   it('should return "Hoje" for today', () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr(new Date());
     expect(formatRelativeDate(today)).toBe('Hoje');
   });
 
   it('should return "Ontem" for yesterday', () => {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yesterday = localDateStr(d);
     expect(formatRelativeDate(yesterday)).toBe('Ontem');
   });
 
@@ -42,18 +49,21 @@ describe('formatRelativeDate', () => {
 
 describe('formatDateGroupLabel', () => {
   it('should return "Hoje" for today', () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = localDateStr(new Date());
     expect(formatDateGroupLabel(today)).toBe('Hoje');
   });
 
   it('should return "Ontem" for yesterday', () => {
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yesterday = localDateStr(d);
     expect(formatDateGroupLabel(yesterday)).toBe('Ontem');
   });
 
   it('should return weekday name for dates within last 7 days', () => {
-    const threeDaysAgo = new Date(Date.now() - 3 * 86400000);
-    const dateStr = threeDaysAgo.toISOString().split('T')[0];
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    const dateStr = localDateStr(threeDaysAgo);
     const result = formatDateGroupLabel(dateStr);
     const weekdays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
     expect(weekdays).toContain(result);

@@ -15,10 +15,13 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   }
 
   // Apply user overrides: if user_override is set, use it as the effective type
-  const items = (data || []).map((r) => ({
-    ...r,
-    type: r.user_override || r.type,
-  }));
+  // Filter out dismissed items
+  const items = (data || [])
+    .filter((r) => r.user_override !== 'dismissed')
+    .map((r) => ({
+      ...r,
+      type: r.user_override || r.type,
+    }));
 
   const subscriptions = items.filter((r) => r.type === 'subscription');
   const installments = items.filter((r) => r.type === 'installment');
@@ -31,6 +34,39 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
     { subscriptions, installments, income, monthlyTotal, monthlyIncome },
     { headers: { 'Cache-Control': 'private, no-cache' } },
   );
+});
+
+// POST: User manually adds a recurring transaction
+export const POST = withAuth(async (request: NextRequest, { supabase, user }) => {
+  const body = await request.json();
+  const { merchant, amount, type, frequency } = body;
+
+  if (!merchant || !amount || !type || !['subscription', 'installment', 'income'].includes(type)) {
+    return NextResponse.json({ error: 'merchant, amount, and type (subscription|installment|income) are required' }, { status: 400 });
+  }
+
+  const { error } = await supabase
+    .from('recurring_transactions')
+    .insert({
+      user_id: user.id,
+      merchant,
+      amount,
+      type,
+      frequency: frequency || 'monthly',
+      transaction_pattern: `manual:${merchant.toLowerCase().replace(/\s+/g, '-')}`,
+      status: 'active',
+      user_override: type,
+      confidence: 'high',
+      occurrences: 0,
+      next_expected_date: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1).toISOString().split('T')[0],
+    });
+
+  if (error) {
+    console.error('[recurring] manual add failed:', error.message);
+    return NextResponse.json({ error: 'Failed to add' }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 });
 
 // PATCH: User manually reclassifies a recurring transaction
@@ -56,7 +92,7 @@ export const PATCH = withAuth(async (request: NextRequest, { supabase, user }) =
   return NextResponse.json({ success: true });
 });
 
-// DELETE: User dismisses a recurring transaction
+// DELETE: User dismisses a recurring transaction (marks as dismissed, persists across re-detection)
 export const DELETE = withAuth(async (request: NextRequest, { supabase, user }) => {
   const body = await request.json();
   const { id } = body;
@@ -67,13 +103,13 @@ export const DELETE = withAuth(async (request: NextRequest, { supabase, user }) 
 
   const { error } = await supabase
     .from('recurring_transactions')
-    .delete()
+    .update({ user_override: 'dismissed', status: 'dismissed' })
     .eq('id', id)
     .eq('user_id', user.id);
 
   if (error) {
-    console.error('[recurring] delete failed:', error.message);
-    return NextResponse.json({ error: 'Failed to delete' }, { status: 500 });
+    console.error('[recurring] dismiss failed:', error.message);
+    return NextResponse.json({ error: 'Failed to dismiss' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

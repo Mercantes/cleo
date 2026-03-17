@@ -14,6 +14,7 @@ import {
   TrendingUp,
   RefreshCw,
   X,
+  Plus,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
@@ -23,13 +24,7 @@ import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
 
-// Clean up merchant display names — remove transaction type prefixes
-function cleanMerchantDisplay(merchant: string): string {
-  return merchant
-    .replace(/^(Transferência Recebida|Transferencia Recebida|Pagamento recebido|Compra no débito|Compra no debito)\|?/i, '')
-    .replace(/^\|/, '')
-    .trim() || merchant;
-}
+import { cleanMerchantName } from '@/lib/finance/recurring-detector';
 
 interface RecurringItem {
   id: string;
@@ -41,6 +36,8 @@ interface RecurringItem {
   installments_remaining: number | null;
   next_expected_date: string;
   status: string;
+  confidence: 'high' | 'medium' | 'low';
+  occurrences: number;
 }
 
 interface RecurringData {
@@ -109,6 +106,9 @@ export function RecurringList() {
   const [isDetecting, setIsDetecting] = useState(false);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('expenses');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addForm, setAddForm] = useState({ merchant: '', amount: '', type: 'subscription' as 'subscription' | 'installment' | 'income' });
+  const [isAdding, setIsAdding] = useState(false);
 
   const now = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
@@ -159,7 +159,9 @@ export function RecurringList() {
   }
 
   const handleToggleType = useCallback(async (item: RecurringItem) => {
-    const newType = item.type === 'subscription' ? 'installment' : 'subscription';
+    const typeOrder: Array<'subscription' | 'installment' | 'income'> = ['subscription', 'installment', 'income'];
+    const currentIdx = typeOrder.indexOf(item.type);
+    const newType = typeOrder[(currentIdx + 1) % typeOrder.length];
     setTogglingId(item.id);
 
     if (data) {
@@ -181,7 +183,8 @@ export function RecurringList() {
         body: JSON.stringify({ id: item.id, type: newType }),
       });
       if (!res.ok) throw new Error();
-      toast.success(newType === 'subscription' ? 'Marcado como assinatura' : 'Marcado como parcela');
+      const labels = { subscription: 'assinatura', installment: 'parcela', income: 'receita' };
+      toast.success(`Marcado como ${labels[newType]}`);
     } catch {
       await mutate();
       toast.error('Erro ao atualizar classificação');
@@ -215,6 +218,31 @@ export function RecurringList() {
       toast.error('Erro ao descartar recorrência');
     }
   }, [data, mutate]);
+
+  async function handleAdd() {
+    if (!addForm.merchant.trim() || !addForm.amount) return;
+    setIsAdding(true);
+    try {
+      const res = await fetch('/api/recurring', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchant: addForm.merchant.trim(),
+          amount: parseFloat(addForm.amount),
+          type: addForm.type,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      await mutate();
+      setAddForm({ merchant: '', amount: '', type: 'subscription' });
+      setShowAddForm(false);
+      toast.success('Recorrência adicionada');
+    } catch {
+      toast.error('Erro ao adicionar recorrência');
+    } finally {
+      setIsAdding(false);
+    }
+  }
 
   if (isLoading) {
     return (
@@ -349,16 +377,34 @@ export function RecurringList() {
                         <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{cleanMerchantDisplay(item.merchant)}</p>
+                        <p className="truncate text-sm font-medium">{cleanMerchantName(item.merchant)}</p>
                         <p className="text-xs text-muted-foreground">
                           {item.frequency === 'monthly' ? 'Mensal' : item.frequency === 'yearly' ? 'Anual' : item.frequency}
+                          {item.occurrences > 0 && ` · ${item.occurrences} ${item.occurrences === 1 ? 'mês' : 'meses'}`}
+                          {item.confidence !== 'high' && (
+                            <span className={cn(
+                              'ml-1.5 inline-block rounded px-1 py-0.5 text-[10px] font-medium',
+                              item.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                            )}>
+                              {item.confidence === 'medium' ? 'provável' : 'possível'}
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => handleToggleType(item)}
+                        disabled={togglingId === item.id}
+                        aria-label={`Reclassificar ${cleanMerchantName(item.merchant)}`}
+                        title="Reclassificar"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                      >
+                        <ArrowRightLeft className="h-3.5 w-3.5" />
+                      </button>
+                      <button
                         onClick={() => handleDismiss(item)}
-                        aria-label={`Descartar ${cleanMerchantDisplay(item.merchant)}`}
+                        aria-label={`Descartar ${cleanMerchantName(item.merchant)}`}
                         title="Descartar"
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
                       >
@@ -482,12 +528,20 @@ export function RecurringList() {
                           <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium">{cleanMerchantDisplay(inst.merchant)}</p>
+                          <p className="truncate text-sm font-medium">{cleanMerchantName(inst.merchant)}</p>
                           <p className="text-xs text-muted-foreground">
                             {inst.installments_remaining != null
                               ? `${inst.installments_remaining} parcelas restantes`
                               : 'Em andamento'}
                             {endLabel && ` · ${endLabel}`}
+                            {inst.confidence !== 'high' && (
+                              <span className={cn(
+                                'ml-1.5 inline-block rounded px-1 py-0.5 text-[10px] font-medium',
+                                inst.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                              )}>
+                                {inst.confidence === 'medium' ? 'provável' : 'possível'}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -500,7 +554,7 @@ export function RecurringList() {
                         <button
                           onClick={() => handleToggleType(inst)}
                           disabled={togglingId === inst.id}
-                          aria-label={`Reclassificar ${cleanMerchantDisplay(inst.merchant)} como assinatura`}
+                          aria-label={`Reclassificar ${cleanMerchantName(inst.merchant)} como assinatura`}
                           title="Reclassificar como assinatura"
                           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
@@ -508,7 +562,7 @@ export function RecurringList() {
                         </button>
                         <button
                           onClick={() => handleDismiss(inst)}
-                          aria-label={`Descartar ${cleanMerchantDisplay(inst.merchant)}`}
+                          aria-label={`Descartar ${cleanMerchantName(inst.merchant)}`}
                           title="Descartar"
                           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
                         >
@@ -549,9 +603,18 @@ export function RecurringList() {
                         <Repeat className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </div>
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-medium">{cleanMerchantDisplay(sub.merchant)}</p>
+                        <p className="truncate text-sm font-medium">{cleanMerchantName(sub.merchant)}</p>
                         <p className="text-xs text-muted-foreground">
                           {sub.frequency === 'monthly' ? 'Mensal' : sub.frequency === 'yearly' ? 'Anual' : sub.frequency}
+                          {sub.occurrences > 0 && ` · ${sub.occurrences}x`}
+                          {sub.confidence !== 'high' && (
+                            <span className={cn(
+                              'ml-1.5 inline-block rounded px-1 py-0.5 text-[10px] font-medium',
+                              sub.confidence === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
+                            )}>
+                              {sub.confidence === 'medium' ? 'provável' : 'possível'}
+                            </span>
+                          )}
                         </p>
                       </div>
                     </div>
@@ -559,15 +622,15 @@ export function RecurringList() {
                       <button
                         onClick={() => handleToggleType(sub)}
                         disabled={togglingId === sub.id}
-                        aria-label={`Reclassificar ${cleanMerchantDisplay(sub.merchant)} como parcela`}
+                        aria-label={`Reclassificar ${cleanMerchantName(sub.merchant)} como parcela`}
                         title="Reclassificar como parcela"
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
                         <ArrowRightLeft className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${cleanMerchantDisplay(sub.merchant)} de ${fmt(sub.amount)}/mês?`)}`)}
-                        aria-label={`Perguntar sobre ${cleanMerchantDisplay(sub.merchant)}`}
+                        onClick={() => router.push(`/chat?q=${encodeURIComponent(`Vale a pena manter a assinatura ${cleanMerchantName(sub.merchant)} de ${fmt(sub.amount)}/mês?`)}`)}
+                        aria-label={`Perguntar sobre ${cleanMerchantName(sub.merchant)}`}
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         title="Perguntar para a Cleo"
                       >
@@ -575,7 +638,7 @@ export function RecurringList() {
                       </button>
                       <button
                         onClick={() => handleDismiss(sub)}
-                        aria-label={`Descartar ${cleanMerchantDisplay(sub.merchant)}`}
+                        aria-label={`Descartar ${cleanMerchantName(sub.merchant)}`}
                         title="Descartar"
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950"
                       >
@@ -590,6 +653,61 @@ export function RecurringList() {
           )}
 
         </>
+      )}
+
+      {/* Add manual recurring */}
+      {!isLoading && (
+        <div className="border-t pt-4">
+          {showAddForm ? (
+            <div className="rounded-xl border bg-card p-4 space-y-3">
+              <h3 className="text-sm font-semibold">Adicionar recorrência</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <input
+                  type="text"
+                  placeholder="Nome (ex: Netflix)"
+                  value={addForm.merchant}
+                  onChange={(e) => setAddForm(f => ({ ...f, merchant: e.target.value }))}
+                  className="col-span-2 rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <input
+                  type="number"
+                  placeholder="Valor (R$)"
+                  value={addForm.amount}
+                  onChange={(e) => setAddForm(f => ({ ...f, amount: e.target.value }))}
+                  className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  min="0"
+                  step="0.01"
+                />
+                <select
+                  value={addForm.type}
+                  onChange={(e) => setAddForm(f => ({ ...f, type: e.target.value as 'subscription' | 'installment' | 'income' }))}
+                  className="rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="subscription">Assinatura</option>
+                  <option value="installment">Parcela</option>
+                  <option value="income">Receita</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleAdd}
+                  disabled={isAdding || !addForm.merchant.trim() || !addForm.amount}
+                >
+                  {isAdding ? 'Adicionando...' : 'Adicionar'}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button variant="outline" className="w-full" onClick={() => setShowAddForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar manualmente
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

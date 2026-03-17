@@ -79,6 +79,14 @@ function isKnownSubscription(normalizedMerchant: string): boolean {
   return KNOWN_SUBSCRIPTIONS.some(known => normalizedMerchant.includes(known));
 }
 
+// Clean merchant name for DB storage — remove transaction type prefixes
+function cleanMerchantName(merchant: string): string {
+  return merchant
+    .replace(/^(Transferência Recebida|Transferencia Recebida|Pagamento recebido|Compra no débito|Compra no debito)\|?/i, '')
+    .replace(/^\|/, '')
+    .trim() || merchant;
+}
+
 function normalizeMerchant(description: string, merchant: string | null): string {
   const name = merchant || description;
   return name
@@ -168,6 +176,9 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
   }
 
   for (const [merchantKey, txs] of grouped) {
+    // Skip generic "pagamento recebido" without sender info
+    if (merchantKey === 'pagamento recebido' || merchantKey === 'pagamento recebido -') continue;
+
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
     const isKnown = isKnownIncomeSource(merchantKey);
@@ -487,25 +498,38 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
 
   const results = detectRecurringFromTransactions(transactions);
 
-  // Delete old auto-detected records (preserve user overrides)
+  // Fetch dismissed patterns to skip them during insert
+  const { data: dismissedRows } = await supabase
+    .from('recurring_transactions')
+    .select('transaction_pattern')
+    .eq('user_id', userId)
+    .eq('user_override', 'dismissed');
+
+  const dismissedPatterns = new Set((dismissedRows || []).map(r => r.transaction_pattern));
+
+  // Delete old auto-detected records (preserve user overrides including dismissed)
   await supabase
     .from('recurring_transactions')
     .delete()
     .eq('user_id', userId)
     .is('user_override', null);
 
-  // Insert fresh results
-  if (results.length > 0) {
-    const rows = results.map(result => ({
+  // Filter out dismissed patterns and insert fresh results
+  const filteredResults = results.filter(r => !dismissedPatterns.has(r.transaction_pattern));
+
+  if (filteredResults.length > 0) {
+    const rows = filteredResults.map(result => ({
       user_id: userId,
       transaction_pattern: result.transaction_pattern,
-      merchant: result.merchant,
+      merchant: cleanMerchantName(result.merchant),
       amount: result.amount,
       frequency: result.frequency,
       type: result.type,
       installments_remaining: result.installments_remaining ?? null,
       next_expected_date: result.next_expected_date,
       status: result.status,
+      confidence: result.confidence,
+      occurrences: result.occurrences,
     }));
 
     const { error } = await supabase
@@ -520,4 +544,4 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
   return results;
 }
 
-export { normalizeMerchant, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, isBillPayment, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS, KNOWN_BILL_PAYERS };
+export { normalizeMerchant, cleanMerchantName, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, isBillPayment, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS, KNOWN_BILL_PAYERS };
