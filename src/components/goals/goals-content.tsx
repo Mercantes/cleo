@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import dynamic from 'next/dynamic';
-import { Crosshair, Flame, Trophy, Star, TrendingUp, Settings } from 'lucide-react';
+import { Crosshair, Flame, Trophy, Star, TrendingUp, Settings, Share2 } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
 import Link from 'next/link';
 
@@ -103,7 +103,25 @@ export function GoalsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-end">
+      <div className="flex items-center justify-end gap-2">
+        <button
+          onClick={() => {
+            const text = `Atingi ${progress.percentage}% da minha meta de economia este mês! 💰`;
+            if (navigator.share) {
+              navigator.share({ title: 'Minha Meta - Cleo', text }).catch(() => {});
+            } else {
+              navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('share-toast');
+                if (btn) { btn.textContent = 'Copiado!'; setTimeout(() => { btn.textContent = 'Compartilhar'; }, 2000); }
+              });
+            }
+          }}
+          id="share-toast"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+        >
+          <Share2 className="h-4 w-4" />
+          Compartilhar
+        </button>
         <Link
           href="/settings"
           className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
@@ -145,6 +163,21 @@ export function GoalsContent() {
           <span>Receita: {fmt(progress.income)}</span>
           <span>Despesas: {fmt(progress.expenses)}</span>
         </div>
+        {progress.percentage < 100 && (() => {
+          const remaining = progress.target - progress.currentSavings;
+          const now2 = new Date();
+          const daysInMonth = new Date(now2.getFullYear(), now2.getMonth() + 1, 0).getDate();
+          const daysLeft = daysInMonth - now2.getDate();
+          if (remaining > 0 && daysLeft > 0) {
+            const perDay = remaining / daysLeft;
+            return (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Faltam {fmt(remaining)} — {fmt(perDay)}/dia nos próximos {daysLeft} dias
+              </p>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Stats row */}
@@ -154,6 +187,9 @@ export function GoalsContent() {
           <div>
             <p className="text-2xl font-bold">{gam.streak}</p>
             <p className="text-xs text-muted-foreground">Sequência atual</p>
+            {gam.streak > 0 && gam.streak >= gam.bestStreak && (
+              <p className="text-[10px] font-medium text-orange-500">Recorde pessoal!</p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border bg-card p-4">

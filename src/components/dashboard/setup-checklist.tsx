@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Circle, Landmark, Target, Sparkles, X } from 'lucide-react';
+import { CheckCircle2, Circle, Landmark, Target, Sparkles, Bell, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 
@@ -27,6 +27,11 @@ export function SetupChecklist() {
   const { data: accounts } = useApi<{ accounts: { id: string }[] }>(dismissed ? null : '/api/dashboard/accounts');
   const { data: goals } = useApi<{ goals: { monthly_savings_target: number | null } | null }>(dismissed ? null : '/api/goals');
   const { data: chatHistory } = useApi<{ messages: { id: string }[] }>(dismissed ? null : '/api/chat/history');
+
+  const hasNotifications = useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    return 'Notification' in window && Notification.permission === 'granted';
+  }, []);
 
   const steps = useMemo<SetupStep[] | null>(() => {
     if (dismissed || !accounts || !goals || !chatHistory) return null;
@@ -56,10 +61,18 @@ export function SetupChecklist() {
         icon: Sparkles,
         completed: (chatHistory.messages?.length || 0) > 0,
       },
+      {
+        id: 'notifications',
+        label: 'Ativar notificações',
+        description: 'Receba alertas e resumos semanais',
+        href: '/settings?tab=notifications',
+        icon: Bell,
+        completed: hasNotifications,
+      },
     ];
 
     return setupSteps.every((s) => s.completed) ? null : setupSteps;
-  }, [dismissed, accounts, goals, chatHistory]);
+  }, [dismissed, accounts, goals, chatHistory, hasNotifications]);
 
   if (dismissed || !steps) return null;
 
@@ -78,6 +91,8 @@ export function SetupChecklist() {
           <h3 className="text-sm font-semibold">Configure sua Cleo</h3>
           <p className="text-xs text-muted-foreground">
             {completedCount}/{steps.length} passos completos
+            {completedCount > 0 && completedCount < steps.length && ' — quase lá!'}
+            {completedCount === 0 && ' — comece agora'}
           </p>
         </div>
         <button
@@ -99,13 +114,16 @@ export function SetupChecklist() {
 
       {/* Steps */}
       <div className="mt-3 space-y-1">
-        {steps.map((step) => (
+        {steps.map((step, idx) => {
+          const isNext = !step.completed && steps.slice(0, idx).every(s => s.completed) || (!step.completed && idx === steps.findIndex(s => !s.completed));
+          return (
           <Link
             key={step.id}
             href={step.href}
             className={cn(
               'flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-accent/50',
               step.completed && 'opacity-60',
+              isNext && 'bg-primary/5 ring-1 ring-primary/20',
             )}
           >
             {step.completed ? (
@@ -121,7 +139,8 @@ export function SetupChecklist() {
             </div>
             <step.icon className="h-4 w-4 shrink-0 text-muted-foreground" />
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

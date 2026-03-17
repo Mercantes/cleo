@@ -20,9 +20,9 @@ interface Insight {
 
 function getGreeting(): string {
   const hour = new Date().getHours();
-  if (hour < 12) return 'Bom dia! Sou a Cleo';
-  if (hour < 18) return 'Boa tarde! Sou a Cleo';
-  return 'Boa noite! Sou a Cleo';
+  if (hour < 12) return '☀️ Bom dia! Sou a Cleo';
+  if (hour < 18) return '🌤️ Boa tarde! Sou a Cleo';
+  return '🌙 Boa noite! Sou a Cleo';
 }
 
 function getSubtext(insights: Insight[]): string {

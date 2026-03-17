@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { User, Landmark, Target, Shield } from 'lucide-react';
 import { ProfileForm } from './profile-form';
 import { BankList } from './bank-list';
 import { GoalsEditor } from './goals-editor';
@@ -64,11 +65,11 @@ export function SettingsContent() {
     }
   };
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'profile', label: 'Perfil' },
-    { key: 'banks', label: 'Bancos' },
-    { key: 'goals', label: 'Metas' },
-    { key: 'account', label: 'Conta' },
+  const tabs: { key: Tab; label: string; icon: typeof User }[] = [
+    { key: 'profile', label: 'Perfil', icon: User },
+    { key: 'banks', label: 'Bancos', icon: Landmark },
+    { key: 'goals', label: 'Metas', icon: Target },
+    { key: 'account', label: 'Conta', icon: Shield },
   ];
 
   if (loading) {
@@ -83,19 +84,23 @@ export function SettingsContent() {
   return (
     <div>
       <div role="tablist" className="mb-6 flex gap-1 rounded-lg bg-muted p-1">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            role="tab"
-            aria-selected={activeTab === tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab.key ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                activeTab === tab.key ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              <span className="hidden sm:inline">{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {activeTab === 'profile' && profile && (

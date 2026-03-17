@@ -160,10 +160,31 @@ export function AccountsContent() {
   const bankAccounts = data?.bankAccounts || [];
   const connections = data?.connections || [];
   const hasData = creditCards.length > 0 || bankAccounts.length > 0 || connections.length > 0;
+  const netWorth = (data?.bankTotal || 0) + (data?.creditTotal || 0);
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex items-center justify-between">
+        {hasData && (
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-xs text-muted-foreground">Patrimônio líquido</p>
+              <p className={cn('text-2xl font-bold tabular-nums', netWorth >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400')}>
+                {fmt(netWorth)}
+              </p>
+            </div>
+            <div className="hidden gap-4 sm:flex">
+              <div>
+                <p className="text-[11px] text-muted-foreground">Saldo em contas</p>
+                <p className="text-sm font-semibold text-green-600 dark:text-green-400">{fmt(data?.bankTotal || 0)}</p>
+              </div>
+              <div>
+                <p className="text-[11px] text-muted-foreground">Dívida cartões</p>
+                <p className="text-sm font-semibold text-red-500 dark:text-red-400">{fmt(data?.creditTotal || 0)}</p>
+              </div>
+            </div>
+          </div>
+        )}
         <ConnectBankButton onConnectionComplete={() => mutate()} />
       </div>
 
@@ -265,6 +286,20 @@ export function AccountsContent() {
                         {conn.accountCount} conta{conn.accountCount !== 1 ? 's' : ''}
                       </span>
                     </div>
+                    {conn.lastSyncAt && (
+                      <p className="mt-0.5 text-[11px] text-muted-foreground">
+                        Última sync: {(() => {
+                          const diff = Date.now() - new Date(conn.lastSyncAt).getTime();
+                          const mins = Math.floor(diff / 60000);
+                          if (mins < 1) return 'agora';
+                          if (mins < 60) return `há ${mins}min`;
+                          const hrs = Math.floor(mins / 60);
+                          if (hrs < 24) return `há ${hrs}h`;
+                          const days = Math.floor(hrs / 24);
+                          return `há ${days}d`;
+                        })()}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

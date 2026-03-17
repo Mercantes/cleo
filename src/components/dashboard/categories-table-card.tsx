@@ -42,6 +42,7 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
 
   if (data.length === 0) return null;
 
+  const totalAmount = data.reduce((s, d) => s + d.amount, 0);
   const maxAmount = Math.max(...data.map((d) => d.amount));
 
   return (
@@ -52,6 +53,13 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
           Ver mais ↗
         </Link>
       </div>
+      <p className="mt-1 text-[10px] text-muted-foreground">
+        {data.length} categoria{data.length !== 1 ? 's' : ''} · Total: {fmt(totalAmount)}
+        {(() => {
+          const rising = data.filter(c => c.change != null && c.change > 10).length;
+          return rising > 0 ? ` · ${rising} em alta` : '';
+        })()}
+      </p>
 
       {/* Table header */}
       <div className="mt-4 hidden items-center gap-3 border-b pb-2 text-[10px] font-medium uppercase tracking-wider text-muted-foreground sm:flex">
@@ -92,8 +100,13 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
               </span>
 
               {/* Amount */}
-              <span className="w-24 shrink-0 text-right text-sm font-medium">
-                {fmt(cat.amount)}
+              <span className="w-24 shrink-0 text-right">
+                <span className="text-sm font-medium">{fmt(cat.amount)}</span>
+                {totalAmount > 0 && (
+                  <span className="ml-1 text-[10px] text-muted-foreground">
+                    {Math.round((cat.amount / totalAmount) * 100)}%
+                  </span>
+                )}
               </span>
 
               {/* Progress bar */}

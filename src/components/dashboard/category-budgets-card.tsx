@@ -70,8 +70,14 @@ export function CategoryBudgetsCard() {
                 <span>{b.categoryIcon}</span>
                 <span className="font-medium">{b.categoryName}</span>
               </span>
-              <span className="text-muted-foreground">
-                {fmt(b.spent)} / {fmt(b.monthlyLimit)}
+              <span className="flex items-center gap-1.5 text-muted-foreground">
+                <span>{fmt(b.spent)} / {fmt(b.monthlyLimit)}</span>
+                <span className={cn(
+                  'text-[10px] font-medium',
+                  b.status === 'over' ? 'text-red-500' : b.status === 'warning' ? 'text-amber-600' : 'text-green-600 dark:text-green-400',
+                )}>
+                  {b.percentage}%
+                </span>
               </span>
             </div>
             <div className="mt-1 flex items-center gap-2">
@@ -90,6 +96,16 @@ export function CategoryBudgetsCard() {
                 <CheckCircle2 className="h-3 w-3 shrink-0 text-green-500" />
               ) : null}
             </div>
+            {b.status === 'ok' && b.monthlyLimit > b.spent && (
+              <p className="mt-0.5 text-[10px] text-muted-foreground">
+                Restam {fmt(b.monthlyLimit - b.spent)}
+              </p>
+            )}
+            {b.status === 'over' && (
+              <p className="mt-0.5 text-[10px] text-red-500">
+                {fmt(b.spent - b.monthlyLimit)} acima
+              </p>
+            )}
           </div>
         ))}
       </div>

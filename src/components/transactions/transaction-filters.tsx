@@ -242,6 +242,17 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
             Limpar filtros
           </button>
         )}
+        {hasFilters && (
+          <span className="text-[10px] text-muted-foreground">
+            {[
+              search && 'busca',
+              (dateRange?.from || dateRange?.to) && 'data',
+              type && (type === 'credit' ? 'receitas' : 'despesas'),
+              category && 'categoria',
+              bank && 'conta',
+            ].filter(Boolean).join(' + ')}
+          </span>
+        )}
       </div>
     </div>
   );

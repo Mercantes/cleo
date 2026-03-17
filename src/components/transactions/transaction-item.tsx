@@ -179,6 +179,9 @@ export function TransactionRow({
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={category} />
               <span className="text-xs text-muted-foreground">{formatRelativeDate(date)}</span>
+              {account?.bank_connections?.connector_name && (
+                <span className="text-[10px] text-muted-foreground">· {account.bank_connections.connector_name}</span>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -182,6 +182,11 @@ export function ChallengesContent() {
             <span className="font-medium">{active.length}</span>
           </div>
         </div>
+        {totalCompleted > 0 && active.length === 0 && available.length > 0 && (
+          <p className="mt-3 text-center text-xs text-muted-foreground">
+            Você já completou {totalCompleted} desafio{totalCompleted !== 1 ? 's' : ''}! Comece um novo abaixo para continuar ganhando XP.
+          </p>
+        )}
       </div>
 
       {/* Active challenges */}
@@ -298,9 +303,14 @@ export function ChallengesContent() {
                     <p className="text-sm font-medium">{template.title}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">{template.description}</p>
                     <div className="mt-3 flex items-center justify-between">
-                      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
-                        +{template.xpReward} XP
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-950 dark:text-amber-400">
+                          +{template.xpReward} XP
+                        </span>
+                        <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
+                          <Clock className="h-3 w-3" /> 7 dias
+                        </span>
+                      </div>
                       <Button
                         size="sm"
                         variant="outline"

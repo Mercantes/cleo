@@ -3,14 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, ArrowLeftRight, TrendingUp, Settings } from 'lucide-react';
+import { LayoutDashboard, MessageSquare, ArrowLeftRight, CalendarDays, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const bottomNavItems = [
   { label: 'Home', href: '/dashboard', icon: LayoutDashboard },
   { label: 'Chat', href: '/chat', icon: MessageSquare, badge: true },
   { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
-  { label: 'Projeções', href: '/projections', icon: TrendingUp },
+  { label: 'Fluxo', href: '/cashflow', icon: CalendarDays },
   { label: 'Mais', href: '/settings', icon: Settings },
 ];
 

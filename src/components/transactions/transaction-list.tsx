@@ -288,11 +288,14 @@ export function TransactionList() {
           </div>
 
           {hasMore && (
-            <div className="flex justify-center pt-2">
+            <div className="flex flex-col items-center gap-1 pt-2">
               <Button variant="outline" onClick={handleLoadMore} disabled={isLoadingMore}>
                 {isLoadingMore && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Carregar mais
               </Button>
+              <span className="text-[10px] text-muted-foreground">
+                Mostrando {transactions.length} de {total}
+              </span>
             </div>
           )}
         </>

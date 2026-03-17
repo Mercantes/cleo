@@ -59,6 +59,16 @@ export function MonthSelector({ month, onChange }: MonthSelectorProps) {
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
+      {!isCurrentMonth && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onChange(currentMonth)}
+          className="ml-1 h-7 px-2 text-[10px]"
+        >
+          Hoje
+        </Button>
+      )}
     </div>
   );
 }

@@ -97,6 +97,25 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
           {isOver ? 'acima' : 'abaixo'}
         </span>
       </div>
+      {(() => {
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const daysLeft = daysInMonth - dayOfMonth;
+        const dailyAvg = dayOfMonth > 0 ? data.expenses / dayOfMonth : 0;
+        return daysLeft > 0 && dailyAvg > 0 ? (
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            {fmt(dailyAvg)}/dia · {daysLeft} dia{daysLeft !== 1 ? 's' : ''} restante{daysLeft !== 1 ? 's' : ''}
+          </p>
+        ) : null;
+      })()}
+      {dayOfMonth >= 3 && (() => {
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        const projected = Math.round(data.expenses / dayOfMonth * daysInMonth);
+        return (
+          <p className="mt-0.5 text-[10px] text-muted-foreground">
+            Projeção: {fmt(projected)} até o fim do mês
+          </p>
+        );
+      })()}
 
       <div className="mt-1 flex items-center gap-2">
         <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium ${
@@ -163,13 +182,27 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-2 flex items-center gap-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded bg-green-500" /> Este mês
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-0.5 w-3 rounded bg-slate-400" style={{ borderTop: '1.5px dashed' }} /> Mês passado
-        </span>
+      <div className="mt-2 flex items-center justify-between">
+        <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-3 rounded bg-green-500" /> Este mês
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-0.5 w-3 rounded bg-slate-400" style={{ borderTop: '1.5px dashed' }} /> Mês passado
+          </span>
+        </div>
+        {lastMonthTotal > 0 && (() => {
+          const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+          const expectedPace = (dayOfMonth / daysInMonth) * lastMonthTotal;
+          const diff = ((data.expenses - expectedPace) / expectedPace) * 100;
+          const label = Math.abs(diff) < 5 ? 'No ritmo' : diff > 0 ? 'Acima do ritmo' : 'Abaixo do ritmo';
+          const color = Math.abs(diff) < 5 ? 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-950' : diff > 0 ? 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-950' : 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-950';
+          return (
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${color}`}>
+              {label}
+            </span>
+          );
+        })()}
       </div>
     </div>
   );

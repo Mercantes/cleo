@@ -483,7 +483,8 @@ export function RecurringList() {
 
       {/* Balance overview + CSV export */}
       {hasAnyData && monthlyIncome > 0 && monthlyTotal > 0 && (
-        <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-sm">
+        <div className="rounded-lg border bg-card px-4 py-2.5 text-sm">
+          <div className="flex items-center justify-between">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span className="text-emerald-600 dark:text-emerald-400 font-medium">{fmt(monthlyIncome)}</span>
             <span className="text-muted-foreground">−</span>
@@ -500,6 +501,12 @@ export function RecurringList() {
           >
             <Download className="h-4 w-4" />
           </button>
+          </div>
+          {monthlyTotal > 0 && (
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Compromissos representam {Math.round((monthlyTotal / monthlyIncome) * 100)}% da receita recorrente
+            </p>
+          )}
         </div>
       )}
 
@@ -835,6 +842,14 @@ export function RecurringList() {
                         <p className="text-xs text-muted-foreground">
                           {sub.frequency === 'monthly' ? 'Mensal' : sub.frequency === 'yearly' ? 'Anual' : sub.frequency}
                           {sub.occurrences > 0 && ` · ${sub.occurrences}x`}
+                          {sub.next_expected_date && (() => {
+                            const next = new Date(sub.next_expected_date + 'T00:00:00');
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const diffDays = Math.ceil((next.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                            if (diffDays >= 0 && diffDays <= 7) return ` · em ${diffDays === 0 ? 'hoje' : diffDays === 1 ? 'amanhã' : `${diffDays} dias`}`;
+                            return null;
+                          })()}
                           {sub.confidence !== 'high' && (
                             <span className={cn(
                               'ml-1.5 inline-block rounded px-1 py-0.5 text-[10px] font-medium',

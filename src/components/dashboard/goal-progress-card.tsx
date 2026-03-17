@@ -18,6 +18,8 @@ interface GoalData {
 
 export function GoalProgressCard() {
   const { data, isLoading: loading } = useApi<GoalData>('/api/goals');
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   if (loading) {
     return <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />;
@@ -43,9 +45,8 @@ export function GoalProgressCard() {
     );
   }
 
-  const [hideValues] = useHideValues();
-  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
-  const { progress, gamification } = data;
+  const progress = data.progress;
+  const gamification = data.gamification;
   const isGoalMet = progress.percentage >= 100;
   const xpProgress = gamification.xpToNextLevel > 0
     ? Math.round((gamification.xp / gamification.xpToNextLevel) * 100)
@@ -53,7 +54,6 @@ export function GoalProgressCard() {
 
   return (
     <div className="space-y-4">
-      {/* Savings progress */}
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-sm font-medium">
@@ -75,13 +75,18 @@ export function GoalProgressCard() {
           </p>
         </div>
 
-        {/* Progress bar */}
         <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
           <div
             className={`h-full rounded-full transition-all duration-500 ${isGoalMet ? 'bg-green-500' : 'bg-primary'}`}
             style={{ width: `${Math.min(100, progress.percentage)}%` }}
           />
         </div>
+
+        {!isGoalMet && progress.target > progress.currentSavings && (
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            Faltam {fmt(progress.target - progress.currentSavings)} para atingir a meta
+          </p>
+        )}
 
         {data.goals?.retirement_age_target && (
           <p className="mt-2 text-xs text-muted-foreground">
@@ -90,7 +95,6 @@ export function GoalProgressCard() {
         )}
       </div>
 
-      {/* Gamification stats */}
       <div className="grid grid-cols-3 gap-3">
         <div className="rounded-lg border bg-card p-3 text-center">
           <Star className="mx-auto h-5 w-5 text-yellow-500" />
@@ -105,11 +109,14 @@ export function GoalProgressCard() {
         </div>
 
         <div className="rounded-lg border bg-card p-3 text-center">
-          <Flame className="mx-auto h-5 w-5 text-orange-500" />
+          <Flame className={`mx-auto h-5 w-5 ${gamification.streak >= 3 ? 'text-orange-500' : 'text-muted-foreground'}`} />
           <p className="mt-1 text-lg font-bold">{gamification.streak}</p>
           <p className="mt-1 text-[10px] text-muted-foreground">
             {gamification.streak === 1 ? 'mês' : 'meses'} seguidos
           </p>
+          {gamification.streak >= gamification.bestStreak && gamification.streak > 0 && (
+            <p className="text-[9px] font-medium text-orange-500">Recorde!</p>
+          )}
         </div>
 
         <div className="rounded-lg border bg-card p-3 text-center">

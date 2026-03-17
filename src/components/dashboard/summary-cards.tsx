@@ -22,6 +22,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
     {
       label: 'Receita',
       value: fmt(data.income),
+      sub: undefined as string | undefined,
       icon: TrendingUp,
       color: 'text-green-600 dark:text-green-400',
       href: '/transactions?type=credit',
@@ -29,6 +30,11 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
     {
       label: 'Despesas',
       value: fmt(data.expenses),
+      sub: (() => {
+        const now2 = new Date();
+        const day = now2.getDate();
+        return day >= 2 ? `${fmt(Math.round(data.expenses / day))}/dia` : undefined;
+      })(),
       icon: TrendingDown,
       color: 'text-red-600 dark:text-red-400',
       href: '/transactions?type=debit',
@@ -36,6 +42,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
     {
       label: 'Saldo',
       value: fmt(data.balance),
+      sub: undefined as string | undefined,
       icon: Wallet,
       color: data.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
       href: '/transactions',
@@ -43,6 +50,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
     {
       label: 'Taxa de poupança',
       value: hideValues ? '••%' : `${data.savingsRate}%`,
+      sub: data.savingsRate >= 20 ? 'Excelente' : data.savingsRate >= 10 ? 'Boa' : data.savingsRate > 0 ? 'Baixa' : data.savingsRate === 0 ? undefined : 'Negativa',
       icon: PiggyBank,
       color: data.savingsRate >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
       href: '/projections',
@@ -63,6 +71,9 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
             <card.icon className={`h-4 w-4 ${card.color}`} />
           </div>
           <p className={`mt-1 text-lg font-bold ${card.color}`}>{card.value}</p>
+          {'sub' in card && card.sub && (
+            <p className="text-[10px] text-muted-foreground">{card.sub}</p>
+          )}
         </Link>
       ))}
       {data.percentChange !== 0 && (() => {

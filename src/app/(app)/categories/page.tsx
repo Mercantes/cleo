@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Grid3X3, TrendingDown, TrendingUp } from 'lucide-react';
+import { Grid3X3, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useApi } from '@/hooks/use-api';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -99,6 +99,10 @@ export default function CategoriesPage() {
   }, [allCategories, spending]);
 
   const maxAmount = Math.max(...mergedCategories.map((c) => c.amount), 1);
+  const activeCategories = mergedCategories.filter((c) => c.amount > 0);
+  const inactiveCount = mergedCategories.length - activeCategories.length;
+  const risingCategories = mergedCategories.filter((c) => c.change != null && c.change > 20);
+  const topCategory = activeCategories.length > 0 ? activeCategories[0] : null;
 
   if (isLoading) {
     return (
@@ -148,6 +152,49 @@ export default function CategoriesPage() {
           ))}
         </select>
       </div>
+
+      {/* Insight cards */}
+      {totalSpending > 0 && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">Total gasto</p>
+            <p className="text-lg font-bold">{formatCurrency(totalSpending)}</p>
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">Categorias ativas</p>
+            <p className="text-lg font-bold">{activeCategories.length}</p>
+            {inactiveCount > 0 && (
+              <p className="text-xs text-muted-foreground">{inactiveCount} sem gastos</p>
+            )}
+          </div>
+          {topCategory && (
+            <div className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">Maior categoria</p>
+              <p className="truncate text-lg font-bold">{topCategory.name}</p>
+              <p className="text-xs text-muted-foreground">{topCategory.percentage}% do total</p>
+            </div>
+          )}
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">Média por categoria</p>
+            <p className="text-lg font-bold">
+              {formatCurrency(activeCategories.length > 0 ? totalSpending / activeCategories.length : 0)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Alert for categories rising fast */}
+      {risingCategories.length > 0 && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900/50 dark:bg-amber-950/30">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+          <p className="text-sm text-amber-800 dark:text-amber-300">
+            {risingCategories.length === 1
+              ? `${risingCategories[0].name} subiu ${risingCategories[0].change}% vs mês anterior`
+              : `${risingCategories.length} categorias subiram mais de 20% vs mês anterior: ${risingCategories.map(c => c.name).join(', ')}`
+            }
+          </p>
+        </div>
+      )}
 
       {/* Summary bar */}
       {totalSpending > 0 && (

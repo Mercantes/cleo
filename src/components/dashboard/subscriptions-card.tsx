@@ -37,10 +37,23 @@ export function SubscriptionsCard() {
         </div>
         <span className="text-xs text-muted-foreground">{total} ativo{total > 1 ? 's' : ''}</span>
       </div>
-      <p className="mt-1 text-lg font-bold">{fmt(data.monthlyTotal)}/mês</p>
+      <div className="mt-1 flex items-baseline gap-2">
+        <p className="text-lg font-bold">{fmt(data.monthlyTotal)}/mês</p>
+        <span className="text-xs text-muted-foreground">{fmt(data.monthlyTotal * 12)}/ano</span>
+      </div>
+      {data.installments.length > 0 && (() => {
+        const ending = data.installments.filter(i => i.installments_remaining != null && i.installments_remaining <= 2);
+        if (ending.length === 0) return null;
+        return (
+          <p className="mt-1 text-[10px] text-amber-600 dark:text-amber-400">
+            {ending.length} parcela{ending.length > 1 ? 's' : ''} acabando em breve
+          </p>
+        );
+      })()}
 
       {topItems.length > 0 && (
         <div className="mt-3 space-y-1.5 border-t pt-3">
+          <p className="text-[10px] text-muted-foreground">Maiores compromissos</p>
           {topItems.map((item) => (
             <div key={item.merchant} className="flex items-center justify-between text-xs">
               <span className="truncate text-muted-foreground">

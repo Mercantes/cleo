@@ -43,6 +43,7 @@ const pageTitles: Record<string, string> = {
   '/settings': 'Configurações',
   '/onboarding': 'Configuração Inicial',
   '/upgrade': 'Plano',
+  '/cashflow': 'Fluxo de Caixa',
   '/splits': 'Dividir Despesas',
   '/budgets': 'Orçamentos',
   '/challenges': 'Desafios',

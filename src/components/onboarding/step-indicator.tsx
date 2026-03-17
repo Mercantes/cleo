@@ -9,7 +9,9 @@ interface StepIndicatorProps {
 
 export function StepIndicator({ currentStep, completedSteps }: StepIndicatorProps) {
   return (
-    <div className="flex justify-center gap-2" aria-label="Etapas de configuracao">
+    <div className="flex flex-col items-center gap-1.5" aria-label="Etapas de configuracao">
+      <p className="text-[10px] text-muted-foreground">Etapa {currentStep + 1} de {TOTAL_STEPS}</p>
+      <div className="flex gap-2">
       {Array.from({ length: TOTAL_STEPS }, (_, index) => {
         const isCompleted = completedSteps.includes(index);
         const isCurrent = index === currentStep;
@@ -34,6 +36,7 @@ export function StepIndicator({ currentStep, completedSteps }: StepIndicatorProp
           />
         );
       })}
+      </div>
     </div>
   );
 }

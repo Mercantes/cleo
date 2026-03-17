@@ -54,6 +54,9 @@ export function ConnectBankStep({ onComplete, onSkip, userName }: ConnectBankSte
         >
           Pular por enquanto
         </button>
+        <p className="text-[10px] text-center text-muted-foreground">
+          Você pode conectar seu banco depois em Configurações
+        </p>
       </div>
     </div>
   );

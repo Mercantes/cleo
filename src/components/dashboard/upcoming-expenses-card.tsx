@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
+import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import type { RecurringItem } from '@/types/dashboard';
 
@@ -67,6 +68,10 @@ export function UpcomingExpensesCard() {
         </div>
       ) : (
         <div className="mt-3 space-y-1">
+          <div className="mb-2 flex items-center justify-between rounded-md bg-muted/50 px-2 py-1.5 text-xs">
+            <span className="text-muted-foreground">{upcoming.length} pagamento{upcoming.length !== 1 ? 's' : ''} próximo{upcoming.length !== 1 ? 's' : ''}</span>
+            <span className="font-semibold">{fmt(upcoming.reduce((s, i) => s + Math.abs(i.amount), 0))}</span>
+          </div>
           {upcoming.map((item, i) => (
             <div
               key={`${item.merchant}-${i}`}
@@ -74,7 +79,12 @@ export function UpcomingExpensesCard() {
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm">{item.merchant}</p>
-                <p className="text-xs text-muted-foreground">{formatDueDate(item.next_expected_date)}</p>
+                <p className={cn(
+                  'text-xs',
+                  isWithinDays(item.next_expected_date, 2) ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-muted-foreground',
+                )}>
+                  {formatDueDate(item.next_expected_date)}
+                </p>
               </div>
               <span className="shrink-0 text-sm font-medium tabular-nums">
                 {fmt(Math.abs(item.amount))}

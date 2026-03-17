@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { ChevronDown, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 
@@ -10,6 +11,8 @@ interface HealthFactor {
   status: 'good' | 'warning' | 'bad';
   detail: string;
   tip: string;
+  actionLabel?: string;
+  actionHref?: string;
 }
 
 interface HealthData {
@@ -29,44 +32,44 @@ function calculateHealth(summary: {
   // Savings rate (0-30 points)
   if (summary.savingsRate >= 20) {
     score += 30;
-    factors.push({ label: 'Taxa de economia', status: 'good', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Parabéns! Você está economizando acima da meta de 20%. Continue assim!' });
+    factors.push({ label: 'Taxa de economia', status: 'good', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Parabéns! Você está economizando acima da meta de 20%. Continue assim!', actionLabel: 'Ver metas', actionHref: '/goals' });
   } else if (summary.savingsRate >= 10) {
     score += 15;
-    factors.push({ label: 'Taxa de economia', status: 'warning', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Tente aumentar para 20% revisando assinaturas e gastos variáveis.' });
+    factors.push({ label: 'Taxa de economia', status: 'warning', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Tente aumentar para 20% revisando assinaturas e gastos variáveis.', actionLabel: 'Ver recorrentes', actionHref: '/subscriptions' });
   } else {
-    factors.push({ label: 'Taxa de economia', status: 'bad', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Identifique 2-3 gastos que podem ser cortados. Use o chat da Cleo para sugestões personalizadas.' });
+    factors.push({ label: 'Taxa de economia', status: 'bad', detail: `${Math.round(summary.savingsRate)}% da renda`, tip: 'Identifique 2-3 gastos que podem ser cortados. Use o chat da Cleo para sugestões personalizadas.', actionLabel: 'Pedir dicas', actionHref: '/chat?q=Como+posso+economizar+mais' });
   }
 
   // Spending trend (-10 to +10 points)
   if (summary.percentChange < -5) {
     score += 10;
-    factors.push({ label: 'Tendência de gastos', status: 'good', detail: `${Math.abs(Math.round(summary.percentChange))}% menor que mês anterior`, tip: 'Seus gastos estão diminuindo. Ótimo progresso!' });
+    factors.push({ label: 'Tendência de gastos', status: 'good', detail: `${Math.abs(Math.round(summary.percentChange))}% menor que mês anterior`, tip: 'Seus gastos estão diminuindo. Ótimo progresso!', actionLabel: 'Ver relatório', actionHref: '/reports' });
   } else if (summary.percentChange > 15) {
     score -= 10;
-    factors.push({ label: 'Tendência de gastos', status: 'bad', detail: `${Math.round(summary.percentChange)}% maior que mês anterior`, tip: 'Gastos aumentaram significativamente. Verifique suas categorias para identificar o motivo.' });
+    factors.push({ label: 'Tendência de gastos', status: 'bad', detail: `${Math.round(summary.percentChange)}% maior que mês anterior`, tip: 'Gastos aumentaram significativamente. Verifique suas categorias para identificar o motivo.', actionLabel: 'Ver categorias', actionHref: '/categories' });
   } else {
-    factors.push({ label: 'Tendência de gastos', status: 'warning', detail: 'Estável', tip: 'Seus gastos estão estáveis. Procure oportunidades de redução para melhorar a economia.' });
+    factors.push({ label: 'Tendência de gastos', status: 'warning', detail: 'Estável', tip: 'Seus gastos estão estáveis. Procure oportunidades de redução para melhorar a economia.', actionLabel: 'Ver categorias', actionHref: '/categories' });
   }
 
   // Recurring expenses ratio (-5 to +5)
   if (recurringPercent <= 30) {
     score += 5;
-    factors.push({ label: 'Gastos fixos', status: 'good', detail: `${recurringPercent}% da renda`, tip: 'Seus gastos fixos estão em nível saudável. Boa gestão!' });
+    factors.push({ label: 'Gastos fixos', status: 'good', detail: `${recurringPercent}% da renda`, tip: 'Seus gastos fixos estão em nível saudável. Boa gestão!', actionLabel: 'Ver recorrentes', actionHref: '/subscriptions' });
   } else if (recurringPercent <= 50) {
-    factors.push({ label: 'Gastos fixos', status: 'warning', detail: `${recurringPercent}% da renda`, tip: 'Revise assinaturas e serviços. O ideal é manter gastos fixos abaixo de 30% da renda.' });
+    factors.push({ label: 'Gastos fixos', status: 'warning', detail: `${recurringPercent}% da renda`, tip: 'Revise assinaturas e serviços. O ideal é manter gastos fixos abaixo de 30% da renda.', actionLabel: 'Revisar assinaturas', actionHref: '/subscriptions' });
   } else {
     score -= 5;
-    factors.push({ label: 'Gastos fixos', status: 'bad', detail: `${recurringPercent}% da renda`, tip: 'Gastos fixos muito altos. Considere renegociar contratos ou cancelar serviços não essenciais.' });
+    factors.push({ label: 'Gastos fixos', status: 'bad', detail: `${recurringPercent}% da renda`, tip: 'Gastos fixos muito altos. Considere renegociar contratos ou cancelar serviços não essenciais.', actionLabel: 'Revisar assinaturas', actionHref: '/subscriptions' });
   }
 
   // Goal progress (0-5 points)
   if (goalsProgress >= 75) {
     score += 5;
-    factors.push({ label: 'Progresso da meta', status: 'good', detail: `${goalsProgress}% atingido`, tip: 'Quase lá! Mantenha o ritmo para atingir sua meta este mês.' });
+    factors.push({ label: 'Progresso da meta', status: 'good', detail: `${goalsProgress}% atingido`, tip: 'Quase lá! Mantenha o ritmo para atingir sua meta este mês.', actionLabel: 'Ver metas', actionHref: '/goals' });
   } else if (goalsProgress >= 40) {
-    factors.push({ label: 'Progresso da meta', status: 'warning', detail: `${goalsProgress}% atingido`, tip: 'Progresso moderado. Tente reservar um valor fixo no início do mês.' });
+    factors.push({ label: 'Progresso da meta', status: 'warning', detail: `${goalsProgress}% atingido`, tip: 'Progresso moderado. Tente reservar um valor fixo no início do mês.', actionLabel: 'Ver metas', actionHref: '/goals' });
   } else if (goalsProgress > 0) {
-    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido`, tip: 'Meta em risco. Configure uma transferência automática para sua poupança.' });
+    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido`, tip: 'Meta em risco. Configure uma transferência automática para sua poupança.', actionLabel: 'Ajustar meta', actionHref: '/settings?tab=goals' });
   }
 
   return { score: Math.max(0, Math.min(100, score)), factors };
@@ -98,6 +101,7 @@ export function FinancialHealthCard() {
   const { data: goals } = useApi<{ progress?: { percentage: number } }>('/api/goals');
   const { data: recurring } = useApi<{ monthlyTotal: number }>('/api/recurring');
   const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
+  const autoExpandedRef = useRef(false);
 
   const health = useMemo(() => {
     if (!summary || summary.income === 0) return null;
@@ -107,6 +111,17 @@ export function FinancialHealthCard() {
       : 0;
     return calculateHealth(summary, goalsProgress, recurringPercent);
   }, [summary, goals, recurring]);
+
+  // Auto-expand first "bad" factor to guide user action
+  useEffect(() => {
+    if (health && !autoExpandedRef.current) {
+      const bad = health.factors.find(f => f.status === 'bad');
+      if (bad) {
+        setExpandedFactor(bad.label);
+        autoExpandedRef.current = true;
+      }
+    }
+  }, [health]);
 
   if (!health) {
     return (
@@ -128,7 +143,14 @@ export function FinancialHealthCard() {
           <span className="text-xs text-muted-foreground">/100</span>
         </div>
       </div>
-      <p className={`mt-0.5 text-xs font-medium ${getScoreColor(health.score)}`}>{getScoreLabel(health.score)}</p>
+      <div className="mt-0.5 flex items-center gap-2">
+        <span className={`text-xs font-medium ${getScoreColor(health.score)}`}>{getScoreLabel(health.score)}</span>
+        <span className="text-[10px] text-muted-foreground">
+          {health.factors.filter(f => f.status === 'good').length} ok
+          {health.factors.filter(f => f.status === 'warning').length > 0 && ` · ${health.factors.filter(f => f.status === 'warning').length} atenção`}
+          {health.factors.filter(f => f.status === 'bad').length > 0 && ` · ${health.factors.filter(f => f.status === 'bad').length} ${health.factors.filter(f => f.status === 'bad').length === 1 ? 'crítico' : 'críticos'}`}
+        </span>
+      </div>
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
         <div
@@ -138,6 +160,14 @@ export function FinancialHealthCard() {
           style={{ width: `${health.score}%` }}
         />
       </div>
+      {health.score < 60 && (() => {
+        const worstFactor = health.factors.find(f => f.status === 'bad') || health.factors.find(f => f.status === 'warning');
+        return worstFactor ? (
+          <p className="mt-1.5 text-[10px] text-muted-foreground">
+            Prioridade: <span className="font-medium">{worstFactor.label.toLowerCase()}</span> — {worstFactor.detail.toLowerCase()}
+          </p>
+        ) : null;
+      })()}
 
       <div className="mt-3 space-y-1">
         {health.factors.map((f) => {
@@ -159,9 +189,17 @@ export function FinancialHealthCard() {
                 </span>
               </button>
               {isExpanded && (
-                <p className="ml-5 mt-0.5 rounded-md bg-muted/50 px-2 py-1.5 text-[11px] text-muted-foreground">
-                  {f.tip}
-                </p>
+                <div className="ml-5 mt-0.5 rounded-md bg-muted/50 px-2 py-1.5">
+                  <p className="text-[11px] text-muted-foreground">{f.tip}</p>
+                  {f.actionHref && (
+                    <Link
+                      href={f.actionHref}
+                      className="mt-1 inline-flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
+                    >
+                      {f.actionLabel} <ArrowRight className="h-2.5 w-2.5" />
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
           );

@@ -12,9 +12,19 @@ interface RetirementChartProps {
 export function RetirementChart({ timeline, fiNumber }: RetirementChartProps) {
   const [hideValues] = useHideValues();
 
+  const crossYear = timeline.find(p => p.balance >= fiNumber);
+  const lastBalance = timeline.length > 0 ? timeline[timeline.length - 1].balance : 0;
+
   return (
     <div className="w-full">
-      <p className="mb-2 text-xs font-medium text-muted-foreground">Crescimento do patrimônio</p>
+      <div className="mb-2 flex items-center justify-between">
+        <p className="text-xs font-medium text-muted-foreground">Crescimento do patrimônio</p>
+        <p className="text-[10px] text-muted-foreground">
+          {crossYear
+            ? `Meta atingida no ano ${crossYear.year}`
+            : `Projeção: ${hideValues ? HIDDEN_VALUE : formatCurrency(lastBalance)} em ${timeline.length > 0 ? timeline[timeline.length - 1].year : 0} anos`}
+        </p>
+      </div>
       <ResponsiveContainer width="100%" height={280}>
         <AreaChart data={timeline}>
           <XAxis dataKey="year" fontSize={11} tickFormatter={(v) => `${v}a`} />

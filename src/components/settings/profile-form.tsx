@@ -48,7 +48,7 @@ export function ProfileForm({ initialName, email }: ProfileFormProps) {
           type="email"
           value={email}
           disabled
-          className="mt-1"
+          className="mt-1 cursor-not-allowed opacity-60"
         />
         <p className="mt-1 text-xs text-muted-foreground">O email não pode ser alterado.</p>
       </div>

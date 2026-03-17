@@ -21,6 +21,29 @@ interface ForecastData {
   monthProgress: number;
 }
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  Alimentação: '🍽️',
+  Transporte: '🚗',
+  Moradia: '🏠',
+  Saúde: '💊',
+  Educação: '📚',
+  Lazer: '🎮',
+  Serviços: '🔧',
+  Transferências: '💸',
+  Supermercado: '🛒',
+  Restaurantes: '🍕',
+  Seguros: '🛡️',
+  Hospedagem: '🏨',
+  Telecomunicações: '📱',
+  'Serviços digitais': '💻',
+  'Hospital/Labs': '🏥',
+  Investimentos: '📈',
+  Estacionamento: '🅿️',
+  Vestuário: '👕',
+  Assinaturas: '📦',
+  Outros: '📌',
+};
+
 export function SpendingForecast() {
   const { data, isLoading: loading } = useApi<ForecastData>('/api/projections/categories');
   const predictions = data?.predictions || [];
@@ -72,7 +95,10 @@ export function SpendingForecast() {
             <div key={p.category} className="rounded-md border p-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium">{p.category}</p>
+                  <p className="text-sm font-medium">
+                    <span className="mr-1">{CATEGORY_EMOJI[p.category] || '📌'}</span>
+                    {p.category}
+                  </p>
                   <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${statusColors[p.status]}`}>
                     {statusLabels[p.status]}
                   </span>
@@ -95,7 +121,10 @@ export function SpendingForecast() {
               </div>
               <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{fmt(p.currentSpending)}</span>
-                <span>média {fmt(p.avgMonthly)}</span>
+                <span>
+                  média {fmt(p.avgMonthly)}
+                  {p.status === 'over' && p.avgMonthly > 0 && ` (+${fmt(p.currentSpending - p.avgMonthly)})`}
+                </span>
               </div>
             </div>
           );
@@ -116,6 +145,19 @@ export function SpendingForecast() {
       )}
 
       <div className="mt-3">
+        {monthProgress > 0 && monthProgress < 100 && (() => {
+          const totalCurrent = predictions.reduce((s, p) => s + p.currentSpending, 0);
+          const projected = Math.round(totalCurrent / (monthProgress / 100));
+          const totalAvg = predictions.reduce((s, p) => s + p.avgMonthly, 0);
+          return (
+            <div className="mb-2 flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Projeção para o mês</span>
+              <span className={`font-medium ${projected > totalAvg * 1.1 ? 'text-red-500' : projected < totalAvg * 0.9 ? 'text-green-600 dark:text-green-400' : ''}`}>
+                {fmt(projected)}
+              </span>
+            </div>
+          );
+        })()}
         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
           <div
             className="h-full rounded-full bg-primary/60 transition-all"

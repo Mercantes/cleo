@@ -222,6 +222,17 @@ export function GoalsEditor() {
               style={{ width: `${Math.min(100, currentProgress)}%` }}
             />
           </div>
+          {currentProgress < 100 && target > currentSavings && (() => {
+            const now = new Date();
+            const daysLeft = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+            if (daysLeft <= 0) return null;
+            const perDay = (target - currentSavings) / daysLeft;
+            return (
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Faltam {fmtGoal(target - currentSavings)} — {fmtGoal(perDay)}/dia nos próximos {daysLeft} dias
+              </p>
+            );
+          })()}
         </div>
       )}
 

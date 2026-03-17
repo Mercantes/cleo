@@ -30,20 +30,32 @@ const FAQ = [
 export default function SupportPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
-  const [form, setForm] = useState({ subject: '', message: '' });
+  const [form, setForm] = useState({ name: '', email: '', message: '' });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.subject.trim() || !form.message.trim()) {
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
       toast.error('Preencha todos os campos');
       return;
     }
     setSending(true);
-    // Simulate sending — in production this would hit an API
-    await new Promise((r) => setTimeout(r, 1000));
-    toast.success('Mensagem enviada! Responderemos em até 24h.');
-    setForm({ subject: '', message: '' });
-    setSending(false);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: form.name.trim(), email: form.email.trim(), message: form.message.trim() }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || 'Erro ao enviar');
+      }
+      toast.success('Mensagem enviada! Responderemos em até 24h.');
+      setForm({ name: '', email: '', message: '' });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao enviar mensagem');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -112,18 +124,33 @@ export default function SupportPage() {
       <div>
         <h2 className="mb-4 text-lg font-semibold">Enviar Mensagem</h2>
         <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border bg-card p-6">
-          <div>
-            <label htmlFor="subject" className="mb-1.5 block text-sm font-medium">
-              Assunto
-            </label>
-            <input
-              id="subject"
-              type="text"
-              value={form.subject}
-              onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
-              placeholder="Ex: Problema com importação"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="name" className="mb-1.5 block text-sm font-medium">
+                Nome
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                placeholder="Seu nome"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="mb-1.5 block text-sm font-medium">
+                E-mail
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                placeholder="seu@email.com"
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
           </div>
           <div>
             <label htmlFor="message" className="mb-1.5 block text-sm font-medium">

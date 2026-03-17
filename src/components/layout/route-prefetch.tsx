@@ -31,6 +31,16 @@ const PREFETCH_MAP: Record<string, string[]> = {
   '/reports': [
     '/api/reports/monthly',
   ],
+  '/cashflow': [
+    '/api/recurring',
+    '/api/dashboard/accounts',
+  ],
+  '/accounts': [
+    '/api/accounts',
+  ],
+  '/categories': [
+    '/api/categories',
+  ],
 };
 
 const fetcher = (url: string) => fetch(url).then((r) => r.ok ? r.json() : null);

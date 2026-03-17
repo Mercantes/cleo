@@ -141,6 +141,27 @@ export function MonthComparison() {
             </div>
           </div>
 
+          {/* Overall verdict */}
+          {(() => {
+            let score1 = 0;
+            let score2 = 0;
+            if (comp.month1.savingsRate > comp.month2.savingsRate) score1++; else if (comp.month2.savingsRate > comp.month1.savingsRate) score2++;
+            if (comp.month1.income > comp.month2.income) score1++; else if (comp.month2.income > comp.month1.income) score2++;
+            if (comp.month1.expenses < comp.month2.expenses) score1++; else if (comp.month2.expenses < comp.month1.expenses) score2++;
+            const winner = score1 > score2 ? comp.month1.label : score2 > score1 ? comp.month2.label : null;
+            return (
+              <div className="rounded-lg border bg-card p-3 text-center">
+                <p className="text-xs text-muted-foreground">Veredicto</p>
+                {winner ? (
+                  <p className="text-sm font-semibold text-emerald-600">{winner} foi o melhor mês</p>
+                ) : (
+                  <p className="text-sm font-semibold text-muted-foreground">Empate entre os meses</p>
+                )}
+                <p className="text-[10px] text-muted-foreground">Baseado em receita, despesas e taxa de economia</p>
+              </div>
+            );
+          })()}
+
           {/* Category comparison */}
           <div className="rounded-lg border bg-card p-4">
             <h3 className="mb-3 font-medium">Comparação por categoria</h3>

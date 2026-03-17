@@ -23,6 +23,8 @@ interface StreakData {
 
 export function StreakCard() {
   const { data, isLoading: loading } = useApi<StreakData>('/api/goals/streak');
+  const [hideValues] = useHideValues();
+  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   if (loading) {
     return <div className="h-[160px] animate-pulse rounded-lg border bg-muted" />;
@@ -31,9 +33,6 @@ export function StreakCard() {
   if (!data || data.target <= 0 || data.months.length === 0) {
     return null;
   }
-
-  const [hideValues] = useHideValues();
-  const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { months, currentStreak, bestStreak } = data;
   // Show last 6 months for compact display
   const displayMonths = months.slice(-6);
@@ -100,12 +99,25 @@ export function StreakCard() {
           </div>
         ))}
       </div>
+      {displayMonths.length >= 2 && (() => {
+        const metCount = displayMonths.filter(m => m.metGoal).length;
+        return (
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            Meta atingida em {metCount} de {displayMonths.length} meses ({Math.round((metCount / displayMonths.length) * 100)}%)
+          </p>
+        );
+      })()}
 
-      {currentStreak >= 2 && (
-        <p className="mt-3 text-xs text-green-600 dark:text-green-400">
-          Continue assim! Manter a sequência fica mais fácil com o tempo.
-        </p>
-      )}
+      {currentStreak >= 1 && (() => {
+        const streakSavings = months.slice(-currentStreak).reduce((s, m) => s + m.savings, 0);
+        return streakSavings > 0 ? (
+          <p className="mt-3 text-xs text-green-600 dark:text-green-400">
+            {currentStreak >= 2
+              ? `Você economizou ${fmt(streakSavings)} nessa sequência. Continue assim!`
+              : `Você economizou ${fmt(streakSavings)} este mês. Mantenha o ritmo!`}
+          </p>
+        ) : null;
+      })()}
     </div>
   );
 }

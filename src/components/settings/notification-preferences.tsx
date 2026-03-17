@@ -131,6 +131,15 @@ export function NotificationPreferences() {
         </div>
       )}
 
+      {(() => {
+        const activeCount = items.filter(i => prefs[i.key]).length;
+        return (
+          <p className="text-[10px] text-muted-foreground">
+            {activeCount} de {items.length} notificações ativas
+          </p>
+        );
+      })()}
+
       {items.map((item) => (
         <div key={item.key} className="flex items-center justify-between rounded-lg border p-3">
           <div>

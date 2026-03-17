@@ -64,10 +64,15 @@ export function InsightsBar() {
 
   return (
     <div className="space-y-2">
-      {visible.map((insight) => (
+      {visible.length > 1 && (
+        <p className="text-[10px] font-medium text-muted-foreground">
+          {visible.length} insight{visible.length > 1 ? 's' : ''} para você
+        </p>
+      )}
+      {visible.map((insight, idx) => (
         <div
           key={insight.id}
-          className={`flex items-start gap-3 rounded-lg border p-3 ${typeStyles[insight.type]}`}
+          className={`flex items-start gap-3 rounded-lg border p-3 ${typeStyles[insight.type]} ${idx === 0 ? 'ring-1 ring-primary/20' : ''}`}
         >
           <span className="mt-0.5 text-lg leading-none">{insight.icon}</span>
           <div className="min-w-0 flex-1">

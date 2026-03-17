@@ -71,9 +71,12 @@ export function RetirementForm({ values, onChange, onSubmit, loading }: Retireme
           </div>
         </div>
       </div>
-      <Button onClick={onSubmit} disabled={loading} className="w-full">
+      <Button onClick={onSubmit} disabled={loading || values.targetMonthlyIncome <= 0} className="w-full">
         {loading ? 'Calculando...' : 'Calcular'}
       </Button>
+      {values.targetMonthlyIncome <= 0 && (
+        <p className="text-[10px] text-center text-muted-foreground">Preencha a renda desejada para calcular</p>
+      )}
     </div>
   );
 }

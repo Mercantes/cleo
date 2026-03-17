@@ -14,7 +14,7 @@ interface AccountsData {
   accounts?: Array<{ balance: number; name: string }>;
 }
 
-const PERIODS = ['1M', '3M', 'YTD', '1Y', 'ALL'] as const;
+const PERIODS = ['1M', '3M', 'YTD', '1A', 'Tudo'] as const;
 type Period = (typeof PERIODS)[number];
 
 function generateHistoricalData(currentBalance: number, period: Period) {
@@ -24,8 +24,8 @@ function generateHistoricalData(currentBalance: number, period: Period) {
     case '1M': months = 1; break;
     case '3M': months = 3; break;
     case 'YTD': months = now.getMonth() + 1; break;
-    case '1Y': months = 12; break;
-    case 'ALL': months = 24; break;
+    case '1A': months = 12; break;
+    case 'Tudo': months = 24; break;
   }
 
   const points = Math.max(months * 4, 8);
@@ -63,7 +63,7 @@ function WorthTooltip({ active, payload, label }: { active?: boolean; payload?: 
 
 export function NetWorthCard() {
   const { data } = useApi<AccountsData>('/api/dashboard/accounts');
-  const [period, setPeriod] = useState<Period>('1M');
+  const [period, setPeriod] = useState<Period>('1A');
 
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
@@ -106,6 +106,11 @@ export function NetWorthCard() {
               no período
             </span>
           </div>
+          {firstValue !== 0 && (
+            <p className="mt-0.5 text-[10px] text-muted-foreground">
+              {isPositive ? '+' : ''}{fmt(balance - firstValue)} desde o início do período
+            </p>
+          )}
 
           <div className="mt-4 h-[120px] w-full" role="img" aria-label="Gráfico de evolução patrimonial">
             <ResponsiveContainer width="100%" height="100%">

@@ -67,31 +67,43 @@ export function AccountsCard() {
                 <p className="text-xs text-muted-foreground">{TYPE_LABELS[acc.type] || acc.type}</p>
               </div>
             </div>
-            <span
-              className={cn(
-                'text-sm font-semibold',
-                acc.balance >= 0
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-500 dark:text-red-400',
+            <div className="text-right">
+              <span
+                className={cn(
+                  'text-sm font-semibold',
+                  acc.balance >= 0
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-red-500 dark:text-red-400',
+                )}
+              >
+                {fmt(acc.balance)}
+              </span>
+              {totalBalance !== 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  {Math.round((acc.balance / totalBalance) * 100)}%
+                </p>
               )}
-            >
-              {fmt(acc.balance)}
-            </span>
+            </div>
           </div>
         ))}
       </div>
-      <div className="mt-3 flex items-center justify-between border-t pt-3">
-        <span className="text-sm font-medium text-muted-foreground">Patrimônio total</span>
-        <span
-          className={cn(
-            'text-base font-bold',
-            totalBalance >= 0
-              ? 'text-green-600 dark:text-green-400'
-              : 'text-red-500 dark:text-red-400',
-          )}
-        >
-          {fmt(totalBalance)}
-        </span>
+      <div className="mt-3 border-t pt-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-medium text-muted-foreground">Patrimônio total</span>
+          <span
+            className={cn(
+              'text-base font-bold',
+              totalBalance >= 0
+                ? 'text-green-600 dark:text-green-400'
+                : 'text-red-500 dark:text-red-400',
+            )}
+          >
+            {fmt(totalBalance)}
+          </span>
+        </div>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          {accounts.length} conta{accounts.length !== 1 ? 's' : ''} conectada{accounts.length !== 1 ? 's' : ''}
+        </p>
       </div>
     </div>
   );

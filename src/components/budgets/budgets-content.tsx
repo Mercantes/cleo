@@ -211,6 +211,33 @@ export function BudgetsContent() {
 
   return (
     <div className="space-y-6">
+      {/* Overall progress */}
+      {totalLimit > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex items-center justify-between text-sm">
+            <span className="font-medium">Orçamento geral</span>
+            <span className={cn(
+              'text-xs font-semibold',
+              totalSpent > totalLimit ? 'text-red-500' : totalSpent > totalLimit * 0.8 ? 'text-amber-600' : 'text-emerald-600',
+            )}>
+              {Math.round((totalSpent / totalLimit) * 100)}%
+            </span>
+          </div>
+          <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn(
+                'h-full rounded-full transition-all',
+                totalSpent > totalLimit ? 'bg-red-500' : totalSpent > totalLimit * 0.8 ? 'bg-amber-500' : 'bg-emerald-500',
+              )}
+              style={{ width: `${Math.min(Math.round((totalSpent / totalLimit) * 100), 100)}%` }}
+            />
+          </div>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            {fmt(totalSpent)} de {fmt(totalLimit)} utilizados
+          </p>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <div className="rounded-xl border bg-card p-4">
@@ -301,10 +328,17 @@ export function BudgetsContent() {
                 style={{ width: `${Math.min(budget.percentage, 100)}%` }}
               />
             </div>
-            {budget.status === 'over' && (
+            {budget.status === 'over' ? (
               <p className="mt-1.5 text-xs text-red-500">
                 {fmt(budget.spent - budget.monthlyLimit)} acima do limite
               </p>
+            ) : (
+              <div className="mt-1.5 flex items-center justify-between text-xs text-muted-foreground">
+                <span>Restam {fmt(budget.monthlyLimit - budget.spent)}</span>
+                <span>
+                  ~{fmt((budget.monthlyLimit - budget.spent) / Math.max(1, new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate() - new Date().getDate()))}/dia
+                </span>
+              </div>
             )}
           </div>
         ))}

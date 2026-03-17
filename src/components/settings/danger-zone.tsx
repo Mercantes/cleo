@@ -77,7 +77,7 @@ export function DangerZone() {
             <h3 className="font-semibold text-red-700 dark:text-red-400">Excluir conta</h3>
             <p className="mt-1 text-sm text-red-600 dark:text-red-400/80">
               Esta ação é irreversível. Todos os seus dados, transações, metas e histórico de chat serão
-              permanentemente excluídos.
+              permanentemente excluídos. Recomendamos exportar seus dados antes.
             </p>
             {!showConfirm ? (
               <Button

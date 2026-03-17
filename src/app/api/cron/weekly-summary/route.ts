@@ -54,27 +54,57 @@ export async function GET(request: Request) {
 
   let sentCount = 0;
 
+  const twoWeeksAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+  const prevWeekStart = twoWeeksAgo.toISOString().split('T')[0];
+
   for (const [userId, subs] of userSubs) {
     try {
-      // Get weekly transactions
+      // Get this week + previous week transactions for comparison
       const { data: transactions } = await db
         .from('transactions')
-        .select('amount, type')
+        .select('amount, type, category_name, date')
         .eq('user_id', userId)
-        .gte('date', weekStart)
+        .gte('date', prevWeekStart)
         .lte('date', weekEnd);
 
       if (!transactions || transactions.length === 0) continue;
 
-      const income = transactions
+      const thisWeek = transactions.filter((t: { date: string }) => t.date >= weekStart);
+      const prevWeek = transactions.filter((t: { date: string }) => t.date >= prevWeekStart && t.date < weekStart);
+
+      const income = thisWeek
         .filter((t: { type: string }) => t.type === 'credit')
         .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-      const expenses = transactions
+      const expenses = thisWeek
         .filter((t: { type: string }) => t.type === 'debit')
         .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-      const txCount = transactions.length;
+      const prevExpenses = prevWeek
+        .filter((t: { type: string }) => t.type === 'debit')
+        .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
+      const txCount = thisWeek.length;
 
-      const body = `${txCount} transações esta semana. Gastos: ${formatBRL(expenses)}${income > 0 ? ` | Receitas: ${formatBRL(income)}` : ''}. Abra o app para mais detalhes.`;
+      // Top 3 spending categories
+      const catTotals = new Map<string, number>();
+      for (const t of thisWeek.filter((t: { type: string }) => t.type === 'debit')) {
+        const cat = (t as { category_name?: string }).category_name || 'Outros';
+        catTotals.set(cat, (catTotals.get(cat) || 0) + Math.abs(Number(t.amount)));
+      }
+      const topCats = [...catTotals.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([name, val]) => `${name}: ${formatBRL(val)}`)
+        .join(', ');
+
+      // Week-over-week comparison
+      let comparison = '';
+      if (prevExpenses > 0) {
+        const pctChange = ((expenses - prevExpenses) / prevExpenses) * 100;
+        comparison = pctChange > 0
+          ? ` (+${Math.round(pctChange)}% vs semana anterior)`
+          : ` (${Math.round(pctChange)}% vs semana anterior)`;
+      }
+
+      const body = `${txCount} transações. Gastos: ${formatBRL(expenses)}${comparison}${income > 0 ? ` | Receitas: ${formatBRL(income)}` : ''}. Top: ${topCats || 'N/A'}.`;
 
       // Send push to all user devices
       for (const sub of subs) {

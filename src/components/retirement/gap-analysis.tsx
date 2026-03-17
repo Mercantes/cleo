@@ -13,6 +13,11 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const isOnTrack = data.gap <= 0;
 
+  const currentBalance = data.portfolioTimeline?.[0]?.balance ?? 0;
+  const progressPercent = data.fiNumber > 0
+    ? Math.min(100, Math.round((currentBalance / data.fiNumber) * 100))
+    : 0;
+
   return (
     <div className="space-y-3">
       <div className="rounded-lg border bg-card p-4">
@@ -22,6 +27,16 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
           Meta FIRE: {fmt(data.fiNumber)}
+        </p>
+        {/* Progress toward FIRE */}
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-emerald-500 transition-all"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {progressPercent}% do patrimônio necessário
         </p>
       </div>
 
@@ -39,17 +54,22 @@ export function GapAnalysis({ data }: GapAnalysisProps) {
 
       {data.scenarios.length > 0 && (
         <div className="rounded-lg border bg-card p-4">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Cenários</p>
+          <p className="mb-2 text-xs font-medium text-muted-foreground">Cenários — quanto mais investir, mais cedo se aposenta</p>
           <div className="space-y-2">
             {data.scenarios.map((s) => (
               <div key={s.extraMonthly} className="flex items-center justify-between text-sm">
                 <span>+{fmt(s.extraMonthly)}/mês</span>
                 <span className="text-green-600 dark:text-green-400">
-                  {s.yearsSaved > 0 ? `${s.yearsSaved} anos antes` : '—'}
+                  {s.yearsSaved > 0 ? `${s.yearsSaved} ${s.yearsSaved === 1 ? 'ano' : 'anos'} antes` : '—'}
                 </span>
               </div>
             ))}
           </div>
+          {data.scenarios.length > 0 && data.scenarios[data.scenarios.length - 1].yearsSaved > 0 && (
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              Melhor cenário: aposente {data.scenarios[data.scenarios.length - 1].yearsSaved} anos mais cedo com +{fmt(data.scenarios[data.scenarios.length - 1].extraMonthly)}/mês
+            </p>
+          )}
         </div>
       )}
     </div>

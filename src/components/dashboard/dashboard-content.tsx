@@ -19,6 +19,7 @@ import { RecentTransactionsCard } from './recent-transactions-card';
 import { SetupChecklist } from './setup-checklist';
 import { CategoryBudgetsCard } from './category-budgets-card';
 import { StreakCard } from './streak-card';
+import { EmergencyFundCard } from './emergency-fund-card';
 import { PartialResultCard } from './partial-result-card';
 import { CategoriesTableCard } from './categories-table-card';
 import { UpcomingExpensesCard } from './upcoming-expenses-card';
@@ -42,6 +43,32 @@ function getGreeting(): string {
   if (hour < 12) return 'Bom dia';
   if (hour < 18) return 'Boa tarde';
   return 'Boa noite';
+}
+
+function getQuickInsight(summary: SummaryData | null): string | null {
+  if (!summary || (summary.income === 0 && summary.expenses === 0)) return null;
+
+  const now = new Date();
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const monthProgress = Math.round((dayOfMonth / daysInMonth) * 100);
+
+  if (summary.savingsRate >= 20) {
+    return `Economia de ${Math.round(summary.savingsRate)}% este mês — excelente!`;
+  }
+
+  if (summary.expenses > 0 && summary.income > 0) {
+    const spendingPace = (summary.expenses / dayOfMonth) * daysInMonth;
+    if (spendingPace > summary.income * 1.1) {
+      return `No ritmo atual, seus gastos podem ultrapassar a receita este mês.`;
+    }
+  }
+
+  if (monthProgress > 50 && summary.savingsRate >= 10) {
+    return `Já passou da metade do mês com ${Math.round(summary.savingsRate)}% de economia.`;
+  }
+
+  return null;
 }
 
 export function DashboardContent() {
@@ -149,10 +176,11 @@ export function DashboardContent() {
       {/* Pull-to-refresh indicator (mobile) */}
       <div
         ref={indicatorRef}
-        className="pointer-events-none flex justify-center opacity-0 md:hidden"
+        className="pointer-events-none flex flex-col items-center gap-1 opacity-0 transition-opacity md:hidden"
         style={{ transform: 'translateY(0)' }}
       >
         <RefreshCw className="h-5 w-5 text-primary" />
+        <span className="text-[10px] text-muted-foreground">Puxe para atualizar</span>
       </div>
 
       <div className="flex items-center justify-between">
@@ -169,7 +197,7 @@ export function DashboardContent() {
             </button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Aqui está o resumo das suas finanças
+            {getQuickInsight(summary) || 'Aqui está o resumo das suas finanças'}
           </p>
         </div>
         <MonthSelector month={month} onChange={handleMonthChange} />
@@ -232,9 +260,12 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
-          {/* Row 4: Accounts */}
+          {/* Row 4: Accounts + Emergency Fund */}
           <AnimateIn delay={225}>
-            <ErrorBoundary><AccountsCard /></ErrorBoundary>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ErrorBoundary><AccountsCard /></ErrorBoundary>
+              <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
+            </div>
           </AnimateIn>
 
           {/* Row 4: Goals, Challenges, Health */}

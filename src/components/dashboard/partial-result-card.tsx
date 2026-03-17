@@ -29,6 +29,9 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
         <span className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
           {fmt(balance)}
         </span>
+        <span className={`text-xs font-medium ${balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+          {balance >= 0 ? 'Positivo' : 'Negativo'}
+        </span>
       </div>
 
       {data.percentChange !== 0 && (
@@ -63,6 +66,21 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
           <p className="mt-0.5 text-sm font-bold">{data.savingsRate}%</p>
         </div>
       </div>
+
+      {/* Daily average */}
+      {(() => {
+        const now = new Date();
+        const dayOfMonth = now.getDate();
+        if (dayOfMonth < 2) return null;
+        const dailyExpense = expenses / dayOfMonth;
+        const dailyIncome = income / dayOfMonth;
+        return (
+          <div className="mt-2 flex items-center justify-between border-t pt-2 text-[10px] text-muted-foreground">
+            <span>Média diária: <span className="font-medium text-red-500">{fmt(dailyExpense)}</span> gasto</span>
+            <span><span className="font-medium text-green-600 dark:text-green-400">{fmt(dailyIncome)}</span> receita</span>
+          </div>
+        );
+      })()}
     </div>
   );
 }

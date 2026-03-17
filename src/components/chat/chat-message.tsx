@@ -210,7 +210,14 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt 
               {new Date(createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
             </time>
           )}
-          {!isUser && text && <CopyButton text={text} />}
+          <div className="flex items-center gap-1">
+            {!isUser && text && text.length > 200 && (
+              <span className="text-[9px] opacity-0 transition-opacity group-hover:opacity-40">
+                {Math.ceil(text.length / 5)} palavras
+              </span>
+            )}
+            {!isUser && text && <CopyButton text={text} />}
+          </div>
         </div>
       </div>
     </div>

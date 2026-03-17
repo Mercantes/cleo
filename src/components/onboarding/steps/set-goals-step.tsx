@@ -45,6 +45,9 @@ export function SetGoalsStep({ onComplete, onSkip }: SetGoalsStepProps) {
             placeholder="Ex: 500"
             className="mt-1"
           />
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Especialistas recomendam economizar pelo menos 20% da renda
+          </p>
         </div>
 
         <div>

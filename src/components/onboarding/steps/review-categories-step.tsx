@@ -23,11 +23,17 @@ export function ReviewCategoriesStep({ onComplete, onSkip }: ReviewCategoriesSte
         </p>
       </div>
 
-      <div className="rounded-lg border p-4 text-left">
+      <div className="rounded-lg border p-4 text-left space-y-2">
         <p className="text-sm text-muted-foreground">
           Suas transações serão categorizadas automaticamente conforme são importadas.
           Você pode revisar e ajustar as categorias a qualquer momento na tela de transações.
         </p>
+        <div className="flex flex-wrap gap-1.5">
+          {['🍔 Alimentação', '🚗 Transporte', '🏠 Moradia', '💊 Saúde', '🎮 Lazer'].map((cat) => (
+            <span key={cat} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">{cat}</span>
+          ))}
+          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">+10 mais</span>
+        </div>
       </div>
 
       <div className="space-y-3">

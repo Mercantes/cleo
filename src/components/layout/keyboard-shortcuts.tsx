@@ -15,6 +15,14 @@ import {
   Moon,
   Download,
   RefreshCw,
+  CalendarDays,
+  PieChart,
+  Crosshair,
+  Grid3X3,
+  Landmark,
+  BarChart3,
+  Trophy,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -90,12 +98,18 @@ export function KeyboardShortcuts() {
       { id: 'dashboard', label: 'Ir para Dashboard', section: 'Navegação', icon: LayoutDashboard, shortcut: ['⌘', 'D'], action: () => navigate('/dashboard') },
       { id: 'chat', label: 'Ir para Chat', section: 'Navegação', icon: MessageSquare, shortcut: ['⌘', 'C'], action: () => navigate('/chat') },
       { id: 'transactions', label: 'Ir para Transações', section: 'Navegação', icon: ArrowLeftRight, shortcut: ['⌘', 'T'], action: () => navigate('/transactions') },
-      { id: 'splits', label: 'Ir para Dividir Despesas', section: 'Navegação', icon: ArrowLeftRight, action: () => navigate('/splits') },
-      { id: 'reports', label: 'Ir para Relatórios', section: 'Navegação', icon: TrendingUp, shortcut: ['⌘', 'R'], action: () => navigate('/reports') },
+      { id: 'cashflow', label: 'Ir para Fluxo de Caixa', section: 'Navegação', icon: CalendarDays, shortcut: ['⌘', 'F'], action: () => navigate('/cashflow') },
+      { id: 'accounts', label: 'Ir para Contas', section: 'Navegação', icon: Landmark, action: () => navigate('/accounts') },
+      { id: 'categories', label: 'Ir para Categorias', section: 'Navegação', icon: Grid3X3, action: () => navigate('/categories') },
+      { id: 'budgets', label: 'Ir para Orçamentos', section: 'Navegação', icon: PieChart, action: () => navigate('/budgets') },
+      { id: 'goals', label: 'Ir para Metas', section: 'Navegação', icon: Crosshair, action: () => navigate('/goals') },
+      { id: 'challenges', label: 'Ir para Desafios', section: 'Navegação', icon: Trophy, action: () => navigate('/challenges') },
+      { id: 'splits', label: 'Ir para Dividir Despesas', section: 'Navegação', icon: Users, action: () => navigate('/splits') },
+      { id: 'reports', label: 'Ir para Relatórios', section: 'Navegação', icon: BarChart3, shortcut: ['⌘', 'R'], action: () => navigate('/reports') },
       { id: 'import', label: 'Importar Extrato', section: 'Navegação', icon: Download, action: () => navigate('/import') },
-      { id: 'subscriptions', label: 'Ir para Assinaturas', section: 'Navegação', icon: Repeat, action: () => navigate('/subscriptions') },
+      { id: 'subscriptions', label: 'Ir para Recorrentes', section: 'Navegação', icon: Repeat, action: () => navigate('/subscriptions') },
       { id: 'projections', label: 'Ir para Projeções', section: 'Navegação', icon: TrendingUp, shortcut: ['⌘', 'P'], action: () => navigate('/projections') },
-      { id: 'retirement', label: 'Ir para Aposentadoria', section: 'Navegação', icon: Target, action: () => navigate('/retirement') },
+      { id: 'retirement', label: 'Ir para Patrimônio', section: 'Navegação', icon: Target, action: () => navigate('/retirement') },
       { id: 'settings', label: 'Ir para Configurações', section: 'Navegação', icon: Settings, shortcut: ['⌘', 'S'], action: () => navigate('/settings') },
       // Actions
       {
@@ -217,7 +231,9 @@ export function KeyboardShortcuts() {
         d: '/dashboard',
         c: '/chat',
         t: '/transactions',
+        f: '/cashflow',
         p: '/projections',
+        r: '/reports',
         s: '/settings',
       };
       if (shortcutMap[key] && !document.querySelector('[data-command-palette]')) {

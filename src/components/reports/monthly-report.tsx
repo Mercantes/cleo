@@ -54,6 +54,34 @@ export function MonthlyReport() {
     window.print();
   };
 
+  const handleExportCSV = () => {
+    if (!report) return;
+    const rows = [
+      ['Relatório Mensal', `${monthNames[month - 1]} ${year}`],
+      [],
+      ['Resumo'],
+      ['Receita', String(report.summary.income)],
+      ['Despesas', String(report.summary.expenses)],
+      ['Saldo', String(report.summary.balance)],
+      ['Taxa de economia', `${report.summary.savingsRate}%`],
+      ['Transações', String(report.summary.transactionCount)],
+      [],
+      ['Categoria', 'Ícone', 'Total', 'Transações', '%'],
+      ...report.categories.map(c => [c.name, c.icon, String(c.total), String(c.count), `${c.percentage}%`]),
+      [],
+      ['Data', 'Gasto diário'],
+      ...report.dailySpending.map(d => [d.date, String(d.amount)]),
+    ];
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${monthNames[month - 1].toLowerCase()}-${year}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const changeMonth = (delta: number) => {
     let newMonth = month + delta;
     let newYear = year;
@@ -90,13 +118,22 @@ export function MonthlyReport() {
             &rarr;
           </button>
         </div>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
-        >
-          <Download className="h-4 w-4" />
-          Imprimir / PDF
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            <Download className="h-4 w-4" />
+            CSV
+          </button>
+          <button
+            onClick={handlePrint}
+            className="flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            <Download className="h-4 w-4" />
+            PDF
+          </button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -122,9 +159,51 @@ export function MonthlyReport() {
           <p className={`text-xl font-bold ${report.summary.savingsRate >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {report.summary.savingsRate}%
           </p>
-          <p className="text-xs text-muted-foreground">{report.summary.transactionCount} transações</p>
+          <p className="text-xs text-muted-foreground">
+            {report.summary.transactionCount} transações
+            {report.summary.transactionCount > 0 && ` · ${fmt(report.summary.expenses / report.summary.transactionCount)} média`}
+          </p>
         </div>
       </div>
+
+      {/* Daily average + insight */}
+      {report.summary.expenses > 0 && (
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">Média diária</p>
+            {(() => {
+              const avg = report.dailySpending.length > 0 ? report.summary.expenses / report.dailySpending.length : 0;
+              const aboveAvg = report.dailySpending.filter(d => d.amount > avg).length;
+              return (
+                <>
+                  <p className="text-xl font-bold">{fmt(avg)}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {aboveAvg} dia{aboveAvg !== 1 ? 's' : ''} acima da média
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+          <div className="rounded-lg border bg-card p-3">
+            <p className="text-xs text-muted-foreground">Dia mais caro</p>
+            <p className="text-xl font-bold">{fmt(maxDailySpending)}</p>
+            <p className="text-xs text-muted-foreground">
+              {report.dailySpending.length > 0
+                ? new Date(report.dailySpending.reduce((a, b) => a.amount > b.amount ? a : b).date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+                : '—'}
+            </p>
+          </div>
+          {report.categories.length > 0 && (
+            <div className="col-span-2 rounded-lg border bg-card p-3 md:col-span-1">
+              <p className="text-xs text-muted-foreground">Maior categoria</p>
+              <p className="text-xl font-bold">{report.categories[0].icon} {report.categories[0].name}</p>
+              <p className="text-xs text-muted-foreground">
+                {fmt(report.categories[0].total)} ({report.categories[0].percentage}% do total)
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Category breakdown */}
       <div className="rounded-lg border bg-card p-4">

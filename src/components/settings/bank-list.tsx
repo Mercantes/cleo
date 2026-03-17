@@ -101,7 +101,17 @@ export function BankList({ connections, onDisconnect, onRefresh }: BankListProps
               <p className="text-sm font-medium">{conn.connector_name}</p>
               <p className="text-xs text-muted-foreground">
                 {conn.last_sync_at
-                  ? `Última sync: ${new Date(conn.last_sync_at).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`
+                  ? (() => {
+                      const diff = Date.now() - new Date(conn.last_sync_at).getTime();
+                      const mins = Math.floor(diff / 60000);
+                      if (mins < 1) return 'Sincronizado agora';
+                      if (mins < 60) return `Sync há ${mins}min`;
+                      const hrs = Math.floor(mins / 60);
+                      if (hrs < 24) return `Sync há ${hrs}h`;
+                      const days = Math.floor(hrs / 24);
+                      if (days === 1) return 'Sync há 1 dia';
+                      return `Sync há ${days} dias`;
+                    })()
                   : 'Nunca sincronizado'}
               </p>
             </div>

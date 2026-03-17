@@ -129,6 +129,7 @@ export function ChallengesCard() {
       {/* Active challenges */}
       {active.length > 0 ? (
         <div className="mt-3 space-y-2">
+          <p className="text-[10px] text-muted-foreground">{active.length} desafio{active.length !== 1 ? 's' : ''} ativo{active.length !== 1 ? 's' : ''}</p>
           {active.map((challenge) => {
             const days = daysLeft(challenge.end_date);
             const isExpired = days === 0;
@@ -145,8 +146,8 @@ export function ChallengesCard() {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium">{challenge.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {isExpired ? 'Expirado' : `${days} ${days === 1 ? 'dia' : 'dias'} restantes`}
+                    <p className={`text-xs ${isExpired ? 'font-medium text-red-500' : days <= 2 ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}>
+                      {isExpired ? 'Expirado' : days === 0 ? 'Último dia!' : days <= 2 ? `${days} ${days === 1 ? 'dia' : 'dias'} — corre!` : `${days} ${days === 1 ? 'dia' : 'dias'} restantes`}
                     </p>
                   </div>
                   <div className="flex items-center gap-1">

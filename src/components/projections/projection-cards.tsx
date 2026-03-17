@@ -54,21 +54,35 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
         {scenarioLabels[selectedLabel]?.description}
       </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-        {horizons.map((h) => (
-          <div key={h.label} className="rounded-lg border bg-card p-3">
-            <p className="text-xs text-muted-foreground">{h.label}</p>
-            <p className="text-lg font-semibold">
-              {fmt(scenario.monthlyData[h.index]?.balance ?? 0)}
-            </p>
-          </div>
-        ))}
+        {horizons.map((h) => {
+          const projectedBalance = scenario.monthlyData[h.index]?.balance ?? 0;
+          const growth = projectedBalance - data.currentBalance;
+          return (
+            <div key={h.label} className="rounded-lg border bg-card p-3">
+              <p className="text-xs text-muted-foreground">{h.label}</p>
+              <p className="text-lg font-semibold">
+                {fmt(projectedBalance)}
+              </p>
+              {data.currentBalance > 0 && growth !== 0 && (
+                <p className={cn('text-[10px]', growth >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500')}>
+                  {growth >= 0 ? '+' : ''}{fmt(growth)}
+                </p>
+              )}
+            </div>
+          );
+        })}
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Economia mensal</p>
           <p className="text-lg font-semibold">{fmt(scenario.monthlySavings)}</p>
         </div>
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Taxa de poupança</p>
-          <p className="text-lg font-semibold">{(data.savingsRate * 100).toFixed(1)}%</p>
+          <p className={cn('text-lg font-semibold', data.savingsRate >= 0.2 ? 'text-green-600 dark:text-green-400' : data.savingsRate >= 0.1 ? 'text-amber-600' : data.savingsRate > 0 ? 'text-red-500' : 'text-red-600')}>
+            {(data.savingsRate * 100).toFixed(1)}%
+          </p>
+          <p className="text-[10px] text-muted-foreground">
+            {data.savingsRate >= 0.2 ? 'Excelente' : data.savingsRate >= 0.1 ? 'Bom' : data.savingsRate > 0 ? 'Baixa' : 'Negativa'}
+          </p>
         </div>
         <div className="rounded-lg border bg-card p-3">
           <p className="text-xs text-muted-foreground">Saldo atual</p>

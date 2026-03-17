@@ -47,7 +47,7 @@ export function ChatInput({ value, onChange, onSend, disabled }: ChatInputProps)
           }}
           onKeyDown={handleKeyDown}
           maxLength={MAX_LENGTH}
-          placeholder="Pergunte algo sobre suas finanças..."
+          placeholder={disabled ? 'Aguarde a resposta...' : 'Pergunte algo sobre suas finanças...'}
           aria-label="Mensagem para a Cleo"
           disabled={disabled}
           rows={1}

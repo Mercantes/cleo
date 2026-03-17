@@ -36,6 +36,13 @@ export function OnboardingComplete() {
       <p className="mt-2 text-muted-foreground">
         Sua conta está configurada. A Cleo já está pronta para ajudar com suas finanças.
       </p>
+      <div className="mt-4 flex gap-4 text-xs text-muted-foreground">
+        <span>Dashboard</span>
+        <span>·</span>
+        <span>Chat com IA</span>
+        <span>·</span>
+        <span>Relatórios</span>
+      </div>
       <Button onClick={() => router.push('/dashboard')} className="mt-6">
         Ir para o Dashboard
       </Button>

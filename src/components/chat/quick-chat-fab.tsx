@@ -10,11 +10,21 @@ interface QuickMessage {
   content: string;
 }
 
-const QUICK_PROMPTS = [
+const ALL_PROMPTS = [
   'Quanto gastei esse mês?',
   'Como estão minhas metas?',
   'Me dê dicas para economizar',
+  'Qual minha maior despesa?',
+  'Estou gastando mais que o normal?',
+  'Quanto preciso economizar por dia?',
+  'Resuma minhas finanças da semana',
+  'Compare meus gastos com mês passado',
 ];
+
+function pickPrompts(count: number): string[] {
+  const shuffled = [...ALL_PROMPTS].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 export function QuickChatFab() {
   const pathname = usePathname();
@@ -23,6 +33,7 @@ export function QuickChatFab() {
   const [messages, setMessages] = useState<QuickMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [quickPrompts] = useState(() => pickPrompts(3));
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -158,7 +169,7 @@ export function QuickChatFab() {
               <div className="flex flex-col items-center gap-3 py-4">
                 <p className="text-sm text-muted-foreground">Pergunte qualquer coisa sobre suas finanças</p>
                 <div className="flex flex-wrap justify-center gap-1.5">
-                  {QUICK_PROMPTS.map((prompt) => (
+                  {quickPrompts.map((prompt) => (
                     <button
                       key={prompt}
                       onClick={() => sendMessage(prompt)}

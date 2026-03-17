@@ -237,6 +237,11 @@ export function SplitsContent() {
                       <p className="text-xs text-muted-foreground">
                         {fmt(split.total_amount)} · {new Date(split.created_at).toLocaleDateString('pt-BR')}
                         {allPaid && ' · Todos pagaram'}
+                        {!allPaid && (() => {
+                          const days = Math.floor((Date.now() - new Date(split.created_at).getTime()) / 86400000);
+                          if (days >= 7) return <span className={days >= 30 ? ' text-red-500 font-medium' : ' text-amber-600'}> · há {days >= 30 ? `${Math.floor(days / 30)} ${Math.floor(days / 30) === 1 ? 'mês' : 'meses'}` : `${days}d`}</span>;
+                          return null;
+                        })()}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -253,8 +258,16 @@ export function SplitsContent() {
                     </div>
                   </div>
 
+                  {/* Payment progress bar */}
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-emerald-500 transition-all"
+                      style={{ width: `${(paidCount / split.split_participants.length) * 100}%` }}
+                    />
+                  </div>
+
                   {/* Participants */}
-                  <div className="mt-3 space-y-1.5">
+                  <div className="mt-2 space-y-1.5">
                     {split.split_participants.map((p) => (
                       <button
                         key={p.id}

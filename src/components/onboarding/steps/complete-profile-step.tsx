@@ -76,6 +76,9 @@ export function CompleteProfileStep({ onComplete, onSkip, userName }: CompletePr
         <p className="mt-2 text-sm text-muted-foreground">
           Precisamos de mais alguns dados para configurar sua conta.
         </p>
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          Leva menos de 1 minuto
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">

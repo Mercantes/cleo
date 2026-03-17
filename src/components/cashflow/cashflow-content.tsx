@@ -171,6 +171,11 @@ export function CashFlowContent() {
           <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
             {fmt(totalIncome)}
           </p>
+          {totalIncome > 0 && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Média diária: {fmt(totalIncome / activeDays.length || 1)}
+            </p>
+          )}
         </div>
         <div className="rounded-xl border bg-card p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -180,6 +185,11 @@ export function CashFlowContent() {
           <p className="mt-1 text-2xl font-bold text-red-500 dark:text-red-400">
             {fmt(totalExpenses)}
           </p>
+          {totalExpenses > 0 && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Média diária: {fmt(totalExpenses / activeDays.length || 1)}
+            </p>
+          )}
         </div>
         <div className="rounded-xl border bg-card p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -196,6 +206,11 @@ export function CashFlowContent() {
           )}>
             {fmt(totalNet)}
           </p>
+          {totalIncome > 0 && (
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Taxa de economia: {Math.round((totalNet / totalIncome) * 100)}%
+            </p>
+          )}
         </div>
       </div>
 
@@ -340,8 +355,11 @@ export function CashFlowContent() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="truncate text-sm font-medium">{cat.name}</span>
-                        <span className="shrink-0 text-sm font-semibold text-red-500 dark:text-red-400">
+                        <span className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-red-500 dark:text-red-400">
                           {fmt(cat.total)}
+                          <span className="text-[10px] font-normal text-muted-foreground">
+                            {totalExpenses > 0 ? `${Math.round((cat.total / totalExpenses) * 100)}%` : ''}
+                          </span>
                         </span>
                       </div>
                       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -390,7 +408,10 @@ export function CashFlowContent() {
       {/* Daily breakdown table */}
       <div className="rounded-xl border bg-card">
         <div className="border-b px-4 py-3">
-          <h2 className="text-sm font-semibold">Movimentação Diária</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Movimentação Diária</h2>
+            <span className="text-[10px] text-muted-foreground">{activeDays.length} dia{activeDays.length !== 1 ? 's' : ''} com movimentação</span>
+          </div>
         </div>
         {/* Table header */}
         <div className="hidden items-center gap-2 border-b px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:flex">
@@ -402,10 +423,15 @@ export function CashFlowContent() {
           <span className="flex-1 text-right">Acumulado</span>
         </div>
         <div className="divide-y">
-          {activeDays.map((day) => (
-            <div key={day.date} className="flex items-center gap-2 px-4 py-2.5 text-sm">
+          {activeDays.map((day) => {
+            const dayDate = new Date(day.date + 'T12:00:00');
+            const isWeekend = dayDate.getDay() === 0 || dayDate.getDay() === 6;
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const isToday = day.date === todayStr;
+            return (
+            <div key={day.date} className={cn('flex items-center gap-2 px-4 py-2.5 text-sm', isWeekend && 'bg-muted/30', isToday && 'ring-1 ring-primary/30 bg-primary/5')}>
               <span className="w-24 text-muted-foreground">{formatDay(day.date)}</span>
-              <span className="w-16 text-center text-xs text-muted-foreground">{formatWeekday(day.date)}</span>
+              <span className={cn('w-16 text-center text-xs', isWeekend ? 'font-medium text-primary' : 'text-muted-foreground')}>{formatWeekday(day.date)}</span>
               <span className="flex-1 text-right text-green-600 dark:text-green-400">
                 {day.income > 0 ? fmt(day.income) : '—'}
               </span>
@@ -425,7 +451,8 @@ export function CashFlowContent() {
                 {fmt(day.balance)}
               </span>
             </div>
-          ))}
+            );
+          })}
         </div>
         {activeDays.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">

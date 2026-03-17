@@ -89,13 +89,28 @@ export function RecentTransactionsCard() {
           Ver todas ↗
         </Link>
       </div>
+      {transactions.length > 0 && (() => {
+        const debits = transactions.filter(t => t.type === 'debit');
+        const credits = transactions.filter(t => t.type === 'credit');
+        return (
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            {debits.length} despesa{debits.length !== 1 ? 's' : ''}
+            {credits.length > 0 && ` · ${credits.length} receita${credits.length !== 1 ? 's' : ''}`}
+          </p>
+        );
+      })()}
 
       <div className="mt-3 space-y-4">
         {Array.from(grouped.entries()).map(([dateLabel, txs]) => (
           <div key={dateLabel}>
-            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {dateLabel}
-            </p>
+            <div className="mb-1.5 flex items-center justify-between">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {dateLabel}
+              </p>
+              <span className="text-[10px] font-medium text-muted-foreground">
+                {hideValues ? HIDDEN_VALUE : formatCurrency(txs.reduce((s, t) => s + (t.type === 'credit' ? t.amount : -Math.abs(t.amount)), 0))}
+              </span>
+            </div>
             <div className="space-y-0.5">
               {txs.map((tx) => {
                 const isIncome = tx.type === 'credit';
@@ -118,8 +133,8 @@ export function RecentTransactionsCard() {
                       {tx.categories?.icon ? `${tx.categories.icon} ` : ''}{categoryName}
                     </span>
 
-                    <span className="shrink-0 text-sm font-medium tabular-nums">
-                      {fmt(Math.abs(tx.amount))}
+                    <span className={`shrink-0 text-sm font-medium tabular-nums ${isIncome ? 'text-green-600 dark:text-green-400' : ''}`}>
+                      {isIncome ? '+' : '-'}{fmt(Math.abs(tx.amount))}
                     </span>
                   </Link>
                 );
