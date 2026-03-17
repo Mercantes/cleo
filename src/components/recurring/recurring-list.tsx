@@ -15,6 +15,9 @@ import {
   RefreshCw,
   X,
   Plus,
+  Search,
+  Pencil,
+  Check,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
@@ -49,6 +52,29 @@ interface RecurringData {
 }
 
 type Tab = 'expenses' | 'income';
+type SortBy = 'amount' | 'name' | 'confidence' | 'occurrences';
+
+const TYPE_LABELS = { subscription: 'assinatura', installment: 'parcela', income: 'receita' } as const;
+const TYPE_ORDER: Array<'subscription' | 'installment' | 'income'> = ['subscription', 'installment', 'income'];
+
+function nextTypeLabel(currentType: 'subscription' | 'installment' | 'income'): string {
+  const nextType = TYPE_ORDER[(TYPE_ORDER.indexOf(currentType) + 1) % TYPE_ORDER.length];
+  return TYPE_LABELS[nextType];
+}
+
+const CONFIDENCE_RANK = { high: 0, medium: 1, low: 2 } as const;
+
+function sortItems<T extends RecurringItem>(items: T[], sortBy: SortBy): T[] {
+  return [...items].sort((a, b) => {
+    switch (sortBy) {
+      case 'name': return cleanMerchantName(a.merchant).localeCompare(cleanMerchantName(b.merchant));
+      case 'confidence': return CONFIDENCE_RANK[a.confidence] - CONFIDENCE_RANK[b.confidence];
+      case 'occurrences': return b.occurrences - a.occurrences;
+      case 'amount':
+      default: return Number(b.amount) - Number(a.amount);
+    }
+  });
+}
 
 const MONTHS = [
   'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
@@ -90,6 +116,55 @@ function RingChart({ paidPercent }: { paidPercent: number }) {
   );
 }
 
+function AmountDisplay({ item, hideValues, editingId, editAmount, setEditingId, setEditAmount, onSave }: {
+  item: RecurringItem;
+  hideValues: boolean;
+  editingId: string | null;
+  editAmount: string;
+  setEditingId: (id: string | null) => void;
+  setEditAmount: (v: string) => void;
+  onSave: (item: RecurringItem) => void;
+  }) {
+  const isEditing = editingId === item.id;
+  const isIncome = item.type === 'income';
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1">
+        <span className="text-xs text-muted-foreground">R$</span>
+        <input
+          type="number"
+          value={editAmount}
+          onChange={(e) => setEditAmount(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') onSave(item); if (e.key === 'Escape') setEditingId(null); }}
+          className="w-20 rounded border bg-background px-1.5 py-0.5 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
+          min="0"
+          step="0.01"
+          autoFocus
+        />
+        <button onClick={() => onSave(item)} className="rounded p-0.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950">
+          <Check className="h-3.5 w-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1 group/amount">
+      <span className={cn('shrink-0 text-sm font-semibold', isIncome && 'text-emerald-600 dark:text-emerald-400')}>
+        {isIncome ? '+' : ''}{hideValues ? HIDDEN_VALUE : formatCurrency(item.amount)}
+      </span>
+      <button
+        onClick={() => { setEditingId(item.id); setEditAmount(String(item.amount)); }}
+        className="hidden rounded p-0.5 text-muted-foreground hover:text-foreground group-hover/amount:inline-block"
+        title="Editar valor"
+      >
+        <Pencil className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}
+
 function formatEndDate(dateStr: string, remaining: number | null) {
   if (!remaining || !dateStr) return null;
   const d = new Date(dateStr + 'T00:00:00');
@@ -109,20 +184,36 @@ export function RecurringList() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [addForm, setAddForm] = useState({ merchant: '', amount: '', type: 'subscription' as 'subscription' | 'installment' | 'income' });
   const [isAdding, setIsAdding] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<SortBy>('amount');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editAmount, setEditAmount] = useState('');
 
   const now = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
   const viewDate = useMemo(() => new Date(now.getFullYear(), now.getMonth() + monthOffset, 1), [monthOffset]); // eslint-disable-line react-hooks/exhaustive-deps
   const monthLabel = `${MONTHS[viewDate.getMonth()]} de ${viewDate.getFullYear()}`;
 
-  const subscriptions = data?.subscriptions || [];
-  const installments = data?.installments || [];
-  const income = data?.income || [];
+  const rawSubscriptions = data?.subscriptions || [];
+  const rawInstallments = data?.installments || [];
+  const rawIncome = data?.income || [];
   const monthlyTotal = data?.monthlyTotal || 0;
   const monthlyIncome = data?.monthlyIncome || 0;
-  const hasExpenseData = subscriptions.length > 0 || installments.length > 0;
-  const hasIncomeData = income.length > 0;
+  const hasExpenseData = rawSubscriptions.length > 0 || rawInstallments.length > 0;
+  const hasIncomeData = rawIncome.length > 0;
   const hasAnyData = hasExpenseData || hasIncomeData;
+
+  // Filter by search query
+  const filterBySearch = useCallback((items: RecurringItem[]) => {
+    if (!searchQuery.trim()) return items;
+    const q = searchQuery.toLowerCase();
+    return items.filter(i => cleanMerchantName(i.merchant).toLowerCase().includes(q));
+  }, [searchQuery]);
+
+  // Apply search + sort
+  const subscriptions = useMemo(() => sortItems(filterBySearch(rawSubscriptions), sortBy), [rawSubscriptions, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  const installments = useMemo(() => sortItems(filterBySearch(rawInstallments), sortBy), [rawInstallments, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  const income = useMemo(() => sortItems(filterBySearch(rawIncome), sortBy), [rawIncome, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-detect recurring transactions when data loads empty
   const autoDetectRan = useRef(false);
@@ -219,6 +310,38 @@ export function RecurringList() {
     }
   }, [data, mutate]);
 
+  async function handleEditAmount(item: RecurringItem) {
+    const newAmount = parseFloat(editAmount);
+    if (isNaN(newAmount) || newAmount <= 0) return;
+    setEditingId(null);
+
+    // Optimistic update
+    if (data) {
+      const updateItem = (i: RecurringItem) => i.id === item.id ? { ...i, amount: newAmount } : i;
+      mutate({
+        subscriptions: data.subscriptions.map(updateItem),
+        installments: data.installments.map(updateItem),
+        income: data.income.map(updateItem),
+        monthlyTotal: data.monthlyTotal,
+        monthlyIncome: data.monthlyIncome,
+      }, false);
+    }
+
+    try {
+      const res = await fetch('/api/recurring', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: item.id, amount: newAmount }),
+      });
+      if (!res.ok) throw new Error();
+      await mutate();
+      toast.success('Valor atualizado');
+    } catch {
+      await mutate();
+      toast.error('Erro ao atualizar valor');
+    }
+  }
+
   async function handleAdd() {
     if (!addForm.merchant.trim() || !addForm.amount) return;
     setIsAdding(true);
@@ -283,6 +406,32 @@ export function RecurringList() {
           Receitas
         </button>
       </div>
+
+      {/* Search & Sort bar */}
+      {hasAnyData && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Buscar recorrência..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border bg-background py-1.5 pl-8 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortBy)}
+            className="rounded-lg border bg-background px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="amount">Valor</option>
+            <option value="name">Nome</option>
+            <option value="confidence">Confiança</option>
+            <option value="occurrences">Ocorrências</option>
+          </select>
+        </div>
+      )}
 
       {fetchError && (
         <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
@@ -396,8 +545,8 @@ export function RecurringList() {
                       <button
                         onClick={() => handleToggleType(item)}
                         disabled={togglingId === item.id}
-                        aria-label={`Reclassificar ${cleanMerchantName(item.merchant)}`}
-                        title="Reclassificar"
+                        aria-label={`Reclassificar ${cleanMerchantName(item.merchant)} como ${nextTypeLabel(item.type)}`}
+                        title={`Reclassificar como ${nextTypeLabel(item.type)}`}
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
                         <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -410,9 +559,7 @@ export function RecurringList() {
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
-                      <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
-                        +{fmt(item.amount)}
-                      </span>
+                      <AmountDisplay item={item} hideValues={hideValues} editingId={editingId} editAmount={editAmount} setEditingId={setEditingId} setEditAmount={setEditAmount} onSave={handleEditAmount} />
                     </div>
                   </div>
                 ))}
@@ -554,8 +701,8 @@ export function RecurringList() {
                         <button
                           onClick={() => handleToggleType(inst)}
                           disabled={togglingId === inst.id}
-                          aria-label={`Reclassificar ${cleanMerchantName(inst.merchant)} como assinatura`}
-                          title="Reclassificar como assinatura"
+                          aria-label={`Reclassificar ${cleanMerchantName(inst.merchant)} como ${nextTypeLabel(inst.type)}`}
+                          title={`Reclassificar como ${nextTypeLabel(inst.type)}`}
                           className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                         >
                           <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -568,7 +715,7 @@ export function RecurringList() {
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
-                        <span className="shrink-0 text-sm font-semibold">{fmt(inst.amount)}</span>
+                        <AmountDisplay item={inst} hideValues={hideValues} editingId={editingId} editAmount={editAmount} setEditingId={setEditingId} setEditAmount={setEditAmount} onSave={handleEditAmount} />
                       </div>
                     </div>
                   );
@@ -622,8 +769,8 @@ export function RecurringList() {
                       <button
                         onClick={() => handleToggleType(sub)}
                         disabled={togglingId === sub.id}
-                        aria-label={`Reclassificar ${cleanMerchantName(sub.merchant)} como parcela`}
-                        title="Reclassificar como parcela"
+                        aria-label={`Reclassificar ${cleanMerchantName(sub.merchant)} como ${nextTypeLabel(sub.type)}`}
+                        title={`Reclassificar como ${nextTypeLabel(sub.type)}`}
                         className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                       >
                         <ArrowRightLeft className="h-3.5 w-3.5" />
@@ -644,7 +791,7 @@ export function RecurringList() {
                       >
                         <X className="h-3.5 w-3.5" />
                       </button>
-                      <span className="shrink-0 text-sm font-semibold">{fmt(sub.amount)}</span>
+                      <AmountDisplay item={sub} hideValues={hideValues} editingId={editingId} editAmount={editAmount} setEditingId={setEditingId} setEditAmount={setEditAmount} onSave={handleEditAmount} />
                     </div>
                   </div>
                 ))}
@@ -702,7 +849,7 @@ export function RecurringList() {
               </div>
             </div>
           ) : (
-            <Button variant="outline" className="w-full" onClick={() => setShowAddForm(true)}>
+            <Button variant="outline" className="w-full" onClick={() => { setAddForm(f => ({ ...f, type: tab === 'income' ? 'income' : 'subscription' })); setShowAddForm(true); }}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar manualmente
             </Button>

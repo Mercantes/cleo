@@ -69,18 +69,37 @@ export const POST = withAuth(async (request: NextRequest, { supabase, user }) =>
   return NextResponse.json({ success: true });
 });
 
-// PATCH: User manually reclassifies a recurring transaction
+// PATCH: User manually reclassifies or edits a recurring transaction
 export const PATCH = withAuth(async (request: NextRequest, { supabase, user }) => {
   const body = await request.json();
-  const { id, type } = body;
+  const { id, type, amount } = body;
 
-  if (!id || !type || !['subscription', 'installment', 'income'].includes(type)) {
-    return NextResponse.json({ error: 'id and type (subscription|installment|income) are required' }, { status: 400 });
+  if (!id) {
+    return NextResponse.json({ error: 'id is required' }, { status: 400 });
+  }
+
+  // Build update payload
+  const update: Record<string, unknown> = {};
+  if (type) {
+    if (!['subscription', 'installment', 'income'].includes(type)) {
+      return NextResponse.json({ error: 'type must be subscription|installment|income' }, { status: 400 });
+    }
+    update.user_override = type;
+  }
+  if (amount !== undefined) {
+    if (typeof amount !== 'number' || amount <= 0) {
+      return NextResponse.json({ error: 'amount must be a positive number' }, { status: 400 });
+    }
+    update.amount = amount;
+  }
+
+  if (Object.keys(update).length === 0) {
+    return NextResponse.json({ error: 'type or amount required' }, { status: 400 });
   }
 
   const { error } = await supabase
     .from('recurring_transactions')
-    .update({ user_override: type })
+    .update(update)
     .eq('id', id)
     .eq('user_id', user.id);
 
