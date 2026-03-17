@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { getAccounts } from './client';
+import { getAccounts, getItem } from './client';
 import { mapPluggyAccountToDb } from './account-mapper';
 import { syncTransactions } from './sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
@@ -7,8 +7,15 @@ import { clearContextCache } from '@/lib/ai/financial-context';
 
 export interface PluggyWebhookEvent {
   event: string;
-  data: {
-    itemId: string;
+  eventId?: string;
+  itemId?: string;
+  accountId?: string;
+  triggeredBy?: string;
+  clientUserId?: string;
+  transactionsCount?: number;
+  // Legacy nested format (kept for backwards compatibility)
+  data?: {
+    itemId?: string;
     accountId?: string;
     status?: string;
   };
@@ -20,17 +27,38 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
+  // Support both flat (Pluggy actual format) and nested (legacy) payload
+  const itemId = event.itemId || event.data?.itemId;
+
+  if (!itemId) {
+    console.error('[pluggy-webhook] no itemId found in event:', JSON.stringify(event).substring(0, 300));
+    return;
+  }
+
   const { data: connection } = await supabase
     .from('bank_connections')
     .select('id, user_id, last_sync_at')
-    .eq('pluggy_item_id', event.data.itemId)
+    .eq('pluggy_item_id', itemId)
     .single();
 
-  if (!connection) return;
+  if (!connection) {
+    console.warn('[pluggy-webhook] no connection found for itemId:', itemId);
+    return;
+  }
+
+  console.log('[pluggy-webhook] matched connection:', connection.id, 'event:', event.event);
 
   switch (event.event) {
     case 'item/updated': {
-      const status = event.data.status === 'UPDATED' ? 'active' : 'error';
+      // Pluggy flat format doesn't include status — fetch item to check
+      let status: 'active' | 'error' = 'active';
+      try {
+        const item = await getItem(itemId);
+        status = item.status === 'UPDATED' ? 'active' : 'error';
+      } catch {
+        console.warn('[pluggy-webhook] could not fetch item status, assuming active');
+      }
+
       await supabase
         .from('bank_connections')
         .update({ status })
@@ -38,20 +66,21 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
 
       // Upsert accounts with latest balances
       if (status === 'active') {
-        const pluggyAccounts = await getAccounts(event.data.itemId);
+        const pluggyAccounts = await getAccounts(itemId);
         for (const acc of pluggyAccounts) {
           await supabase.from('accounts').upsert(
             mapPluggyAccountToDb(acc, connection.user_id, connection.id),
             { onConflict: 'pluggy_account_id' },
           );
         }
-        // Invalidate AI context cache so Cleo chat reflects new balances
         clearContextCache(connection.user_id);
+        console.log('[pluggy-webhook] item/updated: accounts synced for', connection.id);
       }
       break;
     }
 
-    case 'transactions/updated': {
+    case 'transactions/updated':
+    case 'transactions/created': {
       // Incremental sync — only fetch since last sync
       const fromDate = connection.last_sync_at
         ? new Date(connection.last_sync_at).toISOString().split('T')[0]
@@ -60,11 +89,10 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
       const syncResult = await syncTransactions(
         connection.user_id,
         connection.id,
-        event.data.itemId,
+        itemId,
         fromDate,
       );
 
-      // Invalidate AI context cache so Cleo chat uses fresh data
       clearContextCache(connection.user_id);
 
       // Categorize new transactions
@@ -87,7 +115,11 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
         .update({ last_sync_at: new Date().toISOString() })
         .eq('id', connection.id);
 
+      console.log('[pluggy-webhook] transactions synced:', syncResult, 'for', connection.id);
       break;
     }
+
+    default:
+      console.log('[pluggy-webhook] unhandled event:', event.event);
   }
 }

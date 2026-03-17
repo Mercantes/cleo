@@ -18,6 +18,7 @@ import {
   Search,
   Pencil,
   Check,
+  Download,
 } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatCurrency } from '@/lib/utils/format';
@@ -156,7 +157,7 @@ function AmountDisplay({ item, hideValues, editingId, editAmount, setEditingId, 
       </span>
       <button
         onClick={() => { setEditingId(item.id); setEditAmount(String(item.amount)); }}
-        className="hidden rounded p-0.5 text-muted-foreground hover:text-foreground group-hover/amount:inline-block"
+        className="rounded p-0.5 text-muted-foreground hover:text-foreground opacity-0 group-hover/amount:opacity-100 sm:opacity-0 max-sm:opacity-60"
         title="Editar valor"
       >
         <Pencil className="h-3 w-3" />
@@ -188,6 +189,24 @@ export function RecurringList() {
   const [sortBy, setSortBy] = useState<SortBy>('amount');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editAmount, setEditAmount] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+
+  // Escape key closes modal
+  useEffect(() => {
+    if (!showAddForm) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowAddForm(false); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [showAddForm]);
+
+  // Animate modal in
+  useEffect(() => {
+    if (showAddForm) {
+      requestAnimationFrame(() => setModalVisible(true));
+    } else {
+      setModalVisible(false);
+    }
+  }, [showAddForm]);
 
   const now = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
@@ -342,6 +361,28 @@ export function RecurringList() {
     }
   }
 
+  // Balance overview
+  const balance = monthlyIncome - monthlyTotal;
+
+  function handleExportCSV() {
+    const allItems = [...rawSubscriptions, ...rawInstallments, ...rawIncome];
+    if (allItems.length === 0) return;
+    const header = 'Nome,Tipo,Valor,Frequência,Confiança,Ocorrências';
+    const typeLabels: Record<string, string> = { subscription: 'Assinatura', installment: 'Parcela', income: 'Receita' };
+    const rows = allItems.map(i =>
+      `"${cleanMerchantName(i.merchant)}","${typeLabels[i.type] || i.type}",${Number(i.amount).toFixed(2)},"${i.frequency}","${i.confidence}",${i.occurrences}`
+    );
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recorrencias.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('CSV exportado');
+  }
+
   async function handleAdd() {
     if (!addForm.merchant.trim() || !addForm.amount) return;
     setIsAdding(true);
@@ -440,9 +481,42 @@ export function RecurringList() {
         </div>
       )}
 
+      {/* Balance overview + CSV export */}
+      {hasAnyData && monthlyIncome > 0 && monthlyTotal > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-card px-4 py-2.5 text-sm">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="text-emerald-600 dark:text-emerald-400 font-medium">{fmt(monthlyIncome)}</span>
+            <span className="text-muted-foreground">−</span>
+            <span className="text-red-500 font-medium">{fmt(monthlyTotal)}</span>
+            <span className="text-muted-foreground">=</span>
+            <span className={cn('font-semibold', balance >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500')}>
+              {balance >= 0 ? '+' : ''}{fmt(balance)}
+            </span>
+          </div>
+          <button
+            onClick={handleExportCSV}
+            className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            title="Exportar CSV"
+          >
+            <Download className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
       {fetchError && (
         <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
           Não foi possível carregar suas recorrências.
+        </div>
+      )}
+
+      {/* Search empty state */}
+      {hasAnyData && searchQuery.trim() && (
+        (tab === 'income' && income.length === 0) ||
+        (tab === 'expenses' && subscriptions.length === 0 && installments.length === 0)
+      ) && (
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl border bg-card py-10 text-center">
+          <Search className="h-6 w-6 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Nenhum resultado para &ldquo;{searchQuery}&rdquo;</p>
         </div>
       )}
 
@@ -811,8 +885,11 @@ export function RecurringList() {
 
       {/* Add modal */}
       {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}>
-          <div className="w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl space-y-4">
+        <div
+          className={cn('fixed inset-0 z-50 flex items-center justify-center p-4 transition-colors duration-200', modalVisible ? 'bg-black/50' : 'bg-black/0')}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowAddForm(false); }}
+        >
+          <div className={cn('w-full max-w-sm rounded-2xl bg-card p-6 shadow-xl space-y-4 transition-all duration-200', modalVisible ? 'scale-100 opacity-100' : 'scale-95 opacity-0')}>
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold">Nova recorrência</h3>
               <button onClick={() => setShowAddForm(false)} className="rounded-md p-1 text-muted-foreground hover:text-foreground">
