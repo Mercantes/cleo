@@ -26,7 +26,7 @@ describe('ChatInput', () => {
   it('disables input and button when disabled', () => {
     render(<ChatInput value="test" onChange={() => {}} onSend={() => {}} disabled />);
 
-    const textarea = screen.getByPlaceholderText('Pergunte algo sobre suas finanças...');
+    const textarea = screen.getByPlaceholderText('Aguarde a resposta...');
     const button = screen.getByLabelText('Enviar mensagem');
 
     expect(textarea).toBeDisabled();

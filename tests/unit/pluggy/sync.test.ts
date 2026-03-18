@@ -89,7 +89,7 @@ describe('syncTransactions', () => {
           description: 'IFOOD *IFOOD',
           amount: 45.9, // absolute value
           type: 'debit',
-          merchant: 'iFood',
+          merchant: 'Ifood',
         }),
         expect.objectContaining({
           pluggy_transaction_id: 'tx-2',

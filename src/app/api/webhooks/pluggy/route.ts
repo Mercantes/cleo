@@ -1,10 +1,21 @@
 import { NextResponse } from 'next/server';
 import { handleWebhookEvent, type PluggyWebhookEvent } from '@/lib/pluggy/webhook-handler';
+import { verifyPluggySignature } from '@/lib/pluggy/verify-signature';
 
 export async function POST(request: Request) {
   const body = await request.text();
 
   console.log('[pluggy-webhook] received:', body.substring(0, 500));
+
+  // Verify webhook signature when secret is configured
+  const webhookSecret = process.env.PLUGGY_WEBHOOK_SECRET;
+  if (webhookSecret) {
+    const signature = request.headers.get('x-pluggy-signature') || '';
+    if (!verifyPluggySignature(body, signature, webhookSecret)) {
+      console.warn('[pluggy-webhook] invalid signature');
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    }
+  }
 
   let event: PluggyWebhookEvent;
   try {

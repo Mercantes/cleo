@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Target, Save, Loader2, TrendingUp, Plus, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
@@ -152,23 +152,25 @@ export function GoalsEditor() {
   const [hideValues] = useHideValues();
   const fmtGoal = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data: goalsData, isLoading: loading, error: loadError } = useApi<GoalsData>('/api/goals');
+  const initialValues = useMemo(() => {
+    if (!goalsData?.goals) return { savings: '', retirement: '' };
+    return {
+      savings: goalsData.goals.monthly_savings_target?.toString() || '',
+      retirement: goalsData.goals.retirement_age_target?.toString() || '',
+    };
+  }, [goalsData]);
+
   const [savingsTarget, setSavingsTarget] = useState('');
   const [retirementAge, setRetirementAge] = useState('');
-  const [initialized, setInitialized] = useState(false);
+  const [userEdited, setUserEdited] = useState(false);
+
+  // Sync initial values from API until user edits
+  const effectiveSavings = userEdited ? savingsTarget : initialValues.savings;
+  const effectiveRetirement = userEdited ? retirementAge : initialValues.retirement;
+
   const { submit, saving, feedback } = useFormSubmit({
     successMessage: 'Metas salvas com sucesso',
   });
-
-  // Initialize form state from API data (once)
-  useEffect(() => {
-    if (goalsData && !initialized) {
-      if (goalsData.goals) {
-        setSavingsTarget(goalsData.goals.monthly_savings_target?.toString() || '');
-        setRetirementAge(goalsData.goals.retirement_age_target?.toString() || '');
-      }
-      setInitialized(true);
-    }
-  }, [goalsData, initialized]);
 
   const handleSave = () =>
     submit(() =>
@@ -176,8 +178,8 @@ export function GoalsEditor() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          monthlySavingsTarget: savingsTarget ? Number(savingsTarget) : null,
-          retirementAgeTarget: retirementAge ? Number(retirementAge) : null,
+          monthlySavingsTarget: effectiveSavings ? Number(effectiveSavings) : null,
+          retirementAgeTarget: effectiveRetirement ? Number(effectiveRetirement) : null,
         }),
       }),
     );
@@ -196,7 +198,7 @@ export function GoalsEditor() {
 
   const currentProgress = goalsData?.progress?.percentage || 0;
   const currentSavings = goalsData?.progress?.currentSavings || 0;
-  const target = savingsTarget ? Number(savingsTarget) : 0;
+  const target = effectiveSavings ? Number(effectiveSavings) : 0;
 
   return (
     <div className="space-y-6">
@@ -251,8 +253,8 @@ export function GoalsEditor() {
             min="0"
             max="10000000"
             step="50"
-            value={savingsTarget}
-            onChange={(e) => setSavingsTarget(e.target.value)}
+            value={effectiveSavings}
+            onChange={(e) => { setUserEdited(true); setSavingsTarget(e.target.value); }}
             placeholder="Ex: 500"
             className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm"
           />
@@ -270,8 +272,8 @@ export function GoalsEditor() {
             type="number"
             min="18"
             max="120"
-            value={retirementAge}
-            onChange={(e) => setRetirementAge(e.target.value)}
+            value={effectiveRetirement}
+            onChange={(e) => { setUserEdited(true); setRetirementAge(e.target.value); }}
             placeholder="Ex: 60"
             className="mt-2 w-full rounded-md border bg-background px-3 py-2 text-sm"
           />

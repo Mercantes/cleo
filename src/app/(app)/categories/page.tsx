@@ -75,8 +75,8 @@ export default function CategoriesPage() {
   );
 
   const isLoading = listLoading || spendingLoading;
-  const allCategories = listData?.categories || [];
-  const spending = spendingData?.categories || [];
+  const allCategories = useMemo(() => listData?.categories || [], [listData]);
+  const spending = useMemo(() => spendingData?.categories || [], [spendingData]);
   const totalSpending = spending.reduce((sum, c) => sum + c.amount, 0);
 
   // Merge: categories list + spending data

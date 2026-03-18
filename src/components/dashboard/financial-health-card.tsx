@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -100,9 +100,6 @@ export function FinancialHealthCard() {
   const { data: summary } = useApi<{ income: number; expenses: number; savingsRate: number; percentChange: number }>('/api/dashboard/summary');
   const { data: goals } = useApi<{ progress?: { percentage: number } }>('/api/goals');
   const { data: recurring } = useApi<{ monthlyTotal: number }>('/api/recurring');
-  const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
-  const autoExpandedRef = useRef(false);
-
   const health = useMemo(() => {
     if (!summary || summary.income === 0) return null;
     const goalsProgress = goals?.progress?.percentage || 0;
@@ -113,15 +110,20 @@ export function FinancialHealthCard() {
   }, [summary, goals, recurring]);
 
   // Auto-expand first "bad" factor to guide user action
-  useEffect(() => {
-    if (health && !autoExpandedRef.current) {
-      const bad = health.factors.find(f => f.status === 'bad');
-      if (bad) {
-        setExpandedFactor(bad.label);
-        autoExpandedRef.current = true;
-      }
-    }
+  const initialExpanded = useMemo(() => {
+    if (!health) return null;
+    const bad = health.factors.find(f => f.status === 'bad');
+    return bad?.label ?? null;
   }, [health]);
+
+  const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
+  const prevInitialRef = useRef<string | null>(null);
+  if (initialExpanded !== prevInitialRef.current) {
+    prevInitialRef.current = initialExpanded;
+    if (initialExpanded && expandedFactor === null) {
+      setExpandedFactor(initialExpanded);
+    }
+  }
 
   if (!health) {
     return (

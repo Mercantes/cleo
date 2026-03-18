@@ -108,7 +108,7 @@ describe('AI Categorization', () => {
           Promise.resolve({
             content: [
               {
-                text: '[{"index": 1, "category": "Alimentação", "confidence": 0.95}]',
+                text: '[{"index": 1, "category": "Outros", "confidence": 0.90}]',
               },
             ],
             usage: { input_tokens: 150, output_tokens: 30 },
@@ -116,7 +116,7 @@ describe('AI Categorization', () => {
       });
 
       const result = await categorizeTransactions([
-        { id: 'tx-1', description: 'IFOOD', amount: 45.9, type: 'debit' },
+        { id: 'tx-1', description: 'CINEMA XPTO', amount: 45.9, type: 'debit' },
       ]);
 
       expect(result).toBe(1);
@@ -154,7 +154,7 @@ describe('AI Categorization', () => {
       mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
       const result = await categorizeTransactions([
-        { id: 'tx-1', description: 'Test', amount: 10, type: 'debit' },
+        { id: 'tx-1', description: 'LOJA DESCONHECIDA XYZ', amount: 10, type: 'debit' },
       ]);
 
       expect(result).toBe(0);
