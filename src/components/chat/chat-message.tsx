@@ -24,6 +24,8 @@ const TOOL_LABELS: Record<string, string> = {
   create_goal: 'Definindo meta',
   categorize_transaction: 'Recategorizando transação',
   create_challenge: 'Criando desafio',
+  create_budget: 'Definindo orçamento',
+  manage_recurring: 'Gerenciando recorrência',
 };
 
 function ToolActionBadge({ action }: { action: ToolAction }) {

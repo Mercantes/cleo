@@ -22,6 +22,15 @@ function getCachedTier(): 'free' | 'pro' {
   return 'free';
 }
 
+/** Clear tier cache on logout to prevent cross-account leakage */
+export function clearTierCache() {
+  try {
+    localStorage.removeItem(TIER_CACHE_KEY);
+  } catch {
+    // localStorage unavailable
+  }
+}
+
 export function useTier() {
   const { data, isLoading } = useApi<UsageData>('/api/usage');
 

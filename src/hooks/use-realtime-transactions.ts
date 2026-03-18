@@ -34,8 +34,19 @@ export function useRealtimeTransactions() {
             merchant?: string;
           };
 
-          // Invalidate all SWR caches so dashboard/transactions/cashflow refresh
-          mutate(() => true, undefined, { revalidate: true });
+          // Selectively invalidate transaction-related caches
+          const keysToRevalidate = [
+            '/api/dashboard/summary',
+            '/api/dashboard/recent',
+            '/api/dashboard/accounts',
+            '/api/dashboard/categories',
+            '/api/recurring',
+            '/api/budgets',
+            '/api/transactions',
+          ];
+          for (const key of keysToRevalidate) {
+            mutate(key, undefined, { revalidate: true });
+          }
 
           // Show toast
           const label = tx.merchant || tx.description || 'Nova transação';
@@ -52,8 +63,9 @@ export function useRealtimeTransactions() {
           table: 'accounts',
         },
         () => {
-          // Account balance updated — refresh silently
-          mutate(() => true, undefined, { revalidate: true });
+          // Account balance updated — refresh relevant caches only
+          mutate('/api/dashboard/accounts', undefined, { revalidate: true });
+          mutate('/api/dashboard/summary', undefined, { revalidate: true });
         },
       )
       .subscribe();

@@ -3,11 +3,15 @@ import type { ToolDefinition, ToolResult } from './types';
 import { createGoalTool } from './create-goal';
 import { categorizeTransactionTool } from './categorize-transaction';
 import { createChallengeTool } from './create-challenge';
+import { createBudgetTool } from './create-budget';
+import { manageRecurringTool } from './manage-recurring';
 
 const CLEO_TOOLS: ToolDefinition[] = [
   createGoalTool,
   categorizeTransactionTool,
   createChallengeTool,
+  createBudgetTool,
+  manageRecurringTool,
 ];
 
 /** Convert to Anthropic API tools format */

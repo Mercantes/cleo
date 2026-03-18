@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/toast';
 import { signOut } from '@/lib/actions/auth';
+import { clearTierCache } from '@/hooks/use-tier';
 
 export function DangerZone() {
   const [confirmText, setConfirmText] = useState('');
@@ -40,6 +41,7 @@ export function DangerZone() {
     try {
       const res = await fetch('/api/settings/account', { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
+      clearTierCache();
       await signOut();
     } catch {
       toast.error('Erro ao excluir conta. Tente novamente.');

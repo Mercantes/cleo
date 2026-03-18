@@ -23,7 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
-import { useTier } from '@/hooks/use-tier';
+import { useTier, clearTierCache } from '@/hooks/use-tier';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 import { PrivacyToggle } from '@/components/layout/privacy-toggle';
@@ -154,7 +154,7 @@ export function Header({ userName }: HeaderProps) {
             Planos
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => signOut()}>
+          <DropdownMenuItem onClick={() => { clearTierCache(); signOut(); }}>
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </DropdownMenuItem>
