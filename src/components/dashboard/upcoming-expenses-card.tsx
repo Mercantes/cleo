@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { CalendarClock } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
@@ -78,7 +78,7 @@ export function UpcomingExpensesCard() {
               className="flex items-center justify-between gap-2 rounded-md px-1 py-2"
             >
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">{item.merchant}</p>
+                <p className="truncate text-sm">{formatTransactionName(item.merchant, null)}</p>
                 <p className={cn(
                   'text-xs',
                   isWithinDays(item.next_expected_date, 2) ? 'font-medium text-amber-600 dark:text-amber-400' : 'text-muted-foreground',

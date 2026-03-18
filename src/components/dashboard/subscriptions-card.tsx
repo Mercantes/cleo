@@ -1,7 +1,7 @@
 'use client';
 
 import { Repeat } from 'lucide-react';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
@@ -57,7 +57,7 @@ export function SubscriptionsCard() {
           {topItems.map((item) => (
             <div key={item.merchant} className="flex items-center justify-between text-xs">
               <span className="truncate text-muted-foreground">
-                {item.merchant}
+                {formatTransactionName(item.merchant, null)}
                 {item.installments_remaining != null && (
                   <span className="ml-1 text-amber-600 dark:text-amber-400">
                     ({item.installments_remaining}x)

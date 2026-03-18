@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Loader2, MoreVertical, Tags, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatDateTime, formatRelativeDate } from '@/lib/utils/format';
+import { formatCurrency, formatDateTime, formatRelativeDate, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { HighlightText } from '@/components/ui/highlight-text';
 
@@ -174,7 +174,7 @@ export function TransactionRow({
           <span className="w-6 text-center text-xs text-muted-foreground">{index}</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">
-              <HighlightText text={merchant || description} query={searchQuery || ''} />
+              <HighlightText text={formatTransactionName(description, merchant)} query={searchQuery || ''} />
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={category} />
@@ -246,7 +246,7 @@ export function TransactionRow({
         {/* Description */}
         <div className="min-w-0">
           <p className="truncate font-medium">
-            <HighlightText text={merchant || description} query={searchQuery || ''} />
+            <HighlightText text={formatTransactionName(description, merchant)} query={searchQuery || ''} />
           </p>
           {merchant && merchant !== description && (
             <p className="truncate text-xs text-muted-foreground">{description}</p>
@@ -303,7 +303,7 @@ export function TransactionRow({
                 <button
                   onClick={() => {
                     const params = new URLSearchParams({
-                      description: merchant || description,
+                      description: formatTransactionName(description, merchant),
                       amount: String(Math.abs(amount)),
                       txId: id,
                     });

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { formatCurrency } from '@/lib/utils/format';
+import { formatCurrency, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 
@@ -115,17 +115,17 @@ export function RecentTransactionsCard() {
               {txs.map((tx) => {
                 const isIncome = tx.type === 'credit';
                 const categoryName = tx.categories?.name || 'Sem categoria';
-                const searchTerm = tx.merchant || tx.description;
+                const displayName = formatTransactionName(tx.description, tx.merchant);
 
                 return (
                   <Link
                     key={tx.id}
-                    href={`/transactions?search=${encodeURIComponent(searchTerm)}`}
+                    href={`/transactions?search=${encodeURIComponent(displayName)}`}
                     className="flex items-center justify-between gap-2 rounded-md px-1 py-2 transition-colors hover:bg-accent/50"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">
-                        {tx.merchant || tx.description}
+                        {displayName}
                       </p>
                     </div>
 

@@ -64,6 +64,45 @@ export function formatRelativeDate(date: string): string {
   return formatDate(date);
 }
 
+/**
+ * Clean and format transaction description for display.
+ * Prefers merchant name over raw description when available.
+ */
+export function formatTransactionName(description: string, merchant?: string | null): string {
+  const raw = merchant || description;
+
+  let cleaned = raw
+    // Remove acquirer/gateway prefixes
+    .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet|sumup|ton)\s*[*\-/]?\s*/i, '')
+    // Remove transaction type prefixes
+    .replace(/^(Compra no débito|Compra no debito|Compra no crédito|Compra no credito|Pagamento recebido|Transferência Recebida|Transferencia Recebida|Transferência Enviada|Transferencia Enviada|Pagamento efetuado|Pagamento de boleto|Débito automático|Debito automatico)\s*[-|:.]?\s*/i, '')
+    // Remove asterisks used as separators
+    .replace(/\*+/g, ' ')
+    // Remove trailing location suffixes (BR, BRA, SAO PAULO, SP, etc.)
+    .replace(/\s+(br|bra|brasil)\s*$/i, '')
+    .replace(/\s+(sao paulo|s[aã]o paulo|sp|rj|mg|pr|rs|sc|ba|pe|ce|df|go|mt|ms|pa|am|ma|pi|pb|rn|se|al|es|to|ro|ac|ap|rr)\s*$/i, '')
+    // Remove date patterns (01/06, 03/2026)
+    .replace(/\s+\d{2}\/\d{2}(\/\d{2,4})?\s*/g, ' ')
+    // Remove trailing numbers that look like codes
+    .replace(/\s+\d{6,}\s*$/, '')
+    // Normalize spaces
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  if (!cleaned) cleaned = raw.trim();
+
+  // Title case: capitalize first letter of each word, lowercase the rest
+  cleaned = cleaned
+    .toLowerCase()
+    .replace(/(?:^|\s)\S/g, (c) => c.toUpperCase())
+    // Keep common short words lowercase (except at start)
+    .replace(/\s(De|Do|Da|Dos|Das|E|Em|No|Na|Nos|Nas|Para|Por|Com|Sem)\s/g, (m) => m.toLowerCase())
+    // Fix first character always uppercase
+    .replace(/^./, (c) => c.toUpperCase());
+
+  return cleaned;
+}
+
 export function formatDateGroupLabel(date: string): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
