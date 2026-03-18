@@ -23,6 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
+import { useTier } from '@/hooks/use-tier';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 import { PrivacyToggle } from '@/components/layout/privacy-toggle';
@@ -44,7 +45,6 @@ const pageTitles: Record<string, string> = {
   '/onboarding': 'Configuração Inicial',
   '/upgrade': 'Plano',
   '/cashflow': 'Fluxo de Caixa',
-  '/splits': 'Dividir Despesas',
   '/budgets': 'Orçamentos',
   '/challenges': 'Desafios',
   '/reports': 'Relatórios',
@@ -58,6 +58,7 @@ const pageTitles: Record<string, string> = {
 export function Header({ userName }: HeaderProps) {
   const pathname = usePathname();
   const sidebarCollapsed = useSidebarCollapsed();
+  const { isPro, isLoading: tierLoading } = useTier();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pageTitle = pageTitles[pathname] || 'Cleo';
   const initials = userName
@@ -106,7 +107,7 @@ export function Header({ userName }: HeaderProps) {
                           <item.icon className="h-5 w-5" />
                           <span className="flex flex-1 items-center justify-between">
                             {item.label}
-                            {item.pro && (
+                            {item.pro && !tierLoading && !isPro && (
                               <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary">
                                 PRO
                               </span>

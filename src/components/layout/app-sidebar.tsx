@@ -40,7 +40,7 @@ export function useSidebarCollapsed(): boolean {
 export function AppSidebar() {
   const pathname = usePathname();
   const collapsed = useSidebarCollapsed();
-  const { isPro } = useTier();
+  const { isPro, isLoading: tierLoading } = useTier();
 
   return (
     <aside
@@ -105,7 +105,7 @@ export function AppSidebar() {
                     {!collapsed && (
                       <span className="flex flex-1 items-center justify-between">
                         {item.label}
-                        {item.pro && !isPro && (
+                        {item.pro && !tierLoading && !isPro && (
                           <span className="rounded bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold leading-none text-primary">
                             PRO
                           </span>
@@ -124,7 +124,7 @@ export function AppSidebar() {
       <div className={cn('border-t', collapsed ? 'px-2 py-2' : 'px-3 py-2')}>
         {!collapsed ? (
           <div className="space-y-1">
-            {!isPro && (
+            {!tierLoading && !isPro && (
               <Link
                 href="/upgrade"
                 className="mb-1 flex items-center gap-3 rounded-lg bg-gradient-to-r from-violet-500/10 to-indigo-500/10 px-3 py-2.5 text-sm font-medium text-primary transition-colors hover:from-violet-500/20 hover:to-indigo-500/20"
@@ -153,7 +153,7 @@ export function AppSidebar() {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1">
-            {!isPro && (
+            {!tierLoading && !isPro && (
               <Link
                 href="/upgrade"
                 title="Upgrade Pro"
