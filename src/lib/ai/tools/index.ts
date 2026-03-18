@@ -2,10 +2,12 @@ import type Anthropic from '@anthropic-ai/sdk';
 import type { ToolDefinition, ToolResult } from './types';
 import { createGoalTool } from './create-goal';
 import { categorizeTransactionTool } from './categorize-transaction';
+import { createChallengeTool } from './create-challenge';
 
 const CLEO_TOOLS: ToolDefinition[] = [
   createGoalTool,
   categorizeTransactionTool,
+  createChallengeTool,
 ];
 
 /** Convert to Anthropic API tools format */

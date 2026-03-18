@@ -23,6 +23,7 @@ interface ChatMessageProps {
 const TOOL_LABELS: Record<string, string> = {
   create_goal: 'Definindo meta',
   categorize_transaction: 'Recategorizando transação',
+  create_challenge: 'Criando desafio',
 };
 
 function ToolActionBadge({ action }: { action: ToolAction }) {
