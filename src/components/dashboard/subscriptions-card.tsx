@@ -19,8 +19,20 @@ export function SubscriptionsCard() {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
-  if (!data || (data.subscriptions.length === 0 && data.installments.length === 0)) {
-    return null;
+  if (!data) return null;
+
+  if (data.subscriptions.length === 0 && data.installments.length === 0) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2">
+          <Repeat className="h-4 w-4 text-muted-foreground" />
+          <p className="text-sm font-medium">Compromissos Recorrentes</p>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Nenhuma assinatura ou parcela detectada ainda. Transações recorrentes aparecerão aqui automaticamente.
+        </p>
+      </div>
+    );
   }
 
   const total = data.subscriptions.length + data.installments.length;

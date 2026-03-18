@@ -2,6 +2,68 @@ import { createClient } from '@supabase/supabase-js';
 
 const BATCH_SIZE = 50;
 
+// Rule-based pre-categorization: substring match (case-insensitive) → category name
+const MERCHANT_CATEGORY_RULES: Record<string, string[]> = {
+  'Alimentação': [
+    'ifood', 'uber eats', 'rappi', 'zé delivery', 'ze delivery',
+    'mcdonalds', 'mcdonald', 'burger king', 'subway', 'starbucks',
+    'restaurante', 'lanchonete', 'padaria', 'pizzaria', 'açougue',
+    'supermercado', 'mercado', 'hortifruti', 'pao de acucar', 'carrefour',
+    'assai', 'atacadao', 'extra', 'dia supermercado', 'sams club',
+  ],
+  'Transporte': [
+    'uber ', 'uber trip', '99 ', '99app', 'cabify', 'lyft',
+    'posto', 'combustivel', 'combustível', 'shell', 'ipiranga', 'br distribuidora',
+    'estacionamento', 'parking', 'pedagio', 'pedágio', 'sem parar',
+    'recarga bilhete', 'metro ', 'metrô',
+  ],
+  'Assinaturas': [
+    'netflix', 'spotify', 'amazon prime', 'disney', 'hbo', 'star+',
+    'youtube premium', 'apple.com', 'google storage', 'icloud',
+    'deezer', 'globoplay', 'paramount', 'crunchyroll',
+  ],
+  'Saúde': [
+    'farmacia', 'farmácia', 'drogaria', 'drogasil', 'droga raia',
+    'raia drogasil', 'panvel', 'unimed', 'amil', 'sulamerica',
+    'hapvida', 'notredame', 'hospital', 'clinica', 'clínica',
+    'laboratório', 'laboratorio', 'dentista', 'odonto',
+  ],
+  'Educação': [
+    'udemy', 'coursera', 'alura', 'escola', 'faculdade', 'universidade',
+    'curso ', 'mensalidade escolar', 'livrar', 'saraiva', 'amazon kindle',
+  ],
+  'Moradia': [
+    'aluguel', 'condominio', 'condomínio', 'iptu', 'luz', 'energia',
+    'enel', 'cemig', 'copel', 'eletropaulo', 'sabesp', 'agua ',
+    'água ', 'gas ', 'gás ', 'internet', 'claro', 'vivo', 'tim', 'oi ',
+  ],
+  'Receita': [
+    'salario', 'salário', 'pagamento recebido', 'pix recebido',
+    'transferencia recebida', 'transferência recebida', 'rendimento',
+    'dividendo', 'reembolso', 'cashback',
+  ],
+};
+
+function preCategorize(
+  transactions: TransactionToCategorize[],
+): Map<number, string> {
+  const matches = new Map<number, string>();
+
+  for (let i = 0; i < transactions.length; i++) {
+    const tx = transactions[i];
+    const text = `${tx.description} `.toLowerCase();
+
+    for (const [category, patterns] of Object.entries(MERCHANT_CATEGORY_RULES)) {
+      if (patterns.some((p) => text.includes(p))) {
+        matches.set(i, category);
+        break;
+      }
+    }
+  }
+
+  return matches;
+}
+
 const CATEGORIES = [
   'Alimentação',
   'Transporte',
@@ -87,9 +149,29 @@ export async function categorizeTransactions(
   const categoryMap = new Map(dbCategories.map((c) => [c.name, c.id]));
   let categorized = 0;
 
-  // Process in batches
-  for (let i = 0; i < transactions.length; i += BATCH_SIZE) {
-    const batch = transactions.slice(i, i + BATCH_SIZE);
+  // Phase 1: Rule-based pre-categorization (free, no API calls)
+  const ruleMatches = preCategorize(transactions);
+  const needsAI: TransactionToCategorize[] = [];
+
+  for (let i = 0; i < transactions.length; i++) {
+    const ruleCategoryName = ruleMatches.get(i);
+    if (ruleCategoryName) {
+      const categoryId = categoryMap.get(ruleCategoryName);
+      if (categoryId) {
+        const { error } = await supabase
+          .from('transactions')
+          .update({ category_id: categoryId, category_confidence: 0.85 })
+          .eq('id', transactions[i].id);
+        if (!error) categorized++;
+        continue;
+      }
+    }
+    needsAI.push(transactions[i]);
+  }
+
+  // Phase 2: AI categorization for remaining transactions
+  for (let i = 0; i < needsAI.length; i += BATCH_SIZE) {
+    const batch = needsAI.slice(i, i + BATCH_SIZE);
 
     try {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -151,4 +233,4 @@ export async function categorizeTransactions(
   return categorized;
 }
 
-export { buildPrompt, parseAIResponse, CATEGORIES };
+export { buildPrompt, parseAIResponse, preCategorize, CATEGORIES, MERCHANT_CATEGORY_RULES };

@@ -120,7 +120,10 @@ export function TransactionRow({
     const normalized = searchQuery.replace(',', '.');
     const num = parseFloat(normalized);
     if (isNaN(num)) return false;
-    return Math.abs(amount) === Math.abs(num);
+    // Busca parcial: "50" encontra R$ 50,00, R$ 150,00, R$ 250,99
+    const amountStr = Math.abs(amount).toFixed(2);
+    const searchStr = Math.abs(num).toString();
+    return amountStr.includes(searchStr);
   })();
   const menuRef = useRef<HTMLDivElement>(null);
 

@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { getTransactions } from './client';
+import { formatTransactionName } from '@/lib/utils/format';
 import type { PluggyTransaction } from './types';
 
 export interface SyncResult {
@@ -22,7 +23,9 @@ function mapTransaction(
     date: tx.date.split('T')[0], // ISO date only
     type: tx.type === 'DEBIT' ? 'debit' : 'credit',
     raw_category: tx.category || null,
-    merchant: tx.paymentData?.receiver?.name || null,
+    merchant: tx.paymentData?.receiver?.name
+      ? formatTransactionName(tx.paymentData.receiver.name, null)
+      : null,
     installment_number: tx.creditCardMetadata?.installmentNumber || null,
     installment_total: tx.creditCardMetadata?.totalInstallments || null,
   };

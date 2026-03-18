@@ -24,7 +24,23 @@ export function EmergencyFundCard() {
   const balance = accounts?.totalBalance || 0;
   const monthlyExpenses = summary?.expenses || 0;
 
-  if (balance <= 0 || monthlyExpenses <= 0) return null;
+  if (balance <= 0 || monthlyExpenses <= 0) {
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <div>
+            <h3 className="text-sm font-medium">Fundo de Emergência</h3>
+            <p className="text-xs text-muted-foreground">
+              Conecte uma conta bancária para acompanhar sua reserva de emergência.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const monthsCovered = Math.floor(balance / monthlyExpenses);
   const TARGET_MONTHS = 6;
