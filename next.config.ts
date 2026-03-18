@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -19,13 +20,13 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+              "script-src 'self' 'unsafe-inline' https://js.stripe.com https://browser.sentry-cdn.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://api.anthropic.com https://api.stripe.com https://api.pluggy.ai https://connect.pluggy.ai",
+              "connect-src 'self' https://*.supabase.co https://api.anthropic.com https://api.stripe.com https://api.pluggy.ai https://connect.pluggy.ai https://*.sentry.io https://*.ingest.sentry.io",
               "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.pluggy.ai",
-              "worker-src 'self'",
+              "worker-src 'self' blob:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
@@ -37,4 +38,18 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  // Suppress source map upload logs except in CI
+  silent: !process.env.CI,
+
+  // Upload a larger set of source maps for better stack traces
+  widenClientFileUpload: true,
+
+  // Disable Sentry telemetry
+  telemetry: false,
+
+  // Hide source maps from users
+  sourcemaps: {
+    deleteSourcemapsAfterUpload: true,
+  },
+});
