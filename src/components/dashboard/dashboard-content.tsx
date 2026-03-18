@@ -268,7 +268,7 @@ export function DashboardContent() {
 
           {/* Row 4: Accounts + Emergency Fund */}
           <AnimateIn delay={225}>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
               <ErrorBoundary><AccountsCard /></ErrorBoundary>
               <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
             </div>
