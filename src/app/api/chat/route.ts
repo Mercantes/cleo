@@ -5,10 +5,13 @@ import { buildFinancialContext } from '@/lib/ai/financial-context';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
 import { checkTierLimit, incrementUsage } from '@/lib/finance/tier-check';
 import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
+import { getAnthropicTools, executeTool } from '@/lib/ai/tools';
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
+
+const MAX_TOOL_ROUNDS = 3;
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -78,37 +81,115 @@ export async function POST(request: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(10);
 
-  const conversationHistory = (history || [])
+  const conversationHistory: Anthropic.MessageParam[] = (history || [])
     .reverse()
     .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
   try {
-    const stream = anthropic.messages.stream({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
-      system: systemPrompt,
-      messages: conversationHistory,
-    });
-
+    const tools = getAnthropicTools();
     let fullResponse = '';
 
     const readableStream = new ReadableStream({
       async start(controller) {
         const encoder = new TextEncoder();
-        try {
-          for await (const event of stream) {
-            if (
-              event.type === 'content_block_delta' &&
-              event.delta.type === 'text_delta'
-            ) {
-              fullResponse += event.delta.text;
-              controller.enqueue(
-                encoder.encode(`data: ${JSON.stringify({ token: event.delta.text })}\n\n`),
-              );
-            }
-          }
 
-          const finalMessage = await stream.finalMessage();
+        function sendSSE(data: Record<string, unknown>) {
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
+        }
+
+        try {
+          // Tool use loop: stream text, pause for tool calls, resume
+          let messages = [...conversationHistory];
+          let toolRound = 0;
+
+          while (toolRound <= MAX_TOOL_ROUNDS) {
+            const stream = anthropic.messages.stream({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 1024,
+              system: systemPrompt,
+              messages,
+              tools: tools.length > 0 ? tools : undefined,
+            });
+
+            // Accumulate content blocks for potential tool_use continuation
+            let currentToolUseId = '';
+            let currentToolName = '';
+            let toolInputJson = '';
+            let hasToolUse = false;
+            const assistantContentBlocks: Anthropic.ContentBlock[] = [];
+
+            for await (const event of stream) {
+              if (event.type === 'content_block_start') {
+                if (event.content_block.type === 'tool_use') {
+                  hasToolUse = true;
+                  currentToolUseId = event.content_block.id;
+                  currentToolName = event.content_block.name;
+                  toolInputJson = '';
+                  sendSSE({ tool_executing: currentToolName });
+                }
+              } else if (
+                event.type === 'content_block_delta' &&
+                event.delta.type === 'text_delta'
+              ) {
+                fullResponse += event.delta.text;
+                sendSSE({ token: event.delta.text });
+              } else if (
+                event.type === 'content_block_delta' &&
+                event.delta.type === 'input_json_delta'
+              ) {
+                toolInputJson += event.delta.partial_json;
+              }
+            }
+
+            const finalMessage = await stream.finalMessage();
+
+            // Collect content blocks from final message
+            for (const block of finalMessage.content) {
+              assistantContentBlocks.push(block);
+            }
+
+            // If Claude used a tool, execute it and continue the loop
+            if (hasToolUse && finalMessage.stop_reason === 'tool_use') {
+              const toolBlock = finalMessage.content.find(
+                (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
+              );
+
+              if (toolBlock) {
+                const result = await executeTool(
+                  toolBlock.name,
+                  toolBlock.input as Record<string, unknown>,
+                  user.id,
+                );
+
+                sendSSE({
+                  tool_executed: toolBlock.name,
+                  success: result.success,
+                  description: result.message,
+                });
+
+                // Continue conversation with tool result
+                messages = [
+                  ...messages,
+                  { role: 'assistant', content: assistantContentBlocks },
+                  {
+                    role: 'user',
+                    content: [
+                      {
+                        type: 'tool_result',
+                        tool_use_id: toolBlock.id,
+                        content: JSON.stringify(result),
+                      },
+                    ],
+                  },
+                ];
+                toolRound++;
+                continue;
+              }
+            }
+
+            // No tool use or end_turn — done
+            break;
+          }
 
           // Save assistant response
           const { data: assistantMessage } = await supabase
@@ -121,15 +202,7 @@ export async function POST(request: NextRequest) {
           await incrementUsage(user.id, 'chat');
 
           // Send final message with metadata
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                done: true,
-                userMessage,
-                assistantMessage,
-              })}\n\n`,
-            ),
-          );
+          sendSSE({ done: true, userMessage, assistantMessage });
           controller.close();
         } catch (error) {
           console.error('[chat] streaming error:', error);
@@ -150,11 +223,7 @@ export async function POST(request: NextRequest) {
             await supabase.from('chat_messages').delete().eq('id', userMessage.id);
           }
 
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({ error: errorMessage })}\n\n`,
-            ),
-          );
+          sendSSE({ error: errorMessage });
           controller.close();
         }
       },

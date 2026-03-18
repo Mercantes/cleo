@@ -9,11 +9,18 @@ import { ChatSuggestions } from './chat-suggestions';
 import { TypingIndicator } from './typing-indicator';
 import { toast } from '@/components/ui/toast';
 
+interface ToolAction {
+  tool: string;
+  status: 'executing' | 'success' | 'error';
+  description?: string;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  toolActions?: ToolAction[];
 }
 
 export function ChatInterface() {
@@ -156,6 +163,34 @@ export function ChatInterface() {
                 );
                 break;
               }
+              if (event.tool_executing) {
+                setMessages((prev) =>
+                  prev.map((m) =>
+                    m.id === streamingId
+                      ? {
+                          ...m,
+                          toolActions: [
+                            ...(m.toolActions || []),
+                            { tool: event.tool_executing, status: 'executing' as const },
+                          ],
+                        }
+                      : m,
+                  ),
+                );
+              }
+              if (event.tool_executed) {
+                setMessages((prev) =>
+                  prev.map((m) => {
+                    if (m.id !== streamingId) return m;
+                    const actions = (m.toolActions || []).map((a) =>
+                      a.tool === event.tool_executed
+                        ? { ...a, status: (event.success ? 'success' : 'error') as ToolAction['status'], description: event.description }
+                        : a,
+                    );
+                    return { ...m, toolActions: actions };
+                  }),
+                );
+              }
               if (event.token) {
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -230,7 +265,7 @@ export function ChatInterface() {
         {showSuggestions && <ChatSuggestions onSelect={handleSuggestionSelect} />}
         <div className="mx-auto max-w-3xl">
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} />
+            <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} toolActions={msg.toolActions} />
           ))}
           <div aria-live="polite" aria-atomic="true">
             {isLoading && <TypingIndicator />}

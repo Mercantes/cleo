@@ -2,15 +2,56 @@
 
 import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { parseVisuals } from '@/lib/ai/visual-types';
 import { ChatVisual } from './chat-visual';
+
+interface ToolAction {
+  tool: string;
+  status: 'executing' | 'success' | 'error';
+  description?: string;
+}
 
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   createdAt?: string;
+  toolActions?: ToolAction[];
+}
+
+const TOOL_LABELS: Record<string, string> = {
+  create_goal: 'Definindo meta',
+  categorize_transaction: 'Recategorizando transação',
+};
+
+function ToolActionBadge({ action }: { action: ToolAction }) {
+  const label = TOOL_LABELS[action.tool] || action.tool;
+
+  if (action.status === 'executing') {
+    return (
+      <div className="flex items-center gap-1.5 rounded-md bg-blue-500/10 px-2 py-1 text-xs text-blue-600 dark:text-blue-400">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        {label}...
+      </div>
+    );
+  }
+
+  if (action.status === 'success') {
+    return (
+      <div className="flex items-center gap-1.5 rounded-md bg-green-500/10 px-2 py-1 text-xs text-green-600 dark:text-green-400">
+        <CheckCircle2 className="h-3 w-3" />
+        {action.description || label}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-500 dark:text-red-400">
+      <XCircle className="h-3 w-3" />
+      {action.description || 'Erro na ação'}
+    </div>
+  );
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -170,7 +211,7 @@ function formatInline(text: string): React.ReactNode {
   });
 }
 
-export const ChatMessage = memo(function ChatMessage({ role, content, createdAt }: ChatMessageProps) {
+export const ChatMessage = memo(function ChatMessage({ role, content, createdAt, toolActions }: ChatMessageProps) {
   const isUser = role === 'user';
   const { text, visuals } = isUser ? { text: content, visuals: [] } : parseVisuals(content);
 
@@ -193,6 +234,13 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt 
             : 'max-w-[85%] bg-muted lg:max-w-2xl',
         )}
       >
+        {toolActions && toolActions.length > 0 && (
+          <div className="mb-2 space-y-1">
+            {toolActions.map((action, i) => (
+              <ToolActionBadge key={`${action.tool}-${i}`} action={action} />
+            ))}
+          </div>
+        )}
         {text && (
           <div className={isUser ? 'whitespace-pre-wrap' : ''}>
             {isUser ? text : renderMarkdown(text)}
