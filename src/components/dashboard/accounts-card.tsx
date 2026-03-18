@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Landmark, ChevronRight, RefreshCw } from 'lucide-react';
+import { Landmark, ChevronRight, RefreshCw, CreditCard } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,8 @@ interface Account {
 interface AccountsData {
   accounts: Account[];
   totalBalance: number;
+  bankTotal: number;
+  creditTotal: number;
   lastSyncAt: string | null;
 }
 
@@ -104,8 +106,30 @@ export function AccountsCard() {
           </div>
         ))}
       </div>
-      <div className="mt-3 border-t pt-3">
-        <div className="flex items-center justify-between">
+      <div className="mt-3 space-y-1.5 border-t pt-3">
+        {(data?.bankTotal ?? 0) > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Landmark className="h-3 w-3" />
+              Saldo em contas
+            </span>
+            <span className="text-xs font-semibold text-green-600 dark:text-green-400">
+              {fmt(data?.bankTotal ?? 0)}
+            </span>
+          </div>
+        )}
+        {(data?.creditTotal ?? 0) > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <CreditCard className="h-3 w-3" />
+              Faturas cartões
+            </span>
+            <span className="text-xs font-semibold text-red-500 dark:text-red-400">
+              -{fmt(data?.creditTotal ?? 0)}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center justify-between border-t pt-1.5">
           <span className="text-sm font-medium text-muted-foreground">Patrimônio total</span>
           <span
             className={cn(
@@ -118,7 +142,7 @@ export function AccountsCard() {
             {fmt(totalBalance)}
           </span>
         </div>
-        <div className="mt-0.5 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <p className="text-[10px] text-muted-foreground">
             {accounts.length} conta{accounts.length !== 1 ? 's' : ''} conectada{accounts.length !== 1 ? 's' : ''}
           </p>

@@ -24,10 +24,19 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   const accounts = accountsResult.data || [];
   const lastSync = connectionsResult.data?.[0]?.last_sync_at || null;
 
-  const totalBalance = accounts.reduce((sum, acc) => {
+  let bankTotal = 0;
+  let creditTotal = 0;
+
+  for (const acc of accounts) {
     const balance = acc.balance || 0;
-    return acc.type === 'credit' ? sum - balance : sum + balance;
-  }, 0);
+    if (acc.type === 'credit') {
+      creditTotal += balance;
+    } else {
+      bankTotal += balance;
+    }
+  }
+
+  const totalBalance = bankTotal - creditTotal;
 
   return NextResponse.json({
     accounts: accounts.map((acc) => {
@@ -41,6 +50,8 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
       };
     }),
     totalBalance,
+    bankTotal,
+    creditTotal,
     lastSyncAt: lastSync,
   }, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },
