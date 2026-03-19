@@ -45,7 +45,7 @@ const mockScenarios: ProjectionScenario[] = [
 
 describe('ProjectionChart', () => {
   it('renders chart with scenario buttons', () => {
-    render(<ProjectionChart scenarios={mockScenarios} />);
+    render(<ProjectionChart scenarios={mockScenarios} activeScenario="realistic" onScenarioChange={() => {}} horizon={null} />);
     expect(screen.getByText('Otimista')).toBeDefined();
     expect(screen.getByText('Realista')).toBeDefined();
     expect(screen.getByText('Pessimista')).toBeDefined();
@@ -53,7 +53,7 @@ describe('ProjectionChart', () => {
   });
 
   it('renders nothing when scenarios empty', () => {
-    const { container } = render(<ProjectionChart scenarios={[]} />);
+    const { container } = render(<ProjectionChart scenarios={[]} activeScenario="realistic" onScenarioChange={() => {}} horizon={null} />);
     expect(container.innerHTML).toBe('');
   });
 });

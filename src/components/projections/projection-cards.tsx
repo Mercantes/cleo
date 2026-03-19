@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -8,6 +7,10 @@ import type { ProjectionResult, ProjectionScenario } from '@/lib/finance/project
 
 interface ProjectionCardsProps {
   data: ProjectionResult;
+  activeScenario: string;
+  onScenarioChange: (scenario: string) => void;
+  selectedHorizon: number | null;
+  onHorizonChange: (months: number | null) => void;
 }
 
 const scenarioLabels: Record<string, { name: string; description: string }> = {
@@ -16,17 +19,16 @@ const scenarioLabels: Record<string, { name: string; description: string }> = {
   pessimistic: { name: 'Pessimista', description: '-10% economia' },
 };
 
-export function ProjectionCards({ data }: ProjectionCardsProps) {
-  const [selectedLabel, setSelectedLabel] = useState<string>('realistic');
+export function ProjectionCards({ data, activeScenario, onScenarioChange, selectedHorizon, onHorizonChange }: ProjectionCardsProps) {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
-  const scenario = data.scenarios.find((s) => s.label === selectedLabel) as ProjectionScenario | undefined;
+  const scenario = data.scenarios.find((s) => s.label === activeScenario) as ProjectionScenario | undefined;
   if (!scenario) return null;
 
   const horizons = [
-    { label: '3 meses', index: 2 },
-    { label: '6 meses', index: 5 },
-    { label: '12 meses', index: 11 },
+    { label: '3 meses', months: 3, index: 2 },
+    { label: '6 meses', months: 6, index: 5 },
+    { label: '12 meses', months: 12, index: 11 },
   ];
 
   return (
@@ -37,10 +39,10 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
           return (
             <button
               key={s.label}
-              onClick={() => setSelectedLabel(s.label)}
+              onClick={() => onScenarioChange(s.label)}
               className={cn(
                 'flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-colors',
-                selectedLabel === s.label
+                activeScenario === s.label
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',
               )}
@@ -51,14 +53,23 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
         })}
       </div>
       <p className="text-center text-xs text-muted-foreground">
-        {scenarioLabels[selectedLabel]?.description}
+        {scenarioLabels[activeScenario]?.description}
       </p>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
         {horizons.map((h) => {
           const projectedBalance = scenario.monthlyData[h.index]?.balance ?? 0;
           const growth = projectedBalance - data.currentBalance;
           return (
-            <div key={h.label} className="rounded-lg border bg-card p-3">
+            <button
+              key={h.label}
+              onClick={() => onHorizonChange(h.months)}
+              className={cn(
+                'rounded-lg border bg-card p-3 text-left transition-colors',
+                selectedHorizon === h.months
+                  ? 'border-primary ring-1 ring-primary'
+                  : 'hover:border-muted-foreground/40',
+              )}
+            >
               <p className="text-xs text-muted-foreground">{h.label}</p>
               <p className="text-lg font-semibold">
                 {fmt(projectedBalance)}
@@ -68,7 +79,7 @@ export function ProjectionCards({ data }: ProjectionCardsProps) {
                   {growth >= 0 ? '+' : ''}{fmt(growth)}
                 </p>
               )}
-            </div>
+            </button>
           );
         })}
         <div className="rounded-lg border bg-card p-3">

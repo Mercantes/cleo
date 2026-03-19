@@ -1,18 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { ProjectionScenario } from '@/lib/finance/projection-engine';
 
-const SCENARIO_COLORS = {
+const SCENARIO_COLORS: Record<string, string> = {
   optimistic: '#22C55E',
   realistic: '#3B82F6',
   pessimistic: '#EF4444',
 };
 
-const SCENARIO_LABELS = {
+const SCENARIO_LABELS: Record<string, string> = {
   optimistic: 'Otimista',
   realistic: 'Realista',
   pessimistic: 'Pessimista',
@@ -20,23 +20,28 @@ const SCENARIO_LABELS = {
 
 interface ProjectionChartProps {
   scenarios: ProjectionScenario[];
+  activeScenario: string;
+  onScenarioChange: (scenario: string) => void;
+  horizon: number | null;
 }
 
-export function ProjectionChart({ scenarios }: ProjectionChartProps) {
-  const [activeScenario, setActiveScenario] = useState<string | null>(null);
+export function ProjectionChart({ scenarios, activeScenario, onScenarioChange, horizon }: ProjectionChartProps) {
   const [hideValues] = useHideValues();
 
-  if (scenarios.length === 0) return null;
+  const chartData = useMemo(() => {
+    if (scenarios.length === 0) return [];
+    const totalMonths = scenarios[0].monthlyData.length;
+    const limit = horizon ? Math.min(horizon, totalMonths) : totalMonths;
+    return Array.from({ length: limit }, (_, i) => {
+      const point: Record<string, string | number> = { month: scenarios[0].monthlyData[i].month };
+      for (const s of scenarios) {
+        point[s.label] = s.monthlyData[i].balance;
+      }
+      return point;
+    });
+  }, [scenarios, horizon]);
 
-  // Merge scenario data into single array for Recharts
-  const months = scenarios[0].monthlyData.length;
-  const chartData = Array.from({ length: months }, (_, i) => {
-    const point: Record<string, string | number> = { month: scenarios[0].monthlyData[i].month };
-    for (const s of scenarios) {
-      point[s.label] = s.monthlyData[i].balance;
-    }
-    return point;
-  });
+  if (scenarios.length === 0) return null;
 
   return (
     <div className="w-full">
@@ -44,11 +49,11 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
         {scenarios.map((s) => (
           <button
             key={s.label}
-            onClick={() => setActiveScenario(activeScenario === s.label ? null : s.label)}
+            onClick={() => onScenarioChange(s.label)}
             aria-label={`Filtrar cenário ${SCENARIO_LABELS[s.label]}`}
             aria-pressed={activeScenario === s.label}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-              activeScenario && activeScenario !== s.label ? 'opacity-40' : 'opacity-100'
+              activeScenario !== s.label ? 'opacity-40' : 'opacity-100'
             }`}
             style={{ backgroundColor: `${SCENARIO_COLORS[s.label]}20`, color: SCENARIO_COLORS[s.label] }}
           >
@@ -69,8 +74,8 @@ export function ProjectionChart({ scenarios }: ProjectionChartProps) {
               type="monotone"
               dataKey={s.label}
               stroke={SCENARIO_COLORS[s.label]}
-              strokeWidth={activeScenario === s.label ? 3 : activeScenario ? 1 : 2}
-              strokeOpacity={activeScenario && activeScenario !== s.label ? 0.3 : 1}
+              strokeWidth={activeScenario === s.label ? 3 : 1}
+              strokeOpacity={activeScenario !== s.label ? 0.3 : 1}
               dot={false}
             />
           ))}

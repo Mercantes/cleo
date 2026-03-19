@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AlertTriangle, TrendingUp } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { cn } from '@/lib/utils';
@@ -18,6 +18,16 @@ export function ProjectionsContent() {
   const [data, setData] = useState<ProjectionResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [activeScenario, setActiveScenario] = useState<string>('realistic');
+  const [horizon, setHorizon] = useState<number | null>(null);
+
+  const handleScenarioChange = useCallback((scenario: string) => {
+    setActiveScenario(scenario);
+  }, []);
+
+  const handleHorizonChange = useCallback((months: number | null) => {
+    setHorizon((prev) => prev === months ? null : months);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,10 +131,10 @@ export function ProjectionsContent() {
 
       <div className="flex flex-col gap-6 lg:flex-row">
         <div className="flex-1">
-          <ProjectionChart scenarios={data.scenarios} />
+          <ProjectionChart scenarios={data.scenarios} activeScenario={activeScenario} onScenarioChange={handleScenarioChange} horizon={horizon} />
         </div>
         <div className="w-full lg:w-64">
-          <ProjectionCards data={data} />
+          <ProjectionCards data={data} activeScenario={activeScenario} onScenarioChange={handleScenarioChange} selectedHorizon={horizon} onHorizonChange={handleHorizonChange} />
         </div>
       </div>
       <SpendingForecast />
