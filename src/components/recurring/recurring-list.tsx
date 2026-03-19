@@ -217,7 +217,7 @@ export function RecurringList() {
   const rawInstallments = data?.installments || [];
   const rawIncome = data?.income || [];
   const monthlyTotal = data?.monthlyTotal || 0;
-  const monthlyIncome = data?.monthlyIncome || 0;
+  const rawMonthlyIncome = data?.monthlyIncome || 0;
   const hasExpenseData = rawSubscriptions.length > 0 || rawInstallments.length > 0;
   const hasIncomeData = rawIncome.length > 0;
   const hasAnyData = hasExpenseData || hasIncomeData;
@@ -232,7 +232,30 @@ export function RecurringList() {
   // Apply search + sort
   const subscriptions = useMemo(() => sortItems(filterBySearch(rawSubscriptions), sortBy), [rawSubscriptions, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
   const installments = useMemo(() => sortItems(filterBySearch(rawInstallments), sortBy), [rawInstallments, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
-  const income = useMemo(() => sortItems(filterBySearch(rawIncome), sortBy), [rawIncome, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
+  const income = useMemo(() => {
+    const filtered = filterBySearch(rawIncome).filter((item) => {
+      if (!item.next_expected_date) return true;
+      // Show income items that are active during the selected month:
+      // An item is relevant if its first occurrence was on or before the view month
+      // and it hasn't been cancelled before the view month.
+      // Simple heuristic: next_expected_date minus (occurrences * ~30 days) = approximate start
+      const viewYear = viewDate.getFullYear();
+      const viewMonth = viewDate.getMonth();
+      const nextDate = new Date(item.next_expected_date + 'T12:00:00');
+      // The item covers the view month if:
+      // - next_expected_date is in the view month or later (still active)
+      // - OR the item recurs monthly and started before/during the view month
+      const nextYear = nextDate.getFullYear();
+      const nextMonth = nextDate.getMonth();
+      // Item's next date is at or after the view month = expected in this month or future
+      if (nextYear > viewYear || (nextYear === viewYear && nextMonth >= viewMonth)) return true;
+      return false;
+    });
+    return sortItems(filtered, sortBy);
+  }, [rawIncome, searchQuery, sortBy, viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Recalculate monthly income based on filtered items
+  const monthlyIncome = useMemo(() => income.reduce((s, i) => s + Number(i.amount), 0), [income]);
 
   // Auto-detect recurring transactions when data loads empty
   const autoDetectRan = useRef(false);
