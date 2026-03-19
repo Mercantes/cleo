@@ -216,7 +216,7 @@ export function RecurringList() {
   const rawSubscriptions = data?.subscriptions || [];
   const rawInstallments = data?.installments || [];
   const rawIncome = data?.income || [];
-  const monthlyTotal = data?.monthlyTotal || 0;
+  const rawMonthlyTotal = data?.monthlyTotal || 0;
   const rawMonthlyIncome = data?.monthlyIncome || 0;
   const hasExpenseData = rawSubscriptions.length > 0 || rawInstallments.length > 0;
   const hasIncomeData = rawIncome.length > 0;
@@ -229,32 +229,27 @@ export function RecurringList() {
     return items.filter(i => cleanMerchantName(i.merchant).toLowerCase().includes(q));
   }, [searchQuery]);
 
-  // Apply search + sort
-  const subscriptions = useMemo(() => sortItems(filterBySearch(rawSubscriptions), sortBy), [rawSubscriptions, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
-  const installments = useMemo(() => sortItems(filterBySearch(rawInstallments), sortBy), [rawInstallments, searchQuery, sortBy]); // eslint-disable-line react-hooks/exhaustive-deps
-  const income = useMemo(() => {
-    const filtered = filterBySearch(rawIncome).filter((item) => {
+  // Filter recurring items by selected month: show items active during viewDate month
+  const filterByMonth = useCallback((items: RecurringItem[]) => {
+    return items.filter((item) => {
       if (!item.next_expected_date) return true;
-      // Show income items that are active during the selected month:
-      // An item is relevant if its first occurrence was on or before the view month
-      // and it hasn't been cancelled before the view month.
-      // Simple heuristic: next_expected_date minus (occurrences * ~30 days) = approximate start
       const viewYear = viewDate.getFullYear();
       const viewMonth = viewDate.getMonth();
       const nextDate = new Date(item.next_expected_date + 'T12:00:00');
-      // The item covers the view month if:
-      // - next_expected_date is in the view month or later (still active)
-      // - OR the item recurs monthly and started before/during the view month
       const nextYear = nextDate.getFullYear();
       const nextMonth = nextDate.getMonth();
-      // Item's next date is at or after the view month = expected in this month or future
+      // Item is relevant if next_expected_date is in the view month or later
       if (nextYear > viewYear || (nextYear === viewYear && nextMonth >= viewMonth)) return true;
       return false;
     });
-    return sortItems(filtered, sortBy);
-  }, [rawIncome, searchQuery, sortBy, viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [viewDate]);
 
-  // Recalculate monthly income based on filtered items
+  // Apply search + month filter + sort
+  const subscriptions = useMemo(() => sortItems(filterByMonth(filterBySearch(rawSubscriptions)), sortBy), [rawSubscriptions, searchQuery, sortBy, viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  const installments = useMemo(() => sortItems(filterByMonth(filterBySearch(rawInstallments)), sortBy), [rawInstallments, searchQuery, sortBy, viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+  const income = useMemo(() => sortItems(filterByMonth(filterBySearch(rawIncome)), sortBy), [rawIncome, searchQuery, sortBy, viewDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Recalculate totals based on filtered items
   const monthlyIncome = useMemo(() => income.reduce((s, i) => s + Number(i.amount), 0), [income]);
 
   // Auto-detect recurring transactions when data loads empty
@@ -269,6 +264,7 @@ export function RecurringList() {
   // Calculate summary values
   const installmentsTotal = installments.reduce((s, i) => s + Number(i.amount), 0);
   const subscriptionsTotal = subscriptions.reduce((s, i) => s + Number(i.amount), 0);
+  const monthlyTotal = installmentsTotal + subscriptionsTotal;
   // For the ring chart, we simulate "paid" as 0 (beginning of month) for simplicity
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
