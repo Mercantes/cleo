@@ -87,15 +87,24 @@ function cleanMerchantName(merchant: string): string {
     .trim() || merchant;
 }
 
-function normalizeMerchant(description: string, merchant: string | null): string {
+function normalizeMerchant(description: string, merchant: string | null, txType?: 'debit' | 'credit'): string {
   const name = merchant || description;
-  return name
+  let normalized = name
     .replace(/\s+/g, ' ')
     .replace(/\d{2}\/\d{2}/g, '') // Remove date patterns like 01/06
     .replace(/\*+/g, ' ')         // Replace asterisks with space
     .replace(/\b(br|brasil|sao paulo|sp|rj|rio|nova odessa|bra)\b/gi, '') // Remove location suffixes
     // Remove acquirer prefixes (Dm*, Ifd*, Pag*, Mp*, Pagseguro*, etc.)
-    .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet)\s+/i, '')
+    .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet)\s+/i, '');
+
+  // For credit transactions, strip transfer/payment received prefixes for better grouping
+  if (txType === 'credit') {
+    normalized = normalized
+      .replace(/^(transferencia recebida|transferência recebida|pagamento recebido|pix recebido|ted recebida?|doc recebida?|credito em conta|crédito em conta)\s*[-|:.]?\s*/i, '')
+      .replace(/^\|+\s*/, '');
+  }
+
+  return normalized
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -170,14 +179,14 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
   // Only process credit (income) transactions
   for (const tx of transactions) {
     if (tx.type !== 'credit') continue;
-    const key = normalizeMerchant(tx.description, tx.merchant);
+    const key = normalizeMerchant(tx.description, tx.merchant, 'credit');
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key)!.push(tx);
   }
 
   for (const [merchantKey, txs] of grouped) {
-    // Skip generic "pagamento recebido" without sender info
-    if (merchantKey === 'pagamento recebido' || merchantKey === 'pagamento recebido -') continue;
+    // Skip generic entries without sender info (after prefix stripping, empty or generic)
+    if (!merchantKey || merchantKey === 'pagamento recebido' || merchantKey === 'pagamento recebido -' || merchantKey === '-') continue;
 
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
@@ -195,22 +204,21 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
 
     // Need sender to appear in at least 2 different months
     if (months.length < 2) {
-      // Known income source with single recent month
-      if (isKnown) {
-        const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
-        if (daysSinceLast <= 45) {
-          results.push({
-            merchant: latest.merchant || latest.description,
-            amount: monthlyAmounts[0],
-            frequency: 'monthly',
-            type: 'income',
-            status: 'active',
-            confidence: 'low',
-            next_expected_date: addMonths(latest.date, 1),
-            occurrences: 1,
-            transaction_pattern: `income:${merchantKey}`,
-          });
-        }
+      const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
+      // Known income source OR significant amount (>= R$500) in last 45 days → probable income
+      const isSignificant = monthlyAmounts[0] >= 500;
+      if ((isKnown || isSignificant) && daysSinceLast <= 45) {
+        results.push({
+          merchant: cleanMerchantName(latest.merchant || latest.description),
+          amount: monthlyAmounts[0],
+          frequency: 'monthly',
+          type: 'income',
+          status: 'active',
+          confidence: isKnown ? 'low' : 'low',
+          next_expected_date: addMonths(latest.date, 1),
+          occurrences: 1,
+          transaction_pattern: `income:${merchantKey}`,
+        });
       }
       continue;
     }
@@ -245,7 +253,7 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     else confidence = 'low';
 
     results.push({
-      merchant: latest.merchant || latest.description,
+      merchant: cleanMerchantName(latest.merchant || latest.description),
       amount: Math.round(avgMonthlyAmount * 100) / 100,
       frequency: 'monthly',
       type: 'income',
