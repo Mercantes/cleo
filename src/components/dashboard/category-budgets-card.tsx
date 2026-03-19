@@ -14,6 +14,10 @@ export function CategoryBudgetsCard() {
   const { data: budgetsData, isLoading: loading } = useApi<{ budgets: BudgetItem[] }>('/api/budgets');
   const budgets = budgetsData?.budgets || [];
 
+  const now = new Date();
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
+
   if (loading) {
     return (
       <div className="rounded-lg border bg-card p-4">
@@ -82,7 +86,11 @@ export function CategoryBudgetsCard() {
 
       <div className="mt-3 space-y-2.5">
         {budgets.map((b) => (
-          <div key={b.id}>
+          <Link
+            key={b.id}
+            href={`/transactions?category=${encodeURIComponent(b.categoryId)}&from=${monthStart}&to=${monthEnd}`}
+            className="block rounded-md px-1 py-1.5 transition-colors hover:bg-accent/50"
+          >
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5">
                 <span>{b.categoryIcon}</span>
@@ -124,7 +132,7 @@ export function CategoryBudgetsCard() {
                 {fmt(b.spent - b.monthlyLimit)} acima
               </p>
             )}
-          </div>
+          </Link>
         ))}
       </div>
     </div>

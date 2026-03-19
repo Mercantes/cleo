@@ -153,7 +153,7 @@ export function ChallengesCard() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => completeChallenge(challenge.id)}
-                      disabled={actionLoading === challenge.id || isExpired}
+                      disabled={actionLoading === challenge.id}
                       className="rounded-md p-1.5 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950 disabled:opacity-50"
                       aria-label={`Completar desafio ${challenge.title}`}
                     >

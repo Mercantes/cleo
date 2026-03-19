@@ -12,6 +12,7 @@ interface AccountsData {
 
 interface SummaryData {
   expenses: number;
+  savingsRate: number;
 }
 
 export function EmergencyFundCard() {
@@ -34,7 +35,9 @@ export function EmergencyFundCard() {
           <div>
             <h3 className="text-sm font-medium">Fundo de Emergência</h3>
             <p className="text-xs text-muted-foreground">
-              Conecte uma conta bancária para acompanhar sua reserva de emergência.
+              {balance <= 0
+                ? 'Conecte uma conta bancária para acompanhar sua reserva de emergência.'
+                : 'Registre transações para calcular sua reserva em meses de despesas.'}
             </p>
           </div>
         </div>
@@ -107,10 +110,13 @@ export function EmergencyFundCard() {
         )}
         {monthsCovered < TARGET_MONTHS && monthlyExpenses > 0 && (() => {
           const remaining = (monthlyExpenses * TARGET_MONTHS) - balance;
-          const monthsToGoal = Math.ceil(remaining / (monthlyExpenses * 0.1));
+          const actualSavingsRate = summary?.savingsRate || 0;
+          const monthlySavings = actualSavingsRate > 0 ? (monthlyExpenses * actualSavingsRate / 100) : 0;
+          if (monthlySavings <= 0) return null;
+          const monthsToGoal = Math.ceil(remaining / monthlySavings);
           return (
             <p className="mt-1 text-[10px] text-muted-foreground">
-              Guardando 10% das despesas, levaria ~{monthsToGoal} {monthsToGoal === 1 ? 'mês' : 'meses'}
+              No seu ritmo atual de economia ({Math.round(actualSavingsRate)}%), levaria ~{monthsToGoal} {monthsToGoal === 1 ? 'mês' : 'meses'}
             </p>
           );
         })()}

@@ -17,9 +17,11 @@ interface RecurringData {
 function isWithinDays(dateStr: string, days: number): boolean {
   const date = new Date(dateStr + 'T12:00:00');
   const now = new Date();
-  const future = new Date(now);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const txDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const future = new Date(today);
   future.setDate(future.getDate() + days);
-  return date >= now && date <= future;
+  return txDay >= today && txDay <= future;
 }
 
 function formatDueDate(dateStr: string): string {

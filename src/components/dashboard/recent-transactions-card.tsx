@@ -108,7 +108,7 @@ export function RecentTransactionsCard() {
                 {dateLabel}
               </p>
               <span className="text-[10px] font-medium text-muted-foreground">
-                {hideValues ? HIDDEN_VALUE : formatCurrency(txs.reduce((s, t) => s + (t.type === 'credit' ? t.amount : -Math.abs(t.amount)), 0))}
+                {hideValues ? HIDDEN_VALUE : formatCurrency(txs.reduce((s, t) => s + (t.type === 'credit' ? t.amount : -t.amount), 0))}
               </span>
             </div>
             <div className="space-y-0.5">

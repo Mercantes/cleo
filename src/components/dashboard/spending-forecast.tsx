@@ -89,7 +89,7 @@ export function SpendingForecast() {
 
       <div className="mt-3 space-y-2">
         {(showAll ? predictions : predictions.slice(0, 5)).map((p) => {
-          const spendPct = p.avgMonthly > 0 ? Math.min((p.currentSpending / p.avgMonthly) * 100, 150) : 0;
+          const spendPct = p.avgMonthly > 0 ? Math.min((p.currentSpending / p.avgMonthly) * 100, 200) : 0;
           const barColor = p.status === 'over' ? 'bg-red-500' : p.status === 'under' ? 'bg-green-500' : 'bg-blue-500';
           return (
             <div key={p.category} className="rounded-md border p-2.5">
@@ -119,6 +119,11 @@ export function SpendingForecast() {
               <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-muted">
                 <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(spendPct, 100)}%` }} />
               </div>
+              {spendPct > 100 && (
+                <p className="mt-0.5 text-[10px] font-medium text-red-500">
+                  {Math.round(spendPct)}% da média — {fmt(p.currentSpending - p.avgMonthly)} acima
+                </p>
+              )}
               <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                 <span>{fmt(p.currentSpending)}</span>
                 <span>

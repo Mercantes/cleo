@@ -59,6 +59,10 @@ export function StreakCard() {
   // Show last 6 months for compact display
   const displayMonths = months.slice(-6);
 
+  // Determine the current month string (e.g., "mar") for comparison
+  const now = new Date();
+  const currentMonthStr = now.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toLowerCase();
+
   return (
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
@@ -102,24 +106,30 @@ export function StreakCard() {
 
       {/* Month dots visualization */}
       <div className="mt-4 flex items-end gap-1.5">
-        {displayMonths.map((m, i) => (
+        {displayMonths.map((m, i) => {
+          const isCurrentMonth = m.month.toLowerCase() === currentMonthStr;
+          const isInProgress = isCurrentMonth && !m.metGoal;
+          return (
           <div key={i} className="flex flex-1 flex-col items-center gap-1">
             <div
               className={cn(
                 'flex h-8 w-full items-center justify-center rounded-md text-[10px] font-medium transition-colors',
                 m.metGoal
                   ? 'bg-green-500/15 text-green-600 dark:text-green-400'
-                  : m.savings > 0
-                    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    : 'bg-muted text-muted-foreground',
+                  : isInProgress
+                    ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                    : m.savings > 0
+                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                      : 'bg-muted text-muted-foreground',
               )}
-              title={`${m.month}: ${fmt(m.savings)} economizado`}
+              title={`${m.month}: ${fmt(m.savings)} economizado${isInProgress ? ' (em andamento)' : ''}`}
             >
-              {m.metGoal ? '✓' : m.savings > 0 ? '~' : '—'}
+              {m.metGoal ? '✓' : isInProgress ? '⋯' : m.savings > 0 ? '~' : '—'}
             </div>
             <span className="text-[10px] text-muted-foreground capitalize">{m.month}</span>
           </div>
-        ))}
+          );
+        })}
       </div>
       {displayMonths.length >= 2 && (() => {
         const metCount = displayMonths.filter(m => m.metGoal).length;
