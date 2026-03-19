@@ -12,11 +12,11 @@ interface SpendingPaceCardProps {
   data: SummaryData;
 }
 
-function buildDailyData(expenses: number, percentChange: number) {
+function buildDailyData(expenses: number, prevExpenses: number) {
   const now = new Date();
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const lastMonthTotal = percentChange !== 0 ? expenses / (1 + percentChange / 100) : expenses;
+  const lastMonthTotal = prevExpenses > 0 ? prevExpenses : expenses;
 
   const points = [];
   for (let d = 1; d <= daysInMonth; d++) {
@@ -91,7 +91,7 @@ function useIsDark() {
 export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
-  const dailyData = useMemo(() => buildDailyData(data.expenses, data.percentChange), [data.expenses, data.percentChange]);
+  const dailyData = useMemo(() => buildDailyData(data.expenses, data.prevExpenses), [data.expenses, data.prevExpenses]);
   const isDark = useIsDark();
   const greenColor = isDark ? 'rgb(74,222,128)' : 'rgb(34,197,94)';
   const slateColor = isDark ? 'rgb(148,163,184)' : 'rgb(100,116,139)';
@@ -99,7 +99,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const isOver = data.percentChange > 0;
   const now = new Date();
   const dayOfMonth = now.getDate();
-  const lastMonthTotal = data.percentChange !== 0 ? data.expenses / (1 + data.percentChange / 100) : data.expenses;
+  const lastMonthTotal = data.prevExpenses > 0 ? data.prevExpenses : data.expenses;
 
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;

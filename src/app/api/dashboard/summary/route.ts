@@ -48,12 +48,16 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
     ? Math.round((expenses - prevExpenses) / prevExpenses * 1000) / 10
     : 0;
 
+  const prevIncome = prev.filter((t) => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0);
+
   return NextResponse.json({
     income,
     expenses,
     balance,
     savingsRate,
     percentChange,
+    prevExpenses,
+    prevIncome,
     month: monthParam,
   }, {
     headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' },

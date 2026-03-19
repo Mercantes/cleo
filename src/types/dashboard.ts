@@ -6,6 +6,8 @@ export interface SummaryData {
   balance: number;
   savingsRate: number;
   percentChange: number;
+  prevExpenses: number;
+  prevIncome: number;
   month: string;
 }
 

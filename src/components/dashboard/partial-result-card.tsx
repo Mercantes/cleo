@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { SummaryData } from '@/types/dashboard';
@@ -13,74 +14,113 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { income, expenses, balance } = data;
-  const total = income + expenses;
-  const incomePct = total > 0 ? (income / total) * 100 : 50;
+
+  // Bar shows expenses as proportion of income (capped at 100%)
+  const expenseRatio = income > 0 ? Math.min((expenses / income) * 100, 100) : 0;
+  const savingsRatio = income > 0 ? Math.max(100 - expenseRatio, 0) : 0;
+  const overBudget = expenses > income;
+
+  const now = new Date();
+  const dayOfMonth = now.getDate();
 
   return (
     <div className="rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado Parcial</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado do Mês</p>
         <Link href="/cashflow" className="text-xs font-medium text-primary hover:underline">
           Fluxo de caixa ↗
         </Link>
       </div>
 
+      {/* Balance (main number) */}
       <div className="mt-2 flex items-baseline gap-2">
         <span className={`text-2xl font-bold ${balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
-          {fmt(balance)}
-        </span>
-        <span className={`text-xs font-medium ${balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
-          {balance >= 0 ? 'Positivo' : 'Negativo'}
+          {balance >= 0 ? '+' : ''}{fmt(balance)}
         </span>
       </div>
 
+      {/* % change vs last month */}
       {data.percentChange !== 0 && (
         <div className="mt-1 flex items-center gap-2">
           <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.5 text-xs font-medium ${
             data.percentChange > 0 ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'
           }`}>
-            {data.percentChange > 0 ? '+' : ''}{data.percentChange}%
+            {data.percentChange > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+            {data.percentChange > 0 ? '+' : ''}{data.percentChange}% nos gastos
           </span>
           <span className="text-xs text-muted-foreground">vs mês anterior</span>
         </div>
       )}
 
-      {/* Progress bar: income (green) vs expenses (red) */}
-      <div className="mt-4 flex h-3 w-full overflow-hidden rounded-full">
-        <div className="bg-green-500 transition-all" style={{ width: `${incomePct}%` }} />
-        <div className="bg-red-500 transition-all" style={{ width: `${100 - incomePct}%` }} />
-      </div>
-
-      {/* Breakdown */}
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div>
-          <p className="text-[10px] font-medium uppercase text-muted-foreground">Receita</p>
-          <p className="mt-0.5 text-sm font-bold text-green-600 dark:text-green-400">{fmt(income)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-medium uppercase text-muted-foreground">Gasto</p>
-          <p className="mt-0.5 text-sm font-bold text-red-500 dark:text-red-400">{fmt(expenses)}</p>
-        </div>
-        <div>
-          <p className="text-[10px] font-medium uppercase text-muted-foreground">Poupança</p>
-          <p className="mt-0.5 text-sm font-bold">{data.savingsRate}%</p>
-        </div>
-      </div>
-
-      {/* Daily average */}
-      {(() => {
-        const now = new Date();
-        const dayOfMonth = now.getDate();
-        if (dayOfMonth < 2) return null;
-        const dailyExpense = expenses / dayOfMonth;
-        const dailyIncome = income / dayOfMonth;
-        return (
-          <div className="mt-2 flex items-center justify-between border-t pt-2 text-[11px] text-muted-foreground">
-            <span>Média diária: <span className="font-medium text-red-500">{fmt(dailyExpense)}</span> gasto</span>
-            <span><span className="font-medium text-green-600 dark:text-green-400">{fmt(dailyIncome)}</span> receita</span>
+      {/* Income and Expenses breakdown */}
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ArrowUpRight className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-sm text-muted-foreground">Receita</span>
           </div>
-        );
-      })()}
+          <span className="text-sm font-bold text-green-600 dark:text-green-400">{fmt(income)}</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ArrowDownRight className="h-4 w-4 text-red-500 dark:text-red-400" />
+            <span className="text-sm text-muted-foreground">Despesas</span>
+          </div>
+          <span className="text-sm font-bold text-red-500 dark:text-red-400">{fmt(expenses)}</span>
+        </div>
+      </div>
+
+      {/* Visual bar: how much of income was spent */}
+      {income > 0 && (
+        <div className="mt-4">
+          <div className="mb-1.5 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>{Math.round(expenseRatio)}% da receita gasta</span>
+            {savingsRatio > 0 && !overBudget && (
+              <span className="text-green-600 dark:text-green-400">{Math.round(savingsRatio)}% poupado</span>
+            )}
+            {overBudget && (
+              <span className="text-red-500">Acima da receita</span>
+            )}
+          </div>
+          <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className={`rounded-l-full transition-all ${overBudget ? 'bg-red-500' : 'bg-primary'}`}
+              style={{ width: `${expenseRatio}%` }}
+            />
+            {savingsRatio > 0 && !overBudget && (
+              <div
+                className="bg-green-500/30 transition-all"
+                style={{ width: `${savingsRatio}%` }}
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Savings rate badge */}
+      <div className="mt-3 flex items-center justify-between border-t pt-3">
+        <span className="text-xs text-muted-foreground">Taxa de poupança</span>
+        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+          data.savingsRate >= 20
+            ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+            : data.savingsRate >= 10
+              ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+              : data.savingsRate > 0
+                ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400'
+                : 'bg-red-500/10 text-red-500'
+        }`}>
+          {data.savingsRate}%
+          {data.savingsRate >= 20 ? ' Excelente' : data.savingsRate >= 10 ? ' Boa' : data.savingsRate > 0 ? ' Baixa' : ' Negativa'}
+        </span>
+      </div>
+
+      {/* Daily averages (only after day 2) */}
+      {dayOfMonth >= 2 && (
+        <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+          <span>Média diária: <span className="font-medium text-red-500">{fmt(expenses / dayOfMonth)}</span></span>
+          <span><span className="font-medium text-green-600 dark:text-green-400">{fmt(income / dayOfMonth)}</span> receita/dia</span>
+        </div>
+      )}
     </div>
   );
 }
