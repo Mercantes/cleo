@@ -8,7 +8,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   const { data: transactions } = await supabase
     .from('transactions')
-    .select('date, amount, type, categories(name)')
+    .select('date, amount, type, category_id, categories(name)')
     .eq('user_id', user.id)
     .eq('type', 'debit')
     .gte('date', startDate)
@@ -19,6 +19,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   }
 
   const categoryMonthly = new Map<string, Map<string, number>>();
+  const categoryIds = new Map<string, string | null>();
 
   for (const tx of transactions) {
     const catObj = tx.categories as unknown as { name: string } | null;
@@ -27,6 +28,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
     if (!categoryMonthly.has(category)) {
       categoryMonthly.set(category, new Map());
+      categoryIds.set(category, tx.category_id);
     }
     const monthMap = categoryMonthly.get(category)!;
     monthMap.set(month, (monthMap.get(month) || 0) + Math.abs(Number(tx.amount)));
@@ -56,6 +58,7 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
     predictions.push({
       category,
+      categoryId: categoryIds.get(category) || null,
       avgMonthly: Math.round(avgSpending),
       currentSpending: Math.round(currentSpending),
       projectedSpending: Math.round(projectedSpending),

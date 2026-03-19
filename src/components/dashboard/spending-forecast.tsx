@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
@@ -8,6 +9,7 @@ import { useApi } from '@/hooks/use-api';
 
 interface Prediction {
   category: string;
+  categoryId: string | null;
   avgMonthly: number;
   currentSpending: number;
   projectedSpending: number;
@@ -91,8 +93,13 @@ export function SpendingForecast() {
         {(showAll ? predictions : predictions.slice(0, 5)).map((p) => {
           const spendPct = p.avgMonthly > 0 ? Math.min((p.currentSpending / p.avgMonthly) * 100, 200) : 0;
           const barColor = p.status === 'over' ? 'bg-red-500' : p.status === 'under' ? 'bg-green-500' : 'bg-blue-500';
+          const now = new Date();
+          const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+          const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
+          const categoryParam = p.categoryId ? `category=${encodeURIComponent(p.categoryId)}` : 'category=uncategorized';
+          const href = `/transactions?${categoryParam}&from=${monthStart}&to=${monthEnd}`;
           return (
-            <div key={p.category} className="rounded-md border p-2.5">
+            <Link key={p.category} href={href} className="block rounded-md border p-2.5 transition-colors hover:bg-accent/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium">
@@ -131,7 +138,7 @@ export function SpendingForecast() {
                   {p.status === 'over' && p.avgMonthly > 0 && ` (+${fmt(p.currentSpending - p.avgMonthly)})`}
                 </span>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
