@@ -112,9 +112,6 @@ export async function POST(request: NextRequest) {
             });
 
             // Accumulate content blocks for potential tool_use continuation
-            let currentToolUseId = '';
-            let currentToolName = '';
-            let toolInputJson = '';
             let hasToolUse = false;
             const assistantContentBlocks: Anthropic.ContentBlock[] = [];
 
@@ -122,10 +119,6 @@ export async function POST(request: NextRequest) {
               if (event.type === 'content_block_start') {
                 if (event.content_block.type === 'tool_use') {
                   hasToolUse = true;
-                  currentToolUseId = event.content_block.id;
-                  currentToolName = event.content_block.name;
-                  toolInputJson = '';
-                  sendSSE({ tool_executing: currentToolName });
                 }
               } else if (
                 event.type === 'content_block_delta' &&
@@ -133,11 +126,6 @@ export async function POST(request: NextRequest) {
               ) {
                 fullResponse += event.delta.text;
                 sendSSE({ token: event.delta.text });
-              } else if (
-                event.type === 'content_block_delta' &&
-                event.delta.type === 'input_json_delta'
-              ) {
-                toolInputJson += event.delta.partial_json;
               }
             }
 
@@ -148,39 +136,41 @@ export async function POST(request: NextRequest) {
               assistantContentBlocks.push(block);
             }
 
-            // If Claude used a tool, execute it and continue the loop
+            // If Claude used tools, execute ALL of them and continue the loop
             if (hasToolUse && finalMessage.stop_reason === 'tool_use') {
-              const toolBlock = finalMessage.content.find(
+              const toolBlocks = finalMessage.content.filter(
                 (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use',
               );
 
-              if (toolBlock) {
-                const result = await executeTool(
-                  toolBlock.name,
-                  toolBlock.input as Record<string, unknown>,
-                  user.id,
-                );
+              if (toolBlocks.length > 0) {
+                const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
-                sendSSE({
-                  tool_executed: toolBlock.name,
-                  success: result.success,
-                  description: result.message,
-                });
+                for (const toolBlock of toolBlocks) {
+                  sendSSE({ tool_executing: toolBlock.name });
+                  const result = await executeTool(
+                    toolBlock.name,
+                    toolBlock.input as Record<string, unknown>,
+                    user.id,
+                  );
 
-                // Continue conversation with tool result
+                  sendSSE({
+                    tool_executed: toolBlock.name,
+                    success: result.success,
+                    description: result.message,
+                  });
+
+                  toolResults.push({
+                    type: 'tool_result',
+                    tool_use_id: toolBlock.id,
+                    content: JSON.stringify(result),
+                  });
+                }
+
+                // Continue conversation with ALL tool results
                 messages = [
                   ...messages,
                   { role: 'assistant', content: assistantContentBlocks },
-                  {
-                    role: 'user',
-                    content: [
-                      {
-                        type: 'tool_result',
-                        tool_use_id: toolBlock.id,
-                        content: JSON.stringify(result),
-                      },
-                    ],
-                  },
+                  { role: 'user', content: toolResults },
                 ];
                 toolRound++;
                 continue;
