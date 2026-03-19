@@ -231,16 +231,22 @@ export function RecurringList() {
 
   // Filter recurring items by selected month: show items active during viewDate month
   const filterByMonth = useCallback((items: RecurringItem[]) => {
+    const viewVal = viewDate.getFullYear() * 12 + viewDate.getMonth();
     return items.filter((item) => {
       if (!item.next_expected_date) return true;
-      const viewYear = viewDate.getFullYear();
-      const viewMonth = viewDate.getMonth();
       const nextDate = new Date(item.next_expected_date + 'T12:00:00');
-      const nextYear = nextDate.getFullYear();
-      const nextMonth = nextDate.getMonth();
-      // Item is relevant if next_expected_date is in the view month or later
-      if (nextYear > viewYear || (nextYear === viewYear && nextMonth >= viewMonth)) return true;
-      return false;
+      // Estimate start month: next_expected_date minus occurrences months
+      const startDate = new Date(nextDate);
+      startDate.setMonth(startDate.getMonth() - Math.max(item.occurrences, 1));
+      const startVal = startDate.getFullYear() * 12 + startDate.getMonth();
+      // Must be on or after the start month
+      if (viewVal < startVal) return false;
+      // For cancelled/completed items, last active month = month before next_expected_date
+      if (item.status !== 'active') {
+        const lastVal = nextDate.getFullYear() * 12 + nextDate.getMonth() - 1;
+        return viewVal <= lastVal;
+      }
+      return true;
     });
   }, [viewDate]);
 
