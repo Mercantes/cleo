@@ -1,7 +1,7 @@
 'use client';
 
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, ArrowLeftRight, ArrowDown, ArrowUp, Loader2, Receipt } from 'lucide-react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, ArrowLeftRight, ArrowDown, ArrowUp, ChevronDown, ChevronUp, Loader2, Receipt } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TransactionRow } from './transaction-item';
 import { TransactionFilters } from './transaction-filters';
@@ -55,6 +55,51 @@ export function TransactionList() {
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [summary, setSummary] = useState<{ income: number; expenses: number; balance: number }>({ income: 0, expenses: 0, balance: 0 });
+  const [sortColumn, setSortColumn] = useState<'description' | 'category' | 'account' | 'date' | 'amount' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  function handleSort(column: typeof sortColumn) {
+    if (sortColumn === column) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else {
+        // Third click resets to default (no sort)
+        setSortColumn(null);
+        setSortDirection('asc');
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection(column === 'amount' || column === 'date' ? 'desc' : 'asc');
+    }
+  }
+
+  const sortedTransactions = useMemo(() => {
+    if (!sortColumn) return transactions;
+    return [...transactions].sort((a, b) => {
+      let cmp = 0;
+      switch (sortColumn) {
+        case 'description':
+          cmp = (a.merchant || a.description).localeCompare(b.merchant || b.description, 'pt-BR');
+          break;
+        case 'category':
+          cmp = (a.categories?.name || 'zzz').localeCompare(b.categories?.name || 'zzz', 'pt-BR');
+          break;
+        case 'account': {
+          const aName = a.accounts?.bank_connections?.connector_name || a.accounts?.name || 'zzz';
+          const bName = b.accounts?.bank_connections?.connector_name || b.accounts?.name || 'zzz';
+          cmp = aName.localeCompare(bName, 'pt-BR');
+          break;
+        }
+        case 'date':
+          cmp = a.date.localeCompare(b.date);
+          break;
+        case 'amount':
+          cmp = a.amount - b.amount;
+          break;
+      }
+      return sortDirection === 'asc' ? cmp : -cmp;
+    });
+  }, [transactions, sortColumn, sortDirection]);
 
   const fetchTransactions = useCallback(
     async (currentFilters: Filters, pageNum: number, append = false) => {
@@ -225,15 +270,33 @@ export function TransactionList() {
               {/* Table header */}
               <div role="row" className="grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <span role="columnheader" className="text-center">N.°</span>
-                <span role="columnheader">Descrição</span>
-                <span role="columnheader">Categoria</span>
-                <span role="columnheader" className="text-center">Conta</span>
-                <span role="columnheader">Data</span>
-                <span role="columnheader" className="text-right">Valor</span>
+                {(['description', 'category', 'account', 'date', 'amount'] as const).map((col) => {
+                  const labels = { description: 'Descrição', category: 'Categoria', account: 'Conta', date: 'Data', amount: 'Valor' };
+                  const align = col === 'amount' ? 'justify-end' : col === 'account' ? 'justify-center' : '';
+                  const isActive = sortColumn === col;
+                  return (
+                    <button
+                      key={col}
+                      role="columnheader"
+                      onClick={() => handleSort(col)}
+                      className={cn(
+                        'flex items-center gap-1 transition-colors hover:text-foreground',
+                        align,
+                        isActive && 'text-foreground',
+                      )}
+                    >
+                      {labels[col]}
+                      {isActive && (sortDirection === 'asc'
+                        ? <ChevronUp className="h-3 w-3" />
+                        : <ChevronDown className="h-3 w-3" />
+                      )}
+                    </button>
+                  );
+                })}
                 <span role="columnheader" aria-hidden="true" />
               </div>
               {/* Rows */}
-              {transactions.map((tx, index) => (
+              {sortedTransactions.map((tx, index) => (
                 <TransactionRow
                   key={tx.id}
                   index={index + 1}
@@ -261,7 +324,7 @@ export function TransactionList() {
 
           {/* Mobile card view */}
           <div className="space-y-2 md:hidden">
-            {transactions.map((tx, index) => (
+            {sortedTransactions.map((tx, index) => (
               <TransactionRow
                 key={tx.id}
                 index={index + 1}
