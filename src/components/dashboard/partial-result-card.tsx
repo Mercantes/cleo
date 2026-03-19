@@ -75,7 +75,7 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
         const dailyExpense = expenses / dayOfMonth;
         const dailyIncome = income / dayOfMonth;
         return (
-          <div className="mt-2 flex items-center justify-between border-t pt-2 text-[10px] text-muted-foreground">
+          <div className="mt-2 flex items-center justify-between border-t pt-2 text-[11px] text-muted-foreground">
             <span>Média diária: <span className="font-medium text-red-500">{fmt(dailyExpense)}</span> gasto</span>
             <span><span className="font-medium text-green-600 dark:text-green-400">{fmt(dailyIncome)}</span> receita</span>
           </div>

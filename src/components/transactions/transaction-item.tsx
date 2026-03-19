@@ -242,12 +242,12 @@ export function TransactionRow({
   // Desktop table row
   return (
     <>
-      <div className="group grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-sm transition-colors last:border-0 hover:bg-accent/30">
+      <div role="row" className="group grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-sm transition-colors last:border-0 hover:bg-accent/30">
         {/* Number */}
-        <span className="text-center text-xs text-muted-foreground">{index}</span>
+        <span role="cell" className="text-center text-xs text-muted-foreground">{index}</span>
 
         {/* Description */}
-        <div className="min-w-0">
+        <div role="cell" className="min-w-0">
           <p className="truncate font-medium">
             <HighlightText text={formatTransactionName(description, merchant)} query={searchQuery || ''} />
           </p>
@@ -257,20 +257,21 @@ export function TransactionRow({
         </div>
 
         {/* Category */}
-        <div>
+        <div role="cell">
           <CategoryBadge category={category} />
         </div>
 
         {/* Account */}
-        <div className="flex justify-center">
+        <div role="cell" className="flex justify-center">
           <AccountBadge account={account} />
         </div>
 
         {/* Date */}
-        <span className="text-xs text-muted-foreground">{formatDateTime(date)}</span>
+        <span role="cell" className="text-xs text-muted-foreground">{formatDateTime(date)}</span>
 
         {/* Amount */}
         <span
+          role="cell"
           className={cn(
             'text-right text-sm font-semibold',
             isIncome ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400',
@@ -281,7 +282,7 @@ export function TransactionRow({
         </span>
 
         {/* Action menu */}
-        <div className="relative" ref={menuRef}>
+        <div role="cell" className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-muted hover:text-foreground group-hover:opacity-100"

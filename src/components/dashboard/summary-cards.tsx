@@ -58,7 +58,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
       {cards.map((card) => (
         <Link
           key={card.label}
@@ -72,7 +72,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
           </div>
           <p className={`mt-1 text-lg font-bold ${card.color}`}>{card.value}</p>
           {'sub' in card && card.sub && (
-            <p className="text-[10px] text-muted-foreground">{card.sub}</p>
+            <p className="text-[11px] text-muted-foreground">{card.sub}</p>
           )}
         </Link>
       ))}
@@ -132,7 +132,7 @@ export const SummaryCards = memo(function SummaryCards({ data }: { data: Summary
                     title={`${monthProgress}% do mês`}
                   />
                 </div>
-                <p className="mt-1 text-[11px] text-muted-foreground">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {budgetUsed <= monthProgress
                     ? 'Dentro do ritmo esperado para o mês'
                     : budgetUsed <= 100

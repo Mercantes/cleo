@@ -22,7 +22,7 @@ export function AnimateIn({ children, delay = 0, className }: AnimateInProps) {
     <div
       ref={ref}
       className={cn(
-        'transition-all duration-500 ease-out',
+        'transition-all duration-300 ease-out',
         visible ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0',
         className,
       )}

@@ -11,6 +11,7 @@ import { PwaInstallPrompt } from '@/components/layout/pwa-install-prompt';
 import { QuickChatFab } from '@/components/chat/quick-chat-fab';
 import { RoutePrefetch } from '@/components/layout/route-prefetch';
 import { RealtimeListener } from '@/components/layout/realtime-listener';
+import { OfflineBanner } from '@/components/ui/offline-banner';
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -40,7 +41,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const displayName = profile?.full_name || user.email?.split('@')[0] || 'usuário';
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen flex-col bg-background">
+      <OfflineBanner />
+      <div className="flex flex-1 overflow-hidden">
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground"
@@ -67,6 +70,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <QuickChatFab />
       <RoutePrefetch />
       <RealtimeListener />
+      </div>
     </div>
   );
 }

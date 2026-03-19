@@ -147,7 +147,7 @@ export function FinancialHealthCard() {
       </div>
       <div className="mt-0.5 flex items-center gap-2">
         <span className={`text-xs font-medium ${getScoreColor(health.score)}`}>{getScoreLabel(health.score)}</span>
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-[11px] text-muted-foreground">
           {health.factors.filter(f => f.status === 'good').length} ok
           {health.factors.filter(f => f.status === 'warning').length > 0 && ` · ${health.factors.filter(f => f.status === 'warning').length} atenção`}
           {health.factors.filter(f => f.status === 'bad').length > 0 && ` · ${health.factors.filter(f => f.status === 'bad').length} ${health.factors.filter(f => f.status === 'bad').length === 1 ? 'crítico' : 'críticos'}`}
@@ -165,7 +165,7 @@ export function FinancialHealthCard() {
       {health.score < 60 && (() => {
         const worstFactor = health.factors.find(f => f.status === 'bad') || health.factors.find(f => f.status === 'warning');
         return worstFactor ? (
-          <p className="mt-1.5 text-[10px] text-muted-foreground">
+          <p className="mt-1.5 text-[11px] text-muted-foreground">
             Prioridade: <span className="font-medium">{worstFactor.label.toLowerCase()}</span> — {worstFactor.detail.toLowerCase()}
           </p>
         ) : null;

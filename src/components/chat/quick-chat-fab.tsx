@@ -67,7 +67,11 @@ export function QuickChatFab() {
         body: JSON.stringify({ message: messageText }),
       });
 
-      if (!res.ok) throw new Error('Failed');
+      if (!res.ok) {
+        const err = new Error('Failed');
+        (err as Error & { status: number }).status = res.status;
+        throw err;
+      }
 
       const reader = res.body?.getReader();
       if (!reader) throw new Error('No reader');
@@ -104,10 +108,17 @@ export function QuickChatFab() {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      let errorMsg = 'Desculpe, não consegui responder. Tente novamente.';
+      const status = (err as Error & { status?: number })?.status;
+      if (status === 429) {
+        errorMsg = 'Muitas requisições. Aguarde um momento.';
+      } else if (err instanceof TypeError) {
+        errorMsg = 'Sem conexão. Verifique sua internet.';
+      }
       setMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: 'Desculpe, não consegui responder. Tente novamente.' },
+        { role: 'assistant', content: errorMsg },
       ]);
     } finally {
       setIsLoading(false);

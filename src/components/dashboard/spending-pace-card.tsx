@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { TrendingDown, TrendingUp } from 'lucide-react';
@@ -69,10 +69,32 @@ function PaceTooltip({ active, payload, label }: { active?: boolean; payload?: A
   );
 }
 
+function subscribeToDarkMode(callback: () => void) {
+  const root = document.documentElement;
+  const observer = new MutationObserver(callback);
+  observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
+
+function getIsDark() {
+  return document.documentElement.classList.contains('dark');
+}
+
+function getIsDarkServer() {
+  return false;
+}
+
+function useIsDark() {
+  return useSyncExternalStore(subscribeToDarkMode, getIsDark, getIsDarkServer);
+}
+
 export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const dailyData = useMemo(() => buildDailyData(data.expenses, data.percentChange), [data.expenses, data.percentChange]);
+  const isDark = useIsDark();
+  const greenColor = isDark ? 'rgb(74,222,128)' : 'rgb(34,197,94)';
+  const slateColor = isDark ? 'rgb(148,163,184)' : 'rgb(100,116,139)';
 
   const isOver = data.percentChange > 0;
   const now = new Date();
@@ -102,7 +124,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         const daysLeft = daysInMonth - dayOfMonth;
         const dailyAvg = dayOfMonth > 0 ? data.expenses / dayOfMonth : 0;
         return daysLeft > 0 && dailyAvg > 0 ? (
-          <p className="mt-0.5 text-[10px] text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             {fmt(dailyAvg)}/dia · {daysLeft} dia{daysLeft !== 1 ? 's' : ''} restante{daysLeft !== 1 ? 's' : ''}
           </p>
         ) : null;
@@ -111,7 +133,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
         const projected = Math.round(data.expenses / dayOfMonth * daysInMonth);
         return (
-          <p className="mt-0.5 text-[10px] text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             Projeção: {fmt(projected)} até o fim do mês
           </p>
         );
@@ -134,8 +156,8 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
           <AreaChart data={dailyData}>
             <defs>
               <linearGradient id="spendingGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(34,197,94)" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="rgb(34,197,94)" stopOpacity={0} />
+                <stop offset="0%" stopColor={greenColor} stopOpacity={0.3} />
+                <stop offset="100%" stopColor={greenColor} stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-border" />
@@ -161,7 +183,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
             <Area
               type="monotone"
               dataKey="last"
-              stroke="rgb(100,116,139)"
+              stroke={slateColor}
               strokeWidth={1.5}
               strokeDasharray="4 4"
               fill="none"
@@ -172,7 +194,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
             <Area
               type="monotone"
               dataKey="current"
-              stroke="rgb(34,197,94)"
+              stroke={greenColor}
               strokeWidth={2}
               fill="url(#spendingGrad)"
               dot={false}

@@ -221,16 +221,16 @@ export function TransactionList() {
         <>
           {/* Desktop table view */}
           <div className="hidden md:block">
-            <div className="rounded-lg border bg-card">
+            <div className="rounded-lg border bg-card" role="table" aria-label="Lista de transações">
               {/* Table header */}
-              <div className="grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                <span className="text-center">N.°</span>
-                <span>Descrição</span>
-                <span>Categoria</span>
-                <span className="text-center">Conta</span>
-                <span>Data</span>
-                <span className="text-right">Valor</span>
-                <span />
+              <div role="row" className="grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <span role="columnheader" className="text-center">N.°</span>
+                <span role="columnheader">Descrição</span>
+                <span role="columnheader">Categoria</span>
+                <span role="columnheader" className="text-center">Conta</span>
+                <span role="columnheader">Data</span>
+                <span role="columnheader" className="text-right">Valor</span>
+                <span role="columnheader" aria-hidden="true" />
               </div>
               {/* Rows */}
               {transactions.map((tx, index) => (

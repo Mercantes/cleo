@@ -15,7 +15,25 @@ export function CategoryBudgetsCard() {
   const budgets = budgetsData?.budgets || [];
 
   if (loading) {
-    return <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />;
+    return (
+      <div className="rounded-lg border bg-card p-4">
+        <div className="flex items-center justify-between">
+          <div className="h-4 w-36 animate-pulse rounded bg-muted" />
+          <div className="h-3 w-16 animate-pulse rounded bg-muted" />
+        </div>
+        <div className="mt-4 space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i}>
+              <div className="flex items-center justify-between">
+                <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+                <div className="h-3 w-20 animate-pulse rounded bg-muted" />
+              </div>
+              <div className="mt-1.5 h-1.5 w-full animate-pulse rounded-full bg-muted" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (budgets.length === 0) {
@@ -73,7 +91,7 @@ export function CategoryBudgetsCard() {
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <span>{fmt(b.spent)} / {fmt(b.monthlyLimit)}</span>
                 <span className={cn(
-                  'text-[10px] font-medium',
+                  'text-[11px] font-medium',
                   b.status === 'over' ? 'text-red-500' : b.status === 'warning' ? 'text-amber-600' : 'text-green-600 dark:text-green-400',
                 )}>
                   {b.percentage}%
@@ -97,12 +115,12 @@ export function CategoryBudgetsCard() {
               ) : null}
             </div>
             {b.status === 'ok' && b.monthlyLimit > b.spent && (
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
                 Restam {fmt(b.monthlyLimit - b.spent)}
               </p>
             )}
             {b.status === 'over' && (
-              <p className="mt-0.5 text-[10px] text-red-500">
+              <p className="mt-0.5 text-[11px] text-red-500">
                 {fmt(b.spent - b.monthlyLimit)} acima
               </p>
             )}

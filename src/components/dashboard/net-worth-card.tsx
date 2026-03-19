@@ -107,7 +107,7 @@ export function NetWorthCard() {
             </span>
           </div>
           {firstValue !== 0 && (
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               {isPositive ? '+' : ''}{fmt(balance - firstValue)} desde o início do período
             </p>
           )}
