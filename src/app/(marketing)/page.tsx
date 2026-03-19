@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { PricingSection } from '@/components/marketing/pricing-section';
 import { BankLogos } from '@/components/marketing/bank-logos';
+import { HowItWorksStep } from '@/components/marketing/how-it-works-step';
 
 export default function LandingPage() {
   const jsonLd = {
@@ -185,7 +186,7 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="como-funciona" className="border-t bg-muted/30 py-20 md:py-28">
+      <section id="como-funciona" className="border-t bg-muted/30 py-20 md:py-28 overflow-hidden">
         <div className="mx-auto max-w-6xl px-4 md:px-6">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
@@ -197,36 +198,74 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="mt-16 space-y-20 md:space-y-28">
-            {STEPS.map((step, i) => (
-              <div key={step.title} className="space-y-6">
-                <div className={cn(
-                  'flex items-start gap-4',
-                  i % 2 === 1 ? 'lg:justify-end' : 'lg:justify-start',
-                )}>
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
-                    {i + 1}
-                  </span>
-                  <div className="max-w-md">
-                    <h3 className="text-xl font-bold">{step.title}</h3>
-                    <p className="mt-2 text-muted-foreground">{step.description}</p>
-                    {step.detail && (
-                      <p className="mt-1 text-sm text-muted-foreground/70">{step.detail}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="overflow-hidden rounded-2xl border bg-background shadow-lg">
-                  <Image
-                    src={step.screenshot}
-                    alt={step.title}
-                    width={1920}
-                    height={1080}
-                    className="w-full"
-                    unoptimized
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="relative mt-16">
+            {/* Connecting line between steps */}
+            <div className="absolute left-[19px] top-0 hidden h-full w-px border-l-2 border-dashed border-primary/20 lg:block" />
+
+            <div className="space-y-16 md:space-y-20">
+              {STEPS.map((step, i) => {
+                const isReversed = i % 2 === 1;
+                const StepIcon = step.icon;
+                return (
+                  <HowItWorksStep key={step.title} index={i}>
+                    <div className={cn(
+                      'flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12',
+                      isReversed && 'lg:flex-row-reverse',
+                    )}>
+                      {/* Text side */}
+                      <div className="flex-1 lg:max-w-md">
+                        <div className="flex items-start gap-4">
+                          <span className="relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-md shadow-primary/25">
+                            {i + 1}
+                          </span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <StepIcon className="h-4 w-4 text-primary" />
+                              <h3 className="text-xl font-bold">{step.title}</h3>
+                            </div>
+                            <p className="mt-2 leading-relaxed text-muted-foreground">{step.description}</p>
+                            {step.detail && (
+                              <p className="mt-2 text-sm text-muted-foreground/70">{step.detail}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Screenshot side */}
+                      <div className="flex-1">
+                        <div className={cn(
+                          'group relative',
+                          isReversed ? 'lg:pr-4' : 'lg:pl-4',
+                        )}>
+                          {/* Green glow behind */}
+                          <div className="absolute -inset-4 rounded-3xl bg-primary/5 blur-2xl transition-all duration-500 group-hover:bg-primary/10" />
+                          {/* Screenshot container with perspective */}
+                          <div
+                            className={cn(
+                              'relative overflow-hidden rounded-xl border border-border/50 bg-background shadow-2xl shadow-black/20 transition-transform duration-500 group-hover:scale-[1.02]',
+                              i === 0 && 'lg:[transform:perspective(1200px)_rotateY(-3deg)]',
+                              i === 1 && 'lg:[transform:perspective(1200px)_rotateY(3deg)]',
+                              i === 2 && 'lg:[transform:perspective(1200px)_rotateY(-3deg)]',
+                            )}
+                          >
+                            {/* Gradient fade on edges */}
+                            <div className="pointer-events-none absolute inset-0 z-10 rounded-xl ring-1 ring-inset ring-white/10" />
+                            <Image
+                              src={step.screenshot}
+                              alt={step.title}
+                              width={1920}
+                              height={1080}
+                              className="w-full"
+                              unoptimized
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </HowItWorksStep>
+                );
+              })}
+            </div>
           </div>
         </div>
       </section>
