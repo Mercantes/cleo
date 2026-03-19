@@ -253,7 +253,7 @@ export function DashboardContent() {
                 {summary && <PartialResultCard data={summary} />}
               </ErrorBoundary>
               <ErrorBoundary>
-                <CategoriesTableCard data={categories} />
+                <CategoriesTableCard data={categories} month={month} />
               </ErrorBoundary>
             </div>
           </AnimateIn>

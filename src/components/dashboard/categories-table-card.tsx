@@ -30,15 +30,16 @@ function getCategoryBarColor(name: string, fallbackColor: string): string {
 
 interface CategoriesTableCardProps {
   data: CategoryData[];
+  month: string; // "YYYY-MM"
 }
 
-export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
+export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
-  const now = new Date();
-  const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
+  const [year, m] = month.split('-').map(Number);
+  const monthStart = `${year}-${String(m).padStart(2, '0')}-01`;
+  const monthEnd = `${year}-${String(m).padStart(2, '0')}-${new Date(year, m, 0).getDate()}`;
 
   if (data.length === 0) return null;
 
@@ -78,11 +79,12 @@ export function CategoriesTableCard({ data }: CategoriesTableCardProps) {
             ? cat.amount / (1 + cat.change / 100)
             : null;
 
+          const dateParams = `&from=${monthStart}&to=${monthEnd}`;
           const href = cat.categoryId === null
-            ? '/transactions?category=uncategorized'
+            ? `/transactions?category=uncategorized${dateParams}`
             : cat.categoryId === '_others'
-              ? '/transactions'
-              : `/transactions?category=${encodeURIComponent(cat.categoryId)}`;
+              ? `/transactions?type=debit${dateParams}`
+              : `/transactions?category=${encodeURIComponent(cat.categoryId)}${dateParams}`;
 
           return (
             <Link
