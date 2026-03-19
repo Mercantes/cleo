@@ -567,7 +567,22 @@ export function RecurringList() {
                     </p>
                   </div>
                 </div>
-                <span className="text-sm font-medium text-muted-foreground">{monthLabel}</span>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setMonthOffset((o) => o - 1)}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <span className="min-w-[10rem] text-center text-sm font-medium">{monthLabel}</span>
+                  <button
+                    onClick={() => setMonthOffset((o) => o + 1)}
+                    disabled={monthOffset >= 0}
+                    className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground disabled:opacity-30"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-6 border-t pt-3 text-sm">
                 <div className="flex items-center gap-2">
