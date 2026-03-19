@@ -253,10 +253,11 @@ export default function LandingPage() {
                             <Image
                               src={step.screenshot}
                               alt={step.title}
-                              width={1920}
-                              height={1080}
+                              width={1660}
+                              height={780}
+                              quality={90}
+                              sizes="(max-width: 1024px) 100vw, 50vw"
                               className="w-full"
-                              unoptimized
                             />
                           </div>
                         </div>
