@@ -554,17 +554,20 @@ export function RecurringList() {
           <>
             {/* Income summary card */}
             <div className="rounded-xl border bg-card p-5">
-              <div className="flex items-center gap-5">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
-                  <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-5">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-950">
+                    <TrendingUp className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Receita recorrente</p>
+                    <p className="text-xl font-bold">
+                      {fmt(monthlyIncome)}
+                      <span className="text-base font-normal text-muted-foreground">/mês</span>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Receita recorrente</p>
-                  <p className="text-xl font-bold">
-                    {fmt(monthlyIncome)}
-                    <span className="text-base font-normal text-muted-foreground">/mês</span>
-                  </p>
-                </div>
+                <span className="text-sm font-medium text-muted-foreground">{monthLabel}</span>
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-6 border-t pt-3 text-sm">
                 <div className="flex items-center gap-2">
@@ -618,6 +621,12 @@ export function RecurringList() {
                         <p className="text-xs text-muted-foreground">
                           {item.frequency === 'monthly' ? 'Mensal' : item.frequency === 'yearly' ? 'Anual' : item.frequency}
                           {item.occurrences > 0 && ` · ${item.occurrences} ${item.occurrences === 1 ? 'mês' : 'meses'}`}
+                          {item.next_expected_date && (() => {
+                            const d = new Date(item.next_expected_date + 'T12:00:00');
+                            const day = d.getDate();
+                            const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+                            return ` · Próxima: ${day} ${monthNames[d.getMonth()]}`;
+                          })()}
                           {item.confidence !== 'high' && (
                             <span className={cn(
                               'ml-1.5 inline-block rounded px-1 py-0.5 text-[10px] font-medium',
