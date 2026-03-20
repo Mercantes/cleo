@@ -79,7 +79,11 @@ export function AccountsCard() {
           >
             <div className="flex items-center gap-2.5">
               <div className="flex h-6 w-6 items-center justify-center rounded-full bg-muted">
-                <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
+                {acc.type === 'credit' ? (
+                  <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
+                ) : (
+                  <Landmark className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
               </div>
               <div>
                 <p className="text-sm font-medium leading-tight">{acc.name}</p>

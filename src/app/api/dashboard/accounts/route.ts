@@ -38,17 +38,28 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   const totalBalance = bankTotal - creditTotal;
 
-  return NextResponse.json({
-    accounts: accounts.map((acc) => {
-      const conn = acc.bank_connections as unknown as { connector_name: string } | null;
-      return {
+  // Group accounts by bank + type, consolidating balances
+  const grouped = new Map<string, { id: string; name: string; type: string; balance: number; bankName: string }>();
+  for (const acc of accounts) {
+    const conn = acc.bank_connections as unknown as { connector_name: string } | null;
+    const bankName = conn?.connector_name || 'Banco';
+    const key = `${bankName}::${acc.type}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.balance += acc.balance || 0;
+    } else {
+      grouped.set(key, {
         id: acc.id,
         name: acc.name,
         type: acc.type,
         balance: acc.balance || 0,
-        bankName: conn?.connector_name || 'Banco',
-      };
-    }),
+        bankName,
+      });
+    }
+  }
+
+  return NextResponse.json({
+    accounts: [...grouped.values()],
     totalBalance,
     bankTotal,
     creditTotal,
