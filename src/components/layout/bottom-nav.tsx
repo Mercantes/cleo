@@ -18,12 +18,21 @@ function useHasUnread(pathname: string) {
   const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
-    if (pathname === '/chat') {
-      sessionStorage.setItem('cleo_chat_visited', '1');
-      return;
+    try {
+      if (pathname === '/chat') {
+        sessionStorage.setItem('cleo_chat_visited', '1');
+        return;
+      }
+    } catch {
+      // sessionStorage unavailable
     }
 
-    const visited = sessionStorage.getItem('cleo_chat_visited');
+    let visited: string | null = null;
+    try {
+      visited = sessionStorage.getItem('cleo_chat_visited');
+    } catch {
+      // sessionStorage unavailable
+    }
     if (!visited) {
       fetch('/api/insights')
         .then((r) => r.ok ? r.json() : null)

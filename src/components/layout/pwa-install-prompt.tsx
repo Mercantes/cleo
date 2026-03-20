@@ -10,8 +10,12 @@ interface BeforeInstallPromptEvent extends Event {
 
 function isDismissedOrInstalled(): boolean {
   if (typeof window === 'undefined') return true;
-  if (window.matchMedia('(display-mode: standalone)').matches) return true;
-  return sessionStorage.getItem('pwa-prompt-dismissed') === '1';
+  try {
+    if (window.matchMedia('(display-mode: standalone)').matches) return true;
+    return sessionStorage.getItem('pwa-prompt-dismissed') === '1';
+  } catch {
+    return true;
+  }
 }
 
 export function PwaInstallPrompt() {

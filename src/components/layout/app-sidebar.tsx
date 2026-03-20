@@ -14,7 +14,11 @@ import { useTier } from '@/hooks/use-tier';
 const STORAGE_KEY = 'cleo-sidebar-collapsed';
 
 function getSnapshot(): boolean {
-  return localStorage.getItem(STORAGE_KEY) === 'true';
+  try {
+    return localStorage.getItem(STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function getServerSnapshot(): boolean {
@@ -28,8 +32,12 @@ function subscribe(callback: () => void): () => void {
 }
 
 export function toggleSidebar() {
-  const current = localStorage.getItem(STORAGE_KEY) === 'true';
-  localStorage.setItem(STORAGE_KEY, String(!current));
+  try {
+    const current = localStorage.getItem(STORAGE_KEY) === 'true';
+    localStorage.setItem(STORAGE_KEY, String(!current));
+  } catch {
+    // localStorage unavailable
+  }
   window.dispatchEvent(new Event('sidebar-toggle'));
 }
 

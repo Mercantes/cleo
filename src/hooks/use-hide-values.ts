@@ -6,7 +6,11 @@ const STORAGE_KEY = 'cleo-hide-values';
 const EVENT_NAME = 'hide-values-toggle';
 
 function getSnapshot(): boolean {
-  return localStorage.getItem(STORAGE_KEY) === 'true';
+  try {
+    return localStorage.getItem(STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
 }
 
 function getServerSnapshot(): boolean {
@@ -27,8 +31,12 @@ export function useHideValues(): [boolean, () => void] {
   const hidden = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
   const toggle = useCallback(() => {
-    const next = localStorage.getItem(STORAGE_KEY) !== 'true';
-    localStorage.setItem(STORAGE_KEY, String(next));
+    try {
+      const next = localStorage.getItem(STORAGE_KEY) !== 'true';
+      localStorage.setItem(STORAGE_KEY, String(next));
+    } catch {
+      // localStorage unavailable
+    }
     window.dispatchEvent(new Event(EVENT_NAME));
   }, []);
 

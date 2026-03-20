@@ -14,7 +14,7 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefresh
   const indicatorRef = useRef<HTMLDivElement | null>(null);
 
   const handleTouchStart = useCallback((e: TouchEvent) => {
-    if (window.scrollY > 0 || refreshing.current) return;
+    if ((window.scrollY ?? 0) > 0 || refreshing.current) return;
     startY.current = e.touches[0].clientY;
     pulling.current = true;
   }, []);
@@ -41,7 +41,8 @@ export function usePullToRefresh({ onRefresh, threshold = 80 }: UsePullToRefresh
     const indicator = indicatorRef.current;
     if (!indicator) return;
 
-    const currentY = parseFloat(indicator.style.transform.replace(/[^0-9.-]/g, '') || '0');
+    const match = indicator.style.transform.match(/translateY\(([^)]+)px\)/);
+    const currentY = match ? parseFloat(match[1]) : 0;
 
     if (currentY >= threshold * 0.5) {
       refreshing.current = true;

@@ -17,7 +17,11 @@ interface SetupStep {
 
 function getInitialDismissed(): boolean {
   if (typeof window === 'undefined') return false;
-  return localStorage.getItem('cleo_setup_dismissed') === '1';
+  try {
+    return localStorage.getItem('cleo_setup_dismissed') === '1';
+  } catch {
+    return false;
+  }
 }
 
 export function SetupChecklist() {
