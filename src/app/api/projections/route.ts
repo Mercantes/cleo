@@ -20,10 +20,12 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   const { data: accounts } = await supabase
     .from('accounts')
-    .select('balance')
+    .select('balance, type')
     .eq('user_id', user.id);
 
-  const currentBalance = accounts?.reduce((sum, acc) => sum + (acc.balance || 0), 0) ?? 0;
+  const bankTotal = accounts?.filter(a => a.type !== 'credit').reduce((sum, a) => sum + (a.balance || 0), 0) ?? 0;
+  const creditTotal = accounts?.filter(a => a.type === 'credit').reduce((sum, a) => sum + (a.balance || 0), 0) ?? 0;
+  const currentBalance = bankTotal - creditTotal;
 
   const result = calculateProjections(transactions || [], currentBalance, 12);
 

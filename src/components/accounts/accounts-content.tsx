@@ -160,7 +160,7 @@ export function AccountsContent() {
   const bankAccounts = data?.bankAccounts || [];
   const connections = data?.connections || [];
   const hasData = creditCards.length > 0 || bankAccounts.length > 0 || connections.length > 0;
-  const netWorth = (data?.bankTotal || 0) + (data?.creditTotal || 0);
+  const netWorth = (data?.bankTotal || 0) - Math.abs(data?.creditTotal || 0);
 
   return (
     <div className="space-y-6">
