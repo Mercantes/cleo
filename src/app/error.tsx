@@ -13,17 +13,22 @@ export default function Error({
 }) {
   useEffect(() => {
     // Report error to server logs for debugging
-    fetch('/api/log-error', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: error.message,
-        stack: error.stack,
-        digest: error.digest,
-        url: window.location.href,
-        userAgent: navigator.userAgent,
-      }),
-    }).catch(() => {});
+    try {
+      fetch('/api/log-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          boundary: 'root',
+          message: error.message,
+          stack: error.stack,
+          digest: error.digest,
+          url: typeof window !== 'undefined' ? window.location.href : '',
+          userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+        }),
+      }).catch(() => {});
+    } catch {
+      // ignore
+    }
   }, [error]);
 
   return (

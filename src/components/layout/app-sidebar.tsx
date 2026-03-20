@@ -38,7 +38,11 @@ export function toggleSidebar() {
   } catch {
     // localStorage unavailable
   }
-  window.dispatchEvent(new Event('sidebar-toggle'));
+  try {
+    window.dispatchEvent(new Event('sidebar-toggle'));
+  } catch {
+    // window unavailable
+  }
 }
 
 export function useSidebarCollapsed(): boolean {

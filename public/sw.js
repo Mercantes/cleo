@@ -1,8 +1,7 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'cleo-v4';
-const API_CACHE_NAME = 'cleo-api-v2';
-const OFFLINE_URLS = ['/', '/dashboard', '/transactions', '/splits', '/reports', '/import'];
+const CACHE_NAME = 'cleo-v5';
+const API_CACHE_NAME = 'cleo-api-v3';
 const API_CACHE_URLS = [
   '/api/dashboard/summary',
   '/api/dashboard/categories',
@@ -17,15 +16,10 @@ const API_CACHE_URLS = [
 const API_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
 self.addEventListener('install', (event) => {
-  // Pre-cache offline fallback pages
-  event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(OFFLINE_URLS))
-      .catch((err) => {
-        console.warn('[sw] Cache install failed (quota?):', err.message);
-      }),
-  );
+  // Skip waiting immediately — do NOT pre-cache HTML pages.
+  // Pre-caching HTML causes stale JS chunk references after deploys,
+  // which crashes the app (especially on Safari iOS).
+  event.waitUntil(Promise.resolve());
   self.skipWaiting();
 });
 
@@ -46,47 +40,29 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Only handle GET requests
+  // Only handle same-origin GET requests
   if (event.request.method !== 'GET') return;
-  // Skip cross-origin requests
   if (url.origin !== self.location.origin) return;
 
-  // Navigation requests (HTML pages): network-first, cache fallback only when offline
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          // Cache the fresh page for offline use
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, clone).catch(() => {});
-          });
-          return response;
-        })
-        .catch(() =>
-          caches.match(event.request).then((cached) =>
-            cached || caches.match('/dashboard'),
-          ),
-        ),
-    );
-    return;
-  }
+  // Navigation requests: ALWAYS go to network, no cache fallback.
+  // This prevents stale HTML with old JS chunk hashes from being served.
+  if (event.request.mode === 'navigate') return;
 
-  // API requests: stale-while-revalidate
+  // Skip non-API requests (let browser handle static assets normally)
   const isApiRequest = API_CACHE_URLS.some((path) => url.pathname.startsWith(path));
   if (!isApiRequest) return;
 
+  // API requests: stale-while-revalidate
   event.respondWith(
     caches.open(API_CACHE_NAME).then(async (cache) => {
       const cached = await cache.match(event.request);
 
-      // Check if cache is fresh enough
       if (cached) {
         const cachedDate = cached.headers.get('sw-cached-at');
         const isFresh = cachedDate && Date.now() - Number(cachedDate) < API_CACHE_MAX_AGE;
 
         if (isFresh) {
-          // Still revalidate in background
+          // Revalidate in background
           fetch(event.request)
             .then((response) => {
               if (response.ok) {
@@ -107,7 +83,7 @@ self.addEventListener('fetch', (event) => {
         }
       }
 
-      // Fetch from network, cache result
+      // Fetch from network
       try {
         const response = await fetch(event.request);
         if (response.ok) {
@@ -123,7 +99,6 @@ self.addEventListener('fetch', (event) => {
         }
         return response;
       } catch {
-        // Offline — return stale cache if available
         if (cached) return cached;
         return new Response(JSON.stringify({ error: 'Offline' }), {
           status: 503,
