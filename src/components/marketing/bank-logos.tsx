@@ -57,7 +57,7 @@ export function BankLogos() {
             {[...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-60 grayscale transition-all duration-300 hover:opacity-100 hover:grayscale-0 dark:brightness-0 dark:invert dark:opacity-50 dark:hover:opacity-80"
+                className="flex h-8 shrink-0 items-center opacity-80 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 transition-all duration-300 dark:brightness-0 dark:invert dark:opacity-70 dark:md:opacity-50 dark:md:hover:opacity-80"
               >
                 {bank.inline === 'c6' ? (
                   <C6Logo className={`${LOGO_HEIGHT} w-auto`} />
