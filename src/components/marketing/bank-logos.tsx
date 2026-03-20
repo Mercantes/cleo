@@ -60,9 +60,9 @@ export function BankLogos() {
                 className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 dark:opacity-90 dark:grayscale-0 dark:hover:opacity-100"
               >
                 {bank.inline === 'c6' ? (
-                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
+                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-gray-800 dark:text-white`} />
                 ) : bank.inline === 'xp' ? (
-                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
+                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-gray-800 dark:text-white`} />
                 ) : (
                   <Image
                     src={bank.logo}
