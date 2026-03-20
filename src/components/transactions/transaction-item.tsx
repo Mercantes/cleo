@@ -81,7 +81,7 @@ function AccountBadge({ account }: { account: AccountInfo | null | undefined }) 
     <div className="flex items-center justify-center gap-1.5">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={conn?.connector_name || ''} className="h-7 w-7 rounded-full object-contain" />
+        <img src={logoUrl} alt={conn?.connector_name || ''} className="h-7 w-7 rounded-full bg-white object-contain p-0.5" />
       ) : (
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
           {(conn?.connector_name || account.name || '?').charAt(0).toUpperCase()}
