@@ -1,17 +1,20 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
-import { AppSidebar } from '@/components/layout/app-sidebar';
-import { Header } from '@/components/layout/header';
-import { BottomNav } from '@/components/layout/bottom-nav';
 import { Toaster } from '@/components/ui/toast';
-import { KeyboardShortcuts } from '@/components/layout/keyboard-shortcuts';
-import { PwaInstallPrompt } from '@/components/layout/pwa-install-prompt';
-import { QuickChatFab } from '@/components/chat/quick-chat-fab';
-import { RoutePrefetch } from '@/components/layout/route-prefetch';
-import { RealtimeListener } from '@/components/layout/realtime-listener';
-import { OfflineBanner } from '@/components/ui/offline-banner';
+
+// Lazy-load all client components to isolate crashes
+const AppSidebar = dynamic(() => import('@/components/layout/app-sidebar').then(m => m.AppSidebar), { ssr: false });
+const Header = dynamic(() => import('@/components/layout/header').then(m => m.Header), { ssr: false });
+const BottomNav = dynamic(() => import('@/components/layout/bottom-nav').then(m => m.BottomNav), { ssr: false });
+const KeyboardShortcuts = dynamic(() => import('@/components/layout/keyboard-shortcuts').then(m => m.KeyboardShortcuts), { ssr: false });
+const PwaInstallPrompt = dynamic(() => import('@/components/layout/pwa-install-prompt').then(m => m.PwaInstallPrompt), { ssr: false });
+const QuickChatFab = dynamic(() => import('@/components/chat/quick-chat-fab').then(m => m.QuickChatFab), { ssr: false });
+const RoutePrefetch = dynamic(() => import('@/components/layout/route-prefetch').then(m => m.RoutePrefetch), { ssr: false });
+const RealtimeListener = dynamic(() => import('@/components/layout/realtime-listener').then(m => m.RealtimeListener), { ssr: false });
+const OfflineBanner = dynamic(() => import('@/components/ui/offline-banner').then(m => m.OfflineBanner), { ssr: false });
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
