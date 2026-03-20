@@ -37,11 +37,13 @@ export default function Error({
       <p className="max-w-md text-muted-foreground">
         Ocorreu um erro inesperado. Tente recarregar a página ou volte ao início.
       </p>
-      {process.env.NODE_ENV !== 'production' && (
-        <pre className="max-w-lg overflow-auto rounded bg-muted p-3 text-left text-xs">
-          {error.message}
-        </pre>
-      )}
+      <pre className="max-w-lg overflow-auto rounded bg-muted p-3 text-left text-xs">
+        {error.message}
+        {'\n'}
+        {error.digest && `digest: ${error.digest}`}
+        {'\n'}
+        {error.stack?.substring(0, 300)}
+      </pre>
       <div className="flex gap-3">
         <Button onClick={reset}>Tentar novamente</Button>
         <Link href="/" className={buttonVariants({ variant: 'outline' })}>
