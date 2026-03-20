@@ -52,17 +52,17 @@ export function BankLogos() {
           <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent" />
           <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent" />
 
-          {/* Scrolling logos */}
-          <div className="flex w-max animate-scroll items-center gap-16 md:gap-20">
-            {[...BANKS, ...BANKS].map((bank, i) => (
+          {/* Scrolling logos — tripled for seamless loop on narrow screens */}
+          <div className="flex w-max animate-scroll items-center gap-12 md:gap-20">
+            {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 md:dark:brightness-0 md:dark:invert md:dark:opacity-50 md:dark:hover:opacity-80 dark:opacity-90"
+                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 md:dark:brightness-0 md:dark:invert md:dark:opacity-50 md:dark:hover:opacity-80"
               >
                 {bank.inline === 'c6' ? (
-                  <C6Logo className={`${LOGO_HEIGHT} w-auto`} />
+                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
                 ) : bank.inline === 'xp' ? (
-                  <XPLogo className={`${LOGO_HEIGHT} w-auto`} />
+                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
                 ) : (
                   <Image
                     src={bank.logo}
