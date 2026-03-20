@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X } from 'lucide-react';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Button } from '@/components/ui/button';
 
 const navLinks = [
@@ -37,7 +36,6 @@ export function MarketingHeader() {
           </nav>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <Link
             href="/login"
             className="hidden h-9 items-center justify-center rounded-lg px-3 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground sm:inline-flex"
