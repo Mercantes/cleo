@@ -30,8 +30,8 @@ const BANKS: Bank[] = [
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 144, height: 80 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
   { name: 'XP Investimentos', logo: '', width: 48, height: 48, inline: 'xp' },
-  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
-  { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80, darkInvert: true },
+  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26, darkInvert: true },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80 },
   { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52, darkInvert: true },
   { name: 'C6 Bank', logo: '', width: 80, height: 50, inline: 'c6' },
   { name: 'Santander', logo: '/logos/santander.svg', width: 140, height: 26 },
@@ -57,7 +57,7 @@ export function BankLogos() {
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 md:dark:brightness-0 md:dark:invert md:dark:opacity-50 md:dark:hover:opacity-80"
+                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 md:dark:opacity-70 md:dark:grayscale-0 md:dark:hover:opacity-100"
               >
                 {bank.inline === 'c6' ? (
                   <C6Logo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
@@ -70,7 +70,7 @@ export function BankLogos() {
                     width={bank.width}
                     height={bank.height}
                     unoptimized
-                    className={`${LOGO_HEIGHT} w-auto object-contain`}
+                    className={`${LOGO_HEIGHT} w-auto object-contain${bank.darkInvert ? ' dark:invert' : ''}`}
                   />
                 )}
               </div>
