@@ -12,7 +12,7 @@ const BANKS: Bank[] = [
   { name: 'Itaú', logo: '/logos/itau.svg', width: 80, height: 80 },
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 144, height: 80 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
-  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 48, height: 45, darkInvert: true },
+  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 80, height: 75, darkInvert: true },
   { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
   { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80, darkInvert: true },
   { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52, darkInvert: true },
@@ -40,7 +40,7 @@ export function BankLogos() {
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 dark:opacity-90 dark:grayscale-0 dark:hover:opacity-100"
+                className="flex h-8 shrink-0 items-center opacity-70 transition-opacity duration-300 hover:opacity-100"
               >
                 <Image
                   src={bank.logo}
