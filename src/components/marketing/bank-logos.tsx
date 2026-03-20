@@ -21,7 +21,6 @@ type Bank = {
   logo: string;
   width: number;
   height: number;
-  darkInvert?: boolean;
   inline?: 'c6' | 'xp';
 };
 
@@ -30,9 +29,9 @@ const BANKS: Bank[] = [
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 144, height: 80 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
   { name: 'XP Investimentos', logo: '', width: 48, height: 48, inline: 'xp' },
-  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26, darkInvert: true },
+  { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
   { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80 },
-  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52, darkInvert: true },
+  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52 },
   { name: 'C6 Bank', logo: '', width: 80, height: 50, inline: 'c6' },
   { name: 'Santander', logo: '/logos/santander.svg', width: 140, height: 26 },
   { name: 'Inter', logo: '/logos/inter.svg', width: 120, height: 30 },
@@ -57,12 +56,12 @@ export function BankLogos() {
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 md:dark:opacity-70 md:dark:grayscale-0 md:dark:hover:opacity-100"
+                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 dark:rounded-md dark:bg-white/90 dark:px-3 dark:py-1.5 dark:opacity-80 dark:hover:opacity-100 md:dark:grayscale-0"
               >
                 {bank.inline === 'c6' ? (
-                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
+                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-black dark:text-black`} />
                 ) : bank.inline === 'xp' ? (
-                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
+                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-black dark:text-black`} />
                 ) : (
                   <Image
                     src={bank.logo}
@@ -70,7 +69,7 @@ export function BankLogos() {
                     width={bank.width}
                     height={bank.height}
                     unoptimized
-                    className={`${LOGO_HEIGHT} w-auto object-contain${bank.darkInvert ? ' dark:invert' : ''}`}
+                    className={`${LOGO_HEIGHT} w-auto object-contain`}
                   />
                 )}
               </div>
