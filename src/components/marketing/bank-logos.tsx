@@ -14,7 +14,7 @@ const BANKS: Bank[] = [
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
   { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 80, height: 75, darkInvert: true },
   { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
-  { name: 'Safra', logo: '/logos/safra.svg', width: 120, height: 80, darkInvert: true },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 560, height: 400, darkInvert: true },
   { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 130, height: 52, darkInvert: true },
   { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 140, height: 28, darkInvert: true },
   { name: 'Santander', logo: '/logos/santander.svg', width: 140, height: 26 },
