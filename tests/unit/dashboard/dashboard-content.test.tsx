@@ -47,9 +47,6 @@ vi.mock('@/components/dashboard/challenges-card', () => ({
 vi.mock('@/components/dashboard/spending-forecast', () => ({
   SpendingForecast: () => <div data-testid="spending-forecast" />,
 }));
-vi.mock('@/components/dashboard/insights-bar', () => ({
-  InsightsBar: () => <div data-testid="insights-bar" />,
-}));
 vi.mock('@/components/dashboard/financial-health-card', () => ({
   FinancialHealthCard: () => <div data-testid="financial-health-card" />,
 }));

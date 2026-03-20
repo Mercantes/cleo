@@ -15,7 +15,6 @@ const GoalProgressCard = dynamic(() => import('./goal-progress-card').then((m) =
 });
 import { ChallengesCard } from './challenges-card';
 import { SpendingForecast } from './spending-forecast';
-import { InsightsBar } from './insights-bar';
 import { FinancialHealthCard } from './financial-health-card';
 import { AccountsCard } from './accounts-card';
 import { RecentTransactionsCard } from './recent-transactions-card';
@@ -211,7 +210,7 @@ export function DashboardContent() {
 
       <SetupChecklist />
 
-      <AnimateIn delay={50}><InsightsBar /></AnimateIn>
+      {/* Insights removidos — Cleo enviará via push */}
 
       {!hasData ? (
         <AnimateIn delay={100}>
