@@ -41,27 +41,27 @@ const LOGO_HEIGHT = 'max-h-7';
 
 export function BankLogos() {
   return (
-    <section className="border-y bg-gray-50 py-10 dark:bg-gray-100">
+    <section className="border-y bg-muted/30 py-10">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
+        <p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
           Integrado com os principais bancos
         </p>
         <div className="relative overflow-hidden">
           {/* Fade edges */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-gray-50 via-gray-50/80 to-transparent dark:from-gray-100 dark:via-gray-100/80" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-gray-50 via-gray-50/80 to-transparent dark:from-gray-100 dark:via-gray-100/80" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent" />
 
           {/* Scrolling logos — tripled for seamless loop */}
           <div className="flex w-max animate-scroll items-center gap-12 md:gap-20">
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-70 transition-opacity duration-300 hover:opacity-100"
+                className="flex h-8 shrink-0 items-center opacity-80 transition-all duration-300 md:opacity-60 md:grayscale md:hover:opacity-100 md:hover:grayscale-0 dark:brightness-0 dark:invert dark:opacity-60 dark:hover:opacity-80"
               >
                 {bank.inline === 'c6' ? (
-                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-gray-800`} />
+                  <C6Logo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
                 ) : bank.inline === 'xp' ? (
-                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-gray-800`} />
+                  <XPLogo className={`${LOGO_HEIGHT} w-auto text-foreground`} />
                 ) : (
                   <Image
                     src={bank.logo}
