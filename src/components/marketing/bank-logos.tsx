@@ -40,7 +40,7 @@ export function BankLogos() {
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center opacity-70 transition-opacity duration-300 hover:opacity-100"
+                className="flex h-8 shrink-0 items-center"
               >
                 <Image
                   src={bank.logo}

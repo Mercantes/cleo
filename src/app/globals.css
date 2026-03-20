@@ -170,11 +170,6 @@ input[type="number"] {
   animation: scroll 30s linear infinite;
 }
 
-@media (hover: hover) {
-  .animate-scroll:hover {
-    animation-play-state: paused;
-  }
-}
 
 @layer base {
   * {
