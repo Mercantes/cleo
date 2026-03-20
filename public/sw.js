@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'cleo-v3';
-const API_CACHE_NAME = 'cleo-api-v1';
+const CACHE_NAME = 'cleo-v4';
+const API_CACHE_NAME = 'cleo-api-v2';
 const OFFLINE_URLS = ['/', '/dashboard', '/transactions', '/splits', '/reports', '/import'];
 const API_CACHE_URLS = [
   '/api/dashboard/summary',
@@ -10,7 +10,6 @@ const API_CACHE_URLS = [
   '/api/dashboard/accounts',
   '/api/dashboard/recent',
   '/api/goals',
-  '/api/insights',
   '/api/reports/monthly',
   '/api/reports/compare',
   '/api/splits',
@@ -18,6 +17,7 @@ const API_CACHE_URLS = [
 const API_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
 self.addEventListener('install', (event) => {
+  // Pre-cache offline fallback pages
   event.waitUntil(
     caches
       .open(CACHE_NAME)
@@ -30,6 +30,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
+  // Clear ALL old caches on activation (forces fresh content after deploy)
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(
@@ -42,13 +43,36 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Stale-while-revalidate for API calls
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Only cache GET requests to our API endpoints
+  // Only handle GET requests
   if (event.request.method !== 'GET') return;
+  // Skip cross-origin requests
+  if (url.origin !== self.location.origin) return;
 
+  // Navigation requests (HTML pages): network-first, cache fallback only when offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          // Cache the fresh page for offline use
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, clone).catch(() => {});
+          });
+          return response;
+        })
+        .catch(() =>
+          caches.match(event.request).then((cached) =>
+            cached || caches.match('/dashboard'),
+          ),
+        ),
+    );
+    return;
+  }
+
+  // API requests: stale-while-revalidate
   const isApiRequest = API_CACHE_URLS.some((path) => url.pathname.startsWith(path));
   if (!isApiRequest) return;
 
