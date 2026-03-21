@@ -32,8 +32,8 @@ export function BankLogos() {
         </p>
         <div className="relative overflow-hidden">
           {/* Fade edges */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-muted/30 to-transparent md:w-24 md:via-muted/20" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-muted/30 to-transparent md:w-24 md:via-muted/20" />
 
           {/* Scrolling logos — tripled for seamless loop */}
           <div className="flex w-max animate-scroll items-center gap-12 md:gap-20">
