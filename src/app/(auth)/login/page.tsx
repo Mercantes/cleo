@@ -83,7 +83,7 @@ export default function LoginPage() {
       <CardContent className="space-y-4">
         <Button
           variant="outline"
-          className="w-full"
+          className="h-10 w-full"
           onClick={handleGoogleLogin}
           disabled={isGoogleLoading || isSubmitting}
         >
