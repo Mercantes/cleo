@@ -6,6 +6,7 @@ import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
 import type { RecurringItem } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 interface RecurringData {
   subscriptions: RecurringItem[];
@@ -46,6 +47,7 @@ export function SubscriptionsCard() {
         <div className="flex items-center gap-2">
           <Repeat className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm font-medium">Compromissos Recorrentes</p>
+          <CardInfoTip text="Assinaturas e parcelas detectadas automaticamente. Mostra o custo mensal e anual dos seus compromissos fixos." />
         </div>
         <span className="text-xs text-muted-foreground">{total} ativo{total > 1 ? 's' : ''}</span>
       </div>

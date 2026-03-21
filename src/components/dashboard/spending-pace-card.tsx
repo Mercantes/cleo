@@ -7,6 +7,7 @@ import { TrendingDown, TrendingUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { SummaryData } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 interface SpendingPaceCardProps {
   data: SummaryData;
@@ -107,7 +108,10 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ritmo de Gastos</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ritmo de Gastos</p>
+          <CardInfoTip text="Compara seus gastos acumulados no mês com o mês anterior, mostrando se você está gastando mais ou menos no mesmo período." />
+        </span>
         <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>

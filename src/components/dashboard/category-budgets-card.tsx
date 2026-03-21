@@ -7,6 +7,7 @@ import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import type { BudgetItem } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 export function CategoryBudgetsCard() {
   const [hideValues] = useHideValues();
@@ -44,7 +45,10 @@ export function CategoryBudgetsCard() {
     return (
       <div className="flex h-full flex-col rounded-lg border bg-card p-4">
         <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1.5">
           <h3 className="text-sm font-semibold">Limites por Categoria</h3>
+          <CardInfoTip text="Limites mensais de gastos por categoria. Alerta quando você se aproxima ou ultrapassa o limite definido." />
+        </span>
           <Link
             href="/settings?tab=goals"
             className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
@@ -65,7 +69,10 @@ export function CategoryBudgetsCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Limites por Categoria</h3>
+        <span className="flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold">Limites por Categoria</h3>
+          <CardInfoTip text="Limites mensais de gastos por categoria. Alerta quando você se aproxima ou ultrapassa o limite definido." />
+        </span>
         <Link
           href="/settings?tab=goals"
           className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"

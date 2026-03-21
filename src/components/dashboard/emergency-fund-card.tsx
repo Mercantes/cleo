@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface AccountsData {
   totalBalance: number;
@@ -161,7 +162,10 @@ export function EmergencyFundCard() {
             <Shield className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
+            <span className="flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
+              <CardInfoTip text="Quanto tempo sua reserva cobre suas despesas mensais. O ideal é ter de 3 a 6 meses de gastos guardados." />
+            </span>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {bankTotal <= 0
                 ? 'Conecte uma conta bancária para acompanhar sua reserva.'
@@ -234,7 +238,10 @@ export function EmergencyFundCard() {
             <Icon className={cn('h-5 w-5', colors[status].icon)} />
           </div>
           <div>
-            <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
+            <span className="flex items-center gap-1.5">
+              <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
+              <CardInfoTip text="Quanto tempo sua reserva cobre suas despesas mensais. O ideal é ter de 3 a 6 meses de gastos guardados." />
+            </span>
             <p className={cn('text-lg font-bold tabular-nums', colors[status].text)}>
               {formatMonthsCovered(monthsCovered, hideValues)}
             </p>

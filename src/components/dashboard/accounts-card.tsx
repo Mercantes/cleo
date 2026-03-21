@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface Account {
   id: string;
@@ -67,7 +68,10 @@ export function AccountsCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Contas Bancárias</h3>
+        <span className="flex items-center gap-1.5">
+          <h3 className="text-sm font-semibold">Contas Bancárias</h3>
+          <CardInfoTip text="Todas as contas conectadas via Open Finance, incluindo contas correntes, poupanças e cartões de crédito." />
+        </span>
         <Link
           href="/accounts"
           className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"

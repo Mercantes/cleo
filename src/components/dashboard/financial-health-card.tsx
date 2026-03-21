@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronDown, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface HealthFactor {
   label: string;
@@ -128,7 +129,10 @@ export function FinancialHealthCard() {
   if (!health) {
     return (
       <div className="rounded-lg border bg-card p-4">
-        <h3 className="text-sm font-medium">Saúde Financeira</h3>
+        <span className="flex items-center gap-1.5">
+          <h3 className="text-sm font-medium">Saúde Financeira</h3>
+          <CardInfoTip text="Pontuação de 0 a 100 baseada em taxa de poupança, controle de gastos, reserva de emergência e diversificação." />
+        </span>
         <p className="mt-2 text-xs text-muted-foreground">
           Conecte seu banco e registre transações para ver sua pontuação de saúde financeira.
         </p>
@@ -139,7 +143,10 @@ export function FinancialHealthCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Saúde Financeira</h3>
+        <span className="flex items-center gap-1.5">
+          <h3 className="text-sm font-medium">Saúde Financeira</h3>
+          <CardInfoTip text="Pontuação de 0 a 100 baseada em taxa de poupança, controle de gastos, reserva de emergência e diversificação." />
+        </span>
         <div className="flex items-baseline gap-1">
           <span className={`text-2xl font-bold ${getScoreColor(health.score)}`}>{health.score}</span>
           <span className="text-xs text-muted-foreground">/100</span>

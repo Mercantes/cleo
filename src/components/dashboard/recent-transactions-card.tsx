@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { formatCurrency, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface Transaction {
   id: string;
@@ -85,7 +86,10 @@ export function RecentTransactionsCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
+          <CardInfoTip text="Últimas movimentações nas suas contas bancárias, incluindo despesas e receitas." />
+        </span>
         <Link href={`/transactions?from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>

@@ -6,6 +6,7 @@ import { TrendingDown, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { CategoryData } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 const CATEGORY_COLORS: Record<string, string> = {
   Alimentação: 'bg-orange-500',
@@ -54,7 +55,10 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Principais Categorias</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Principais Categorias</p>
+          <CardInfoTip text="Ranking das categorias com mais gastos no mês. A variação compara com o mês anterior." />
+        </span>
         <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver mais ↗
         </Link>

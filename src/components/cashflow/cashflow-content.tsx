@@ -19,6 +19,7 @@ const Tooltip = dynamic(() => import('recharts').then((m) => m.Tooltip), { ssr: 
 const ReferenceLine = dynamic(() => import('recharts').then((m) => m.ReferenceLine), { ssr: false });
 const BarChart = dynamic(() => import('recharts').then((m) => m.BarChart), { ssr: false });
 const Bar = dynamic(() => import('recharts').then((m) => m.Bar), { ssr: false });
+const Legend = dynamic(() => import('recharts').then((m) => m.Legend), { ssr: false });
 
 interface DayData {
   date: string;
@@ -54,7 +55,14 @@ interface CashFlowData {
   topExpenses: TopExpense[];
 }
 
-type ChartView = 'balance' | 'daily';
+type ChartView = 'monthly' | 'daily';
+
+interface TrendMonth {
+  month: string;
+  label: string;
+  income: number;
+  expenses: number;
+}
 
 function getMonthOptions() {
   const options: { label: string; value: string }[] = [];
@@ -84,7 +92,7 @@ export function CashFlowContent() {
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthOptions = useMemo(() => getMonthOptions(), []);
   const [month, setMonth] = useState(currentMonth);
-  const [chartView, setChartView] = useState<ChartView>('balance');
+  const [chartView, setChartView] = useState<ChartView>('monthly');
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
@@ -93,6 +101,14 @@ export function CashFlowContent() {
   const canNext = currentIdx > 0;
 
   const { data, isLoading } = useApi<CashFlowData>(`/api/cashflow?month=${month}`);
+  const { data: trendsData } = useApi<{ months: TrendMonth[] }>('/api/dashboard/trends');
+  const trendMonths = useMemo(() => {
+    if (!trendsData?.months) return [];
+    return trendsData.months.map((m) => ({
+      ...m,
+      balance: m.income - m.expenses,
+    }));
+  }, [trendsData]);
 
   if (isLoading) {
     return (
@@ -250,17 +266,17 @@ export function CashFlowContent() {
       <div className="rounded-xl border bg-card p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold">
-            {chartView === 'balance' ? 'Saldo Acumulado' : 'Entradas vs Saídas'}
+            {chartView === 'monthly' ? 'Mês a Mês' : 'Entradas vs Saídas'}
           </h2>
           <div className="flex gap-1 rounded-lg bg-muted p-0.5">
             <button
-              onClick={() => setChartView('balance')}
+              onClick={() => setChartView('monthly')}
               className={cn(
                 'rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                chartView === 'balance' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                chartView === 'monthly' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
               )}
             >
-              Acumulado
+              Mês a Mês
             </button>
             <button
               onClick={() => setChartView('daily')}
@@ -275,40 +291,34 @@ export function CashFlowContent() {
         </div>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
-            {chartView === 'balance' ? (
-              <AreaChart data={days}>
-                <defs>
-                  <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            {chartView === 'monthly' ? (
+              <BarChart data={trendMonths} barCategoryGap="20%">
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
                 <XAxis
-                  dataKey="day"
+                  dataKey="label"
                   className="fill-muted-foreground"
                   tick={{ fontSize: 11 }}
-                  interval="preserveStartEnd"
                 />
                 <YAxis
                   className="fill-muted-foreground"
                   tick={{ fontSize: 11 }}
-                  tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}k`}
+                  tickFormatter={(v: number) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : String(v)}
                 />
                 <Tooltip
-                  formatter={(v) => [hideValues ? HIDDEN_VALUE : formatCurrency(Number(v)), 'Saldo']}
-                  labelFormatter={(day) => `Dia ${day}`}
+                  formatter={(v, name) => [
+                    hideValues ? HIDDEN_VALUE : formatCurrency(Number(v)),
+                    name === 'income' ? 'Receita' : name === 'expenses' ? 'Despesas' : 'Saldo',
+                  ]}
                   contentStyle={{ borderRadius: 8, fontSize: 13 }}
                 />
-                <ReferenceLine y={0} stroke="#94A3B8" strokeDasharray="3 3" />
-                <Area
-                  type="monotone"
-                  dataKey="balance"
-                  stroke="#3B82F6"
-                  strokeWidth={2}
-                  fill="url(#balanceGrad)"
+                <Legend
+                  formatter={(value) => value === 'income' ? 'Receita' : value === 'expenses' ? 'Despesas' : 'Saldo'}
+                  wrapperStyle={{ fontSize: 11 }}
                 />
-              </AreaChart>
+                <ReferenceLine y={0} stroke="#94A3B8" strokeDasharray="3 3" />
+                <Bar dataKey="income" fill="#22C55E" radius={[4, 4, 0, 0]} name="income" />
+                <Bar dataKey="expenses" fill="#EF4444" radius={[4, 4, 0, 0]} name="expenses" />
+              </BarChart>
             ) : (
               <BarChart data={days}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />

@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Minus, ChevronDown, ChevronUp } from 'lucide-
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface Prediction {
   category: string;
@@ -85,7 +86,10 @@ export function SpendingForecast() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium">Previsão de gastos</h3>
+        <span className="flex items-center gap-1.5">
+          <h3 className="text-sm font-medium">Previsão de gastos</h3>
+          <CardInfoTip text="Projeção de gastos por categoria baseada no seu histórico. Compara o ritmo atual com a média dos meses anteriores." />
+        </span>
         <span className="text-xs text-muted-foreground">{monthProgress}% do mês</span>
       </div>
 

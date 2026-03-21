@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
 import { cn } from '@/lib/utils';
+import { CardInfoTip } from './card-info-tip';
 
 interface ConsolidatedAccount {
   bankName: string;
@@ -39,7 +40,10 @@ export function NetWorthCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Patrimônio</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Patrimônio</p>
+          <CardInfoTip text="Saldo total das suas contas bancárias menos as faturas de cartão de crédito. Representa seu patrimônio líquido atual." />
+        </span>
         <Link href="/accounts" className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>

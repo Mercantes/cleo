@@ -5,6 +5,7 @@ import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus } from 'l
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { SummaryData } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 interface PartialResultCardProps {
   data: SummaryData;
@@ -26,7 +27,10 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado do Mês</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado do Mês</p>
+          <CardInfoTip text="Diferença entre receitas e despesas no mês. Mostra quanto você está poupando ou gastando além da receita." />
+        </span>
         <Link href="/cashflow" className="text-xs font-medium text-primary hover:underline">
           Fluxo de caixa ↗
         </Link>

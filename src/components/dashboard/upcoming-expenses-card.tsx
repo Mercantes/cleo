@@ -7,6 +7,7 @@ import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import type { RecurringItem } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 interface RecurringData {
   subscriptions: RecurringItem[];
@@ -76,7 +77,10 @@ export function UpcomingExpensesCard() {
   return (
     <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Próximas Despesas</p>
+        <span className="flex items-center gap-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Próximas Despesas</p>
+          <CardInfoTip text="Pagamentos recorrentes (assinaturas e parcelas) previstos para os próximos 14 dias." />
+        </span>
         <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
           Ver todas ↗
         </Link>

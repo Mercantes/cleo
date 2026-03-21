@@ -6,6 +6,7 @@ import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import Link from 'next/link';
 import { useApi } from '@/hooks/use-api';
 import type { GoalProgress, Gamification } from '@/types/dashboard';
+import { CardInfoTip } from './card-info-tip';
 
 interface GoalData {
   goals: {
@@ -31,6 +32,7 @@ export function GoalProgressCard() {
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Target className="h-4 w-4" />
           Metas de economia
+          <CardInfoTip text="Acompanhe seu progresso em relação à meta mensal de economia. Ganhe XP e suba de nível mantendo a disciplina." />
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
           Defina uma meta mensal de economia para acompanhar seu progresso.
@@ -58,6 +60,7 @@ export function GoalProgressCard() {
         <div className="flex items-center gap-2 text-sm font-medium">
           <Target className={`h-4 w-4 ${isGoalMet ? 'text-green-500' : 'text-primary'}`} />
           Meta mensal
+          <CardInfoTip text="Acompanhe seu progresso em relação à meta mensal de economia. Ganhe XP e suba de nível mantendo a disciplina." />
         </div>
         {isGoalMet && <span className="text-xs font-medium text-green-600 dark:text-green-400">Meta atingida!</span>}
       </div>

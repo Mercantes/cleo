@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface MonthData {
   month: string;
@@ -69,6 +70,7 @@ export function StreakCard() {
         <div className="flex items-center gap-2 text-sm font-medium">
           <Flame className={cn('h-4 w-4', currentStreak >= 2 ? 'text-orange-500' : 'text-muted-foreground')} />
           Sequência de metas
+          <CardInfoTip text="Quantos meses consecutivos você atingiu sua meta de economia. Quanto maior a sequência, melhor sua disciplina financeira." />
         </div>
         {bestStreak > 0 && (
           <div className="flex items-center gap-1 text-xs text-muted-foreground">

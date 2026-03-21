@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Zap, CheckCircle2, Plus, X } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
 import { useApi } from '@/hooks/use-api';
+import { CardInfoTip } from './card-info-tip';
 
 interface Challenge {
   id: string;
@@ -111,6 +112,7 @@ export function ChallengesCard() {
         <div className="flex items-center gap-2 text-sm font-medium">
           <Zap className="h-4 w-4 text-yellow-500" />
           Desafios
+          <CardInfoTip text="Mini-desafios financeiros semanais para desenvolver hábitos saudáveis. Complete para ganhar XP." />
         </div>
         <button
           onClick={() => setShowPicker(!showPicker)}
