@@ -11,7 +11,12 @@ export const HighlightText = memo(function HighlightText({ text, query, classNam
     return <span className={className}>{text}</span>;
   }
 
-  const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+  const words = query.split(/\s+/).filter((w) => w.length >= 2);
+  if (words.length === 0) {
+    return <span className={className}>{text}</span>;
+  }
+  const pattern = words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const regex = new RegExp(`(${pattern})`, 'gi');
   const parts = text.split(regex);
 
   return (

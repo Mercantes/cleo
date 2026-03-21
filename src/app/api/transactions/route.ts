@@ -3,6 +3,32 @@ import { withAuth } from '@/lib/utils/with-auth';
 
 const PAGE_SIZE = 50;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function applySearchFilter(query: any, search: string) {
+  const sanitized = search.slice(0, 100).replace(/[%_\\]/g, '\\$&');
+  const normalized = search.replace(',', '.');
+  const numericValue = parseFloat(normalized);
+
+  // Split into words for multi-word search (each word must match description or merchant)
+  const words = sanitized.split(/\s+/).filter((w) => w.length > 0);
+
+  if (words.length <= 1) {
+    // Single word or empty: use original logic
+    if (!isNaN(numericValue) && isFinite(numericValue)) {
+      const abs = Math.abs(numericValue);
+      return query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%,amount.eq.${abs},amount.eq.${-abs}`);
+    }
+    return query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
+  }
+
+  // Multi-word: each word must appear in description OR merchant (AND between words)
+  let q = query;
+  for (const word of words) {
+    q = q.or(`description.ilike.%${word}%,merchant.ilike.%${word}%`);
+  }
+  return q;
+}
+
 export const GET = withAuth(async (request: NextRequest, { supabase, user }) => {
   const { searchParams } = request.nextUrl;
   const category = searchParams.get('category');
@@ -30,17 +56,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
   if (from) query = query.gte('date', from);
   if (to) query = query.lte('date', to);
   if (search) {
-    // Escape SQL wildcards and limit length to prevent pattern abuse
-    const sanitized = search.slice(0, 100).replace(/[%_\\]/g, '\\$&');
-    // Normalize Brazilian number format (comma → dot) and try to match amount
-    const normalized = search.replace(',', '.');
-    const numericValue = parseFloat(normalized);
-    if (!isNaN(numericValue) && isFinite(numericValue)) {
-      const abs = Math.abs(numericValue);
-      query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%,amount.eq.${abs},amount.eq.${-abs}`);
-    } else {
-      query = query.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
-    }
+    query = applySearchFilter(query, search);
   }
 
   const { data, error, count } = await query;
@@ -77,15 +93,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
       if (from) q = q.gte('date', from);
       if (to) q = q.lte('date', to);
       if (search) {
-        const sanitized = search.slice(0, 100).replace(/[%_\\]/g, '\\$&');
-        const normalized = search.replace(',', '.');
-        const numericValue = parseFloat(normalized);
-        if (!isNaN(numericValue) && isFinite(numericValue)) {
-          const abs = Math.abs(numericValue);
-          q = q.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%,amount.eq.${abs},amount.eq.${-abs}`);
-        } else {
-          q = q.or(`description.ilike.%${sanitized}%,merchant.ilike.%${sanitized}%`);
-        }
+        q = applySearchFilter(q, search);
       }
       return q;
     };
