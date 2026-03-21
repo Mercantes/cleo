@@ -12,6 +12,47 @@ const anthropic = new Anthropic({
 });
 
 const MAX_TOOL_ROUNDS = 3;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILES = 3;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_DOC_TYPES = ['application/pdf'];
+
+interface AttachmentInput {
+  name: string;
+  type: string;
+  size: number;
+  data: string;
+  mediaType: string;
+}
+
+function validateAttachments(attachments: unknown): AttachmentInput[] {
+  if (!Array.isArray(attachments)) return [];
+  if (attachments.length > MAX_FILES) {
+    throw new Error(`Máximo de ${MAX_FILES} arquivos por mensagem`);
+  }
+
+  const validated: AttachmentInput[] = [];
+  for (const att of attachments) {
+    if (!att || typeof att !== 'object') continue;
+    const { name, type, size, data, mediaType } = att as AttachmentInput;
+
+    if (!name || !data || !mediaType) continue;
+
+    const isImage = ALLOWED_IMAGE_TYPES.includes(mediaType);
+    const isDoc = ALLOWED_DOC_TYPES.includes(mediaType);
+    if (!isImage && !isDoc) {
+      throw new Error(`Tipo não suportado: ${name}`);
+    }
+
+    if (size > MAX_FILE_SIZE) {
+      throw new Error(`${name} excede o limite de 10MB`);
+    }
+
+    validated.push({ name, type, size, data, mediaType });
+  }
+
+  return validated;
+}
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -36,13 +77,27 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { message } = body;
+  const { message, attachments: rawAttachments } = body;
 
-  if (!message || typeof message !== 'string') {
-    return NextResponse.json({ error: 'Message is required' }, { status: 400 });
+  // Validate attachments
+  let validatedAttachments: AttachmentInput[] = [];
+  try {
+    validatedAttachments = validateAttachments(rawAttachments);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Erro nos anexos' },
+      { status: 400 },
+    );
   }
 
-  if (message.length > 4000) {
+  // Message is required unless there are attachments
+  if ((!message || typeof message !== 'string') && validatedAttachments.length === 0) {
+    return NextResponse.json({ error: 'Message or attachment is required' }, { status: 400 });
+  }
+
+  const messageText = typeof message === 'string' ? message : '';
+
+  if (messageText.length > 4000) {
     return NextResponse.json({ error: 'Mensagem muito longa (máximo 4000 caracteres)' }, { status: 400 });
   }
 
@@ -62,11 +117,21 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Save user message
+  // Build attachment metadata for DB storage
+  const attachmentMeta = validatedAttachments.length > 0
+    ? validatedAttachments.map(a => ({ name: a.name, type: a.type, size: a.size }))
+    : null;
+
+  // Save user message with attachment metadata
   const { data: userMessage } = await supabase
     .from('chat_messages')
-    .insert({ user_id: user.id, role: 'user', content: message })
-    .select('id, role, content, created_at')
+    .insert({
+      user_id: user.id,
+      role: 'user',
+      content: messageText || '(anexo)',
+      metadata: attachmentMeta ? { attachments: attachmentMeta } : null,
+    })
+    .select('id, role, content, created_at, metadata')
     .single();
 
   // Build context and system prompt
@@ -84,6 +149,44 @@ export async function POST(request: NextRequest) {
   const conversationHistory: Anthropic.MessageParam[] = (history || [])
     .reverse()
     .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
+
+  // Replace the last user message content with multimodal content blocks if there are attachments
+  if (validatedAttachments.length > 0 && conversationHistory.length > 0) {
+    const lastIdx = conversationHistory.length - 1;
+    if (conversationHistory[lastIdx].role === 'user') {
+      const contentBlocks: Anthropic.ContentBlockParam[] = [];
+
+      for (const att of validatedAttachments) {
+        if (ALLOWED_IMAGE_TYPES.includes(att.mediaType)) {
+          contentBlocks.push({
+            type: 'image',
+            source: {
+              type: 'base64',
+              media_type: att.mediaType as 'image/jpeg' | 'image/png' | 'image/webp' | 'image/gif',
+              data: att.data,
+            },
+          });
+        } else if (att.mediaType === 'application/pdf') {
+          contentBlocks.push({
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: att.data,
+            },
+          });
+        }
+      }
+
+      if (messageText) {
+        contentBlocks.push({ type: 'text', text: messageText });
+      } else {
+        contentBlocks.push({ type: 'text', text: 'Analise este arquivo.' });
+      }
+
+      conversationHistory[lastIdx] = { role: 'user', content: contentBlocks };
+    }
+  }
 
   try {
     const tools = getAnthropicTools();

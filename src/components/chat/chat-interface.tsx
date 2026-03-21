@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { RotateCcw, Trash2 } from 'lucide-react';
 import { ChatMessage } from './chat-message';
-import { ChatInput } from './chat-input';
+import { ChatInput, Attachment } from './chat-input';
 import { ChatSuggestions } from './chat-suggestions';
 import { TypingIndicator } from './typing-indicator';
 import { toast } from '@/components/ui/toast';
@@ -15,18 +15,26 @@ interface ToolAction {
   description?: string;
 }
 
+interface AttachmentMeta {
+  name: string;
+  type: string;
+  size: number;
+}
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
   toolActions?: ToolAction[];
+  metadata?: { attachments?: AttachmentMeta[] };
 }
 
 export function ChatInterface() {
   const searchParams = useSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
@@ -75,17 +83,26 @@ export function ChatInterface() {
 
   async function sendMessage(text?: string) {
     const messageText = text || input.trim();
-    if (!messageText || isLoading) return;
+    const currentAttachments = attachments;
+    if ((!messageText && currentAttachments.length === 0) || isLoading) return;
+
+    const attachmentMeta: AttachmentMeta[] = currentAttachments.map(a => ({
+      name: a.name,
+      type: a.type,
+      size: a.size,
+    }));
 
     const userMessage: Message = {
       id: `temp-${Date.now()}`,
       role: 'user',
-      content: messageText,
+      content: messageText || '(anexo)',
       created_at: new Date().toISOString(),
+      metadata: attachmentMeta.length > 0 ? { attachments: attachmentMeta } : undefined,
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
+    setAttachments([]);
     setIsLoading(true);
     setLastFailedMessage(null);
 
@@ -93,7 +110,16 @@ export function ChatInterface() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText }),
+        body: JSON.stringify({
+          message: messageText,
+          attachments: currentAttachments.map(a => ({
+            name: a.name,
+            type: a.type,
+            size: a.size,
+            data: a.data,
+            mediaType: a.mediaType,
+          })),
+        }),
       });
 
       if (res.status === 403) {
@@ -201,7 +227,7 @@ export function ChatInterface() {
               if (event.done && event.userMessage) {
                 setMessages((prev) =>
                   prev.map((m) => {
-                    if (m.id === userMessage.id) return event.userMessage;
+                    if (m.id === userMessage.id) return { ...event.userMessage, metadata: userMessage.metadata };
                     if (m.id === streamingId && event.assistantMessage) return event.assistantMessage;
                     return m;
                   }),
@@ -265,7 +291,7 @@ export function ChatInterface() {
         {showSuggestions && <ChatSuggestions onSelect={handleSuggestionSelect} />}
         <div className="mx-auto max-w-3xl">
           {messages.map((msg) => (
-            <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} toolActions={msg.toolActions} />
+            <ChatMessage key={msg.id} role={msg.role} content={msg.content} createdAt={msg.created_at} toolActions={msg.toolActions} metadata={msg.metadata} />
           ))}
           <div aria-live="polite" aria-atomic="true">
             {isLoading && <TypingIndicator />}
@@ -290,6 +316,8 @@ export function ChatInterface() {
           onChange={setInput}
           onSend={() => sendMessage()}
           disabled={isLoading}
+          attachments={attachments}
+          onAttachmentsChange={setAttachments}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import { memo, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { Copy, Check, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Copy, Check, Loader2, CheckCircle2, XCircle, FileText, ImageIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { parseVisuals } from '@/lib/ai/visual-types';
 import { ChatVisual } from './chat-visual';
@@ -13,11 +13,18 @@ interface ToolAction {
   description?: string;
 }
 
+interface AttachmentMeta {
+  name: string;
+  type: string;
+  size: number;
+}
+
 interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   createdAt?: string;
   toolActions?: ToolAction[];
+  metadata?: { attachments?: AttachmentMeta[] };
 }
 
 const TOOL_LABELS: Record<string, string> = {
@@ -53,6 +60,26 @@ function ToolActionBadge({ action }: { action: ToolAction }) {
     <div className="flex items-center gap-1.5 rounded-md bg-red-500/10 px-2 py-1 text-xs text-red-500 dark:text-red-400">
       <XCircle className="h-3 w-3" />
       {action.description || 'Erro na ação'}
+    </div>
+  );
+}
+
+function AttachmentBadges({ attachments }: { attachments: AttachmentMeta[] }) {
+  return (
+    <div className="mb-1.5 flex flex-wrap gap-1">
+      {attachments.map((att, i) => (
+        <span
+          key={`${att.name}-${i}`}
+          className="inline-flex items-center gap-1 rounded-md bg-muted/50 px-2 py-0.5 text-[11px]"
+        >
+          {att.type.startsWith('image/') ? (
+            <ImageIcon className="h-3 w-3" />
+          ) : (
+            <FileText className="h-3 w-3" />
+          )}
+          {att.name}
+        </span>
+      ))}
     </div>
   );
 }
@@ -214,9 +241,10 @@ function formatInline(text: string): React.ReactNode {
   });
 }
 
-export const ChatMessage = memo(function ChatMessage({ role, content, createdAt, toolActions }: ChatMessageProps) {
+export const ChatMessage = memo(function ChatMessage({ role, content, createdAt, toolActions, metadata }: ChatMessageProps) {
   const isUser = role === 'user';
   const { text, visuals } = isUser ? { text: content, visuals: [] } : parseVisuals(content);
+  const attachments = metadata?.attachments;
 
   return (
     <div className={cn('group flex gap-2 px-4 py-2', isUser ? 'justify-end' : 'justify-start')}>
@@ -233,10 +261,13 @@ export const ChatMessage = memo(function ChatMessage({ role, content, createdAt,
         className={cn(
           'rounded-lg px-3 py-2 text-sm',
           isUser
-            ? 'max-w-[80%] bg-primary text-primary-foreground'
-            : 'max-w-[85%] bg-muted lg:max-w-2xl',
+            ? 'max-w-[90%] bg-primary text-primary-foreground sm:max-w-[80%]'
+            : 'max-w-[90%] bg-muted sm:max-w-[85%] lg:max-w-2xl',
         )}
       >
+        {attachments && attachments.length > 0 && (
+          <AttachmentBadges attachments={attachments} />
+        )}
         {toolActions && toolActions.length > 0 && (
           <div className="mb-2 space-y-1">
             {toolActions.map((action, i) => (
