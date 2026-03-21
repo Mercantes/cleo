@@ -31,7 +31,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co https://api.anthropic.com https://api.stripe.com https://api.pluggy.ai https://connect.pluggy.ai https://*.sentry.io https://*.ingest.sentry.io",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.anthropic.com https://api.stripe.com https://api.pluggy.ai https://connect.pluggy.ai https://*.sentry.io https://*.ingest.sentry.io",
               "frame-src https://js.stripe.com https://hooks.stripe.com https://connect.pluggy.ai",
               "worker-src 'self' blob:",
               "object-src 'none'",

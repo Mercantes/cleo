@@ -1,10 +1,10 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { Crosshair, Flame, Trophy, Star, TrendingUp, Settings, Share2 } from 'lucide-react';
+import { Crosshair, Flame, Trophy, Star, TrendingUp, Pencil, Share2, Check, X } from 'lucide-react';
 import { useApi } from '@/hooks/use-api';
-import Link from 'next/link';
+import { toast } from '@/components/ui/toast';
 
 const BarChart = dynamic(
   () => import('recharts').then((m) => m.BarChart),
@@ -53,11 +53,58 @@ function fmt(v: number) {
   return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+function parseCurrencyInput(value: string): number {
+  const cleaned = value.replace(/[R$\s.]/g, '').replace(',', '.');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
+function formatInputValue(v: number): string {
+  return v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 export function GoalsContent() {
-  const { data, isLoading } = useApi<GoalsData>('/api/goals');
+  const { data, isLoading, mutate } = useApi<GoalsData>('/api/goals');
   const { data: streak } = useApi<StreakData>('/api/goals/streak');
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const hasGoal = data?.goals?.monthly_savings_target && data.goals.monthly_savings_target > 0;
+
+  function startEditing() {
+    const current = data?.goals?.monthly_savings_target || 0;
+    setEditValue(current > 0 ? formatInputValue(current) : '');
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }
+
+  function cancelEditing() {
+    setEditing(false);
+    setEditValue('');
+  }
+
+  async function saveGoal() {
+    const value = parseCurrencyInput(editValue);
+    if (value <= 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/goals', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ monthlySavingsTarget: value }),
+      });
+      if (!res.ok) throw new Error();
+      mutate();
+      setEditing(false);
+      toast.success('Meta atualizada!');
+    } catch {
+      toast.error('Não foi possível salvar a meta.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const chartData = useMemo(() => {
     if (!streak?.months) return [];
@@ -86,13 +133,46 @@ export function GoalsContent() {
             Configure quanto você quer economizar por mês para acompanhar seu progresso aqui.
           </p>
         </div>
-        <Link
-          href="/settings"
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-        >
-          <Settings className="h-4 w-4" />
-          Configurar Meta
-        </Link>
+        {editing ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-muted-foreground">R$</span>
+            <input
+              ref={inputRef}
+              type="text"
+              inputMode="decimal"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') saveGoal();
+                if (e.key === 'Escape') cancelEditing();
+              }}
+              placeholder="4.000,00"
+              className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm"
+            />
+            <button
+              onClick={saveGoal}
+              disabled={saving}
+              className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              <Check className="h-4 w-4" />
+              Salvar
+            </button>
+            <button
+              onClick={cancelEditing}
+              className="inline-flex h-9 items-center rounded-md border border-input bg-background px-2 text-sm text-muted-foreground hover:bg-accent"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={startEditing}
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+          >
+            <Pencil className="h-4 w-4" />
+            Configurar Meta
+          </button>
+        )}
       </div>
     );
   }
@@ -122,14 +202,48 @@ export function GoalsContent() {
           <Share2 className="h-4 w-4" />
           Compartilhar
         </button>
-        <Link
-          href="/settings"
+        <button
+          onClick={startEditing}
           className="inline-flex h-9 items-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
         >
-          <Settings className="h-4 w-4" />
+          <Pencil className="h-4 w-4" />
           Editar Meta
-        </Link>
+        </button>
       </div>
+
+      {/* Inline edit form */}
+      {editing && (
+        <div className="flex items-center gap-3 rounded-xl border bg-card p-4">
+          <span className="text-sm font-medium text-muted-foreground">Meta mensal: R$</span>
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="decimal"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') saveGoal();
+              if (e.key === 'Escape') cancelEditing();
+            }}
+            placeholder="4.000,00"
+            className="h-9 w-36 rounded-md border border-input bg-background px-3 text-sm"
+          />
+          <button
+            onClick={saveGoal}
+            disabled={saving}
+            className="inline-flex h-9 items-center gap-1 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          >
+            <Check className="h-4 w-4" />
+            Salvar
+          </button>
+          <button
+            onClick={cancelEditing}
+            className="inline-flex h-9 items-center rounded-md border border-input bg-background px-2 text-sm text-muted-foreground hover:bg-accent"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       {/* Progress card */}
       <div className="rounded-xl border bg-card p-6">

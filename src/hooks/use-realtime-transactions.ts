@@ -15,66 +15,75 @@ export function useRealtimeTransactions() {
   const channelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
+    try {
+      const supabase = createClient();
 
-    const channel = supabase
-      .channel('realtime-transactions')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'transactions',
-        },
-        (payload) => {
-          const tx = payload.new as {
-            description?: string;
-            amount?: number;
-            type?: string;
-            merchant?: string;
-          };
+      const channel = supabase
+        .channel('realtime-transactions')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions',
+          },
+          (payload) => {
+            const tx = payload.new as {
+              description?: string;
+              amount?: number;
+              type?: string;
+              merchant?: string;
+            };
 
-          // Selectively invalidate transaction-related caches
-          const keysToRevalidate = [
-            '/api/dashboard/summary',
-            '/api/dashboard/recent',
-            '/api/dashboard/accounts',
-            '/api/dashboard/categories',
-            '/api/recurring',
-            '/api/budgets',
-            '/api/transactions',
-          ];
-          for (const key of keysToRevalidate) {
-            mutate(key, undefined, { revalidate: true });
+            // Selectively invalidate transaction-related caches
+            const keysToRevalidate = [
+              '/api/dashboard/summary',
+              '/api/dashboard/recent',
+              '/api/dashboard/accounts',
+              '/api/dashboard/categories',
+              '/api/recurring',
+              '/api/budgets',
+              '/api/transactions',
+            ];
+            for (const key of keysToRevalidate) {
+              mutate(key, undefined, { revalidate: true });
+            }
+
+            // Show toast
+            const label = tx.merchant || tx.description || 'Nova transação';
+            const amount = tx.amount ? formatCurrency(tx.amount) : '';
+            const icon = tx.type === 'credit' ? '💰' : '💳';
+            toast.success(`${icon} ${label}${amount ? ` · ${amount}` : ''}`);
+          },
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'accounts',
+          },
+          () => {
+            // Account balance updated — refresh relevant caches only
+            mutate('/api/dashboard/accounts', undefined, { revalidate: true });
+            mutate('/api/dashboard/summary', undefined, { revalidate: true });
+          },
+        )
+        .subscribe((status, err) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('[Realtime] Connection failed, running without realtime:', err?.message);
+            supabase.removeChannel(channel);
           }
+        });
 
-          // Show toast
-          const label = tx.merchant || tx.description || 'Nova transação';
-          const amount = tx.amount ? formatCurrency(tx.amount) : '';
-          const icon = tx.type === 'credit' ? '💰' : '💳';
-          toast.success(`${icon} ${label}${amount ? ` · ${amount}` : ''}`);
-        },
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'accounts',
-        },
-        () => {
-          // Account balance updated — refresh relevant caches only
-          mutate('/api/dashboard/accounts', undefined, { revalidate: true });
-          mutate('/api/dashboard/summary', undefined, { revalidate: true });
-        },
-      )
-      .subscribe();
+      channelRef.current = channel;
 
-    channelRef.current = channel;
-
-    return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
-    };
+      return () => {
+        supabase.removeChannel(channel);
+        channelRef.current = null;
+      };
+    } catch (err) {
+      console.warn('[Realtime] Setup failed, running without realtime:', err);
+    }
   }, []);
 }
