@@ -19,7 +19,7 @@ interface AccountsData {
   totalBalance: number;
   bankTotal: number;
   creditTotal: number;
-  accounts?: ConsolidatedAccount[];
+  consolidatedAccounts?: ConsolidatedAccount[];
 }
 
 const MAX_VISIBLE_BANKS = 4;
@@ -112,11 +112,11 @@ export function NetWorthCard() {
           )}
 
           {/* Consolidated accounts by bank */}
-          {data.accounts && data.accounts.length > 0 && (
+          {data.consolidatedAccounts && data.consolidatedAccounts.length > 0 && (
             <div className="mt-4 border-t pt-3">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contas por banco</p>
               <div className="space-y-2">
-                {(showAllBanks ? data.accounts : data.accounts.slice(0, MAX_VISIBLE_BANKS)).map((bank, i) => {
+                {(showAllBanks ? data.consolidatedAccounts : data.consolidatedAccounts.slice(0, MAX_VISIBLE_BANKS)).map((bank, i) => {
                   const net = bank.bankBalance - bank.creditBalance;
                   const hasCredit = bank.creditBalance > 0;
                   const hasBank = bank.bankBalance > 0;
@@ -149,7 +149,7 @@ export function NetWorthCard() {
                   );
                 })}
               </div>
-              {data.accounts.length > MAX_VISIBLE_BANKS && (
+              {data.consolidatedAccounts.length > MAX_VISIBLE_BANKS && (
                 <button
                   onClick={() => setShowAllBanks((v) => !v)}
                   className="mt-2 flex w-full items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
@@ -157,7 +157,7 @@ export function NetWorthCard() {
                   {showAllBanks ? (
                     <>Mostrar menos <ChevronUp className="h-3 w-3" /></>
                   ) : (
-                    <>Ver todos ({data.accounts.length}) <ChevronDown className="h-3 w-3" /></>
+                    <>Ver todos ({data.consolidatedAccounts.length}) <ChevronDown className="h-3 w-3" /></>
                   )}
                 </button>
               )}

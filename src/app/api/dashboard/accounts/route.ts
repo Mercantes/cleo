@@ -121,8 +121,21 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   const consolidatedAccounts = [...grouped.values()]
     .sort((a, b) => Math.abs(b.bankBalance - b.creditBalance) - Math.abs(a.bankBalance - a.creditBalance));
 
+  // Individual accounts for AccountsCard
+  const individualAccounts = accounts.map((acc) => {
+    const conn = acc.bank_connections as unknown as { connector_name: string } | null;
+    return {
+      id: acc.id,
+      name: acc.name,
+      type: acc.type,
+      balance: acc.balance || 0,
+      bankName: normalizeBankName(conn?.connector_name || 'Outros'),
+    };
+  });
+
   return NextResponse.json({
-    accounts: consolidatedAccounts,
+    accounts: individualAccounts,
+    consolidatedAccounts,
     totalBalance,
     bankTotal,
     creditTotal,
