@@ -51,7 +51,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         Ir para o conteúdo principal
       </a>
       <AppSidebar />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         <Header userName={displayName} />
         <main id="main-content" className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">
           <Suspense fallback={
