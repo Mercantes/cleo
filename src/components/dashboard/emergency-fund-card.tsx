@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Shield, ShieldCheck, ShieldAlert, TrendingUp, Sparkles, ChevronDown } from 'lucide-react';
+import { Shield, ShieldCheck, ShieldAlert, TrendingUp, Sparkles, ChevronDown, Target } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -31,6 +31,28 @@ function getStoredTarget(): number {
     // ignore
   }
   return 6;
+}
+
+function formatMonthsCovered(months: number, hide: boolean): string {
+  if (hide) return HIDDEN_VALUE;
+  if (months >= 1) {
+    const floored = Math.floor(months);
+    return `${floored} ${floored === 1 ? 'mês' : 'meses'}`;
+  }
+  // Less than 1 month — show in weeks or days for clarity
+  const days = Math.round(months * 30);
+  if (days <= 0) return '< 1 dia';
+  if (days < 7) return `${days} ${days === 1 ? 'dia' : 'dias'}`;
+  const weeks = Math.round(months * 4.3);
+  return `~${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
+}
+
+function getNextMilestone(current: number, target: number): number | null {
+  const milestones = [1, 3, 6, 9, 12];
+  for (const m of milestones) {
+    if (m > current && m <= target) return m;
+  }
+  return null;
 }
 
 export function EmergencyFundCard() {
@@ -78,12 +100,18 @@ export function EmergencyFundCard() {
   }
 
   const monthsCovered = balance / monthlyExpenses;
-  const monthsCoveredFloor = Math.floor(monthsCovered);
+  const goalAmount = monthlyExpenses * targetMonths;
   const progress = Math.min((monthsCovered / targetMonths) * 100, 100);
   const goalReached = monthsCovered >= targetMonths;
-  const remaining = Math.max(0, (monthlyExpenses * targetMonths) - balance);
+  const remaining = Math.max(0, goalAmount - balance);
   const monthlySavings = monthlyIncome > monthlyExpenses ? monthlyIncome - monthlyExpenses : 0;
   const monthsToGoal = monthlySavings > 0 && !goalReached ? Math.ceil(remaining / monthlySavings) : 0;
+  const coveragePercent = Math.round((balance / goalAmount) * 100);
+
+  // Next milestone for progressive motivation
+  const nextMilestone = getNextMilestone(monthsCovered, targetMonths);
+  const nextMilestoneAmount = nextMilestone ? monthlyExpenses * nextMilestone : 0;
+  const remainingToMilestone = nextMilestone ? Math.max(0, nextMilestoneAmount - balance) : 0;
 
   let status: 'good' | 'warning' | 'bad';
   let Icon = Shield;
@@ -120,6 +148,12 @@ export function EmergencyFundCard() {
     },
   };
 
+  // Realistic savings suggestion (10-20% of income, capped at what's actually possible)
+  const idealMonthlySaving = monthlySavings > 0
+    ? Math.min(monthlySavings, monthlyIncome * 0.2)
+    : monthlyIncome * 0.1;
+  const monthsToGoalRealistic = idealMonthlySaving > 0 ? Math.ceil(remaining / idealMonthlySaving) : 0;
+
   return (
     <div className="rounded-lg border bg-card p-5">
       {/* Header */}
@@ -131,7 +165,7 @@ export function EmergencyFundCard() {
           <div>
             <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
             <p className={cn('text-lg font-bold tabular-nums', colors[status].text)}>
-              {hideValues ? HIDDEN_VALUE : `${monthsCoveredFloor} ${monthsCoveredFloor === 1 ? 'mês' : 'meses'}`}
+              {formatMonthsCovered(monthsCovered, hideValues)}
             </p>
           </div>
         </div>
@@ -169,7 +203,7 @@ export function EmergencyFundCard() {
         <div className="mt-3 flex items-center gap-2 rounded-md bg-green-500/10 px-3 py-2">
           <Sparkles className="h-4 w-4 text-green-600 dark:text-green-400" />
           <p className="text-xs font-medium text-green-700 dark:text-green-300">
-            Meta atingida! Sua reserva cobre {monthsCoveredFloor} meses de despesas.
+            Meta atingida! Sua reserva cobre {Math.floor(monthsCovered)} meses de despesas.
           </p>
         </div>
       )}
@@ -211,29 +245,49 @@ export function EmergencyFundCard() {
         </div>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Meta ({targetMonths} meses)</span>
-          <span className="font-semibold">{fmt(monthlyExpenses * targetMonths)}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-muted-foreground">{hideValues ? '' : `${coveragePercent}%`}</span>
+            <span className="font-semibold">{fmt(goalAmount)}</span>
+          </div>
         </div>
       </div>
 
-      {/* Tip: how to reach goal */}
+      {/* Tip: realistic actionable advice */}
       {!goalReached && (
-        <div className="mt-3 rounded-md bg-muted/50 px-3 py-2">
-          <div className="flex items-start gap-2">
+        <div className="mt-3 space-y-2">
+          {/* Next milestone (progressive) */}
+          {nextMilestone && nextMilestone < targetMonths && (
+            <div className="flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2">
+              <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+              <p className="text-xs text-muted-foreground">
+                <span>Próxima meta: <strong className="text-foreground">{nextMilestone} {nextMilestone === 1 ? 'mês' : 'meses'}</strong>. </span>
+                <span>Faltam <strong className="text-foreground">{fmt(remainingToMilestone)}</strong>.</span>
+              </p>
+            </div>
+          )}
+
+          {/* Actionable tip */}
+          <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2">
             <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <div className="text-xs text-muted-foreground">
-              {monthlySavings > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {monthlySavings > 0 && monthlySavings <= monthlyIncome * 0.5 ? (
                 <>
-                  <span>Faltam <strong className="text-foreground">{fmt(remaining)}</strong>. </span>
-                  <span>No seu ritmo de economia ({fmt(monthlySavings)}/mês), você atinge em </span>
-                  <strong className="text-foreground">{monthsToGoal} {monthsToGoal === 1 ? 'mês' : 'meses'}</strong>.
+                  <span>No seu ritmo atual ({fmt(monthlySavings)}/mês), </span>
+                  <span>você atinge a meta em <strong className="text-foreground">{monthsToGoal} {monthsToGoal === 1 ? 'mês' : 'meses'}</strong>.</span>
                 </>
               ) : (
                 <>
-                  <span>Faltam <strong className="text-foreground">{fmt(remaining)}</strong>. </span>
-                  <span>Tente guardar <strong className="text-foreground">{fmt(remaining / 6)}/mês</strong> para atingir em 6 meses.</span>
+                  <span>Guardando <strong className="text-foreground">{fmt(idealMonthlySaving)}/mês</strong> </span>
+                  <span>(~{Math.round((idealMonthlySaving / monthlyIncome) * 100)}% da renda), </span>
+                  <span>você atinge em <strong className="text-foreground">
+                    {monthsToGoalRealistic > 12
+                      ? `${Math.round(monthsToGoalRealistic / 12)} ${Math.round(monthsToGoalRealistic / 12) === 1 ? 'ano' : 'anos'}`
+                      : `${monthsToGoalRealistic} ${monthsToGoalRealistic === 1 ? 'mês' : 'meses'}`
+                    }
+                  </strong>.</span>
                 </>
               )}
-            </div>
+            </p>
           </div>
         </div>
       )}
