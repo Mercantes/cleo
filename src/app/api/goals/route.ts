@@ -72,12 +72,14 @@ export const PUT = withAuth(async (request, { user }) => {
   const parsed = parseBody(goalSchema, {
     monthlySavingsTarget: body.monthlySavingsTarget != null ? Number(body.monthlySavingsTarget) : undefined,
     retirementAge: body.retirementAgeTarget != null ? Number(body.retirementAgeTarget) : undefined,
+    emergencyFundBalance: body.emergencyFundBalance != null ? Number(body.emergencyFundBalance) : undefined,
   });
   if (parsed.error || !parsed.data) {
     return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
   }
   const savings = parsed.data.monthlySavingsTarget ?? null;
   const retAge = parsed.data.retirementAge ?? null;
+  const emergencyFund = parsed.data.emergencyFundBalance ?? undefined;
 
   const db = getServiceClient();
   const { error } = await db.from('goals').upsert(
@@ -85,6 +87,7 @@ export const PUT = withAuth(async (request, { user }) => {
       user_id: user.id,
       monthly_savings_target: savings ?? undefined,
       retirement_age_target: retAge ?? undefined,
+      emergency_fund_balance: emergencyFund,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'user_id' },

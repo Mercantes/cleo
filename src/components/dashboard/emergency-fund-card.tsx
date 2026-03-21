@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Shield, ShieldCheck, ShieldAlert, TrendingUp, Sparkles, ChevronDown, Target } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Shield, ShieldCheck, ShieldAlert, TrendingUp, Sparkles, ChevronDown, Target, Pencil, Check, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,12 @@ interface SummaryData {
   expenses: number;
   income: number;
   savingsRate: number;
+}
+
+interface GoalsData {
+  goals: {
+    emergency_fund_balance: number | null;
+  } | null;
 }
 
 const TARGET_OPTIONS = [3, 6, 9, 12] as const;
@@ -39,7 +45,6 @@ function formatMonthsCovered(months: number, hide: boolean): string {
     const floored = Math.floor(months);
     return `${floored} ${floored === 1 ? 'mês' : 'meses'}`;
   }
-  // Less than 1 month — show in weeks or days for clarity
   const days = Math.round(months * 30);
   if (days <= 0) return '< 1 dia';
   if (days < 7) return `${days} ${days === 1 ? 'dia' : 'dias'}`;
@@ -55,16 +60,31 @@ function getNextMilestone(current: number, target: number): number | null {
   return null;
 }
 
+function parseCurrencyInput(value: string): number {
+  // Remove R$, spaces, dots (thousands), replace comma with dot
+  const cleaned = value.replace(/[R$\s.]/g, '').replace(',', '.');
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? 0 : num;
+}
+
 export function EmergencyFundCard() {
   const [hideValues] = useHideValues();
   const [targetMonths, setTargetMonths] = useState(getStoredTarget);
   const [showSelector, setShowSelector] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [editValue, setEditValue] = useState('');
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   const { data: accounts } = useApi<AccountsData>('/api/dashboard/accounts');
   const { data: summary } = useApi<SummaryData>('/api/dashboard/summary');
+  const { data: goalsData, mutate: mutateGoals } = useApi<GoalsData>('/api/goals');
 
-  const balance = accounts?.bankTotal || 0;
+  const bankTotal = accounts?.bankTotal || 0;
+  const userDefinedBalance = goalsData?.goals?.emergency_fund_balance;
+  const balance = userDefinedBalance != null ? userDefinedBalance : bankTotal;
+  const hasCustomBalance = userDefinedBalance != null;
   const monthlyExpenses = summary?.expenses || 0;
   const monthlyIncome = summary?.income || 0;
 
@@ -78,8 +98,62 @@ export function EmergencyFundCard() {
     }
   }
 
+  function startEditing() {
+    setEditValue(balance > 0 ? balance.toFixed(2).replace('.', ',') : '');
+    setEditing(true);
+  }
+
+  useEffect(() => {
+    if (editing && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editing]);
+
+  const cancelEditing = useCallback(() => {
+    setEditing(false);
+    setEditValue('');
+  }, []);
+
+  async function saveBalance() {
+    const value = parseCurrencyInput(editValue);
+    if (value < 0) return;
+
+    setSaving(true);
+    try {
+      await fetch('/api/goals', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emergencyFundBalance: value || null }),
+      });
+      mutateGoals();
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+      setEditing(false);
+    }
+  }
+
+  async function resetToAutomatic() {
+    setSaving(true);
+    try {
+      await fetch('/api/goals', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emergencyFundBalance: null }),
+      });
+      mutateGoals();
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false);
+      setEditing(false);
+    }
+  }
+
   // Empty state
-  if (balance <= 0 || monthlyExpenses <= 0) {
+  if (bankTotal <= 0 || monthlyExpenses <= 0) {
     return (
       <div className="rounded-lg border bg-card p-5">
         <div className="flex items-center gap-3">
@@ -89,7 +163,7 @@ export function EmergencyFundCard() {
           <div>
             <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              {balance <= 0
+              {bankTotal <= 0
                 ? 'Conecte uma conta bancária para acompanhar sua reserva.'
                 : 'Registre transações para calcular sua reserva em meses.'}
             </p>
@@ -101,14 +175,12 @@ export function EmergencyFundCard() {
 
   const monthsCovered = balance / monthlyExpenses;
   const goalAmount = monthlyExpenses * targetMonths;
-  const progress = Math.min((monthsCovered / targetMonths) * 100, 100);
   const goalReached = monthsCovered >= targetMonths;
   const remaining = Math.max(0, goalAmount - balance);
   const monthlySavings = monthlyIncome > monthlyExpenses ? monthlyIncome - monthlyExpenses : 0;
   const monthsToGoal = monthlySavings > 0 && !goalReached ? Math.ceil(remaining / monthlySavings) : 0;
   const coveragePercent = Math.round((balance / goalAmount) * 100);
 
-  // Next milestone for progressive motivation
   const nextMilestone = getNextMilestone(monthsCovered, targetMonths);
   const nextMilestoneAmount = nextMilestone ? monthlyExpenses * nextMilestone : 0;
   const remainingToMilestone = nextMilestone ? Math.max(0, nextMilestoneAmount - balance) : 0;
@@ -148,7 +220,6 @@ export function EmergencyFundCard() {
     },
   };
 
-  // Realistic savings suggestion (10-20% of income, capped at what's actually possible)
   const idealMonthlySaving = monthlySavings > 0
     ? Math.min(monthlySavings, monthlyIncome * 0.2)
     : monthlyIncome * 0.1;
@@ -235,10 +306,66 @@ export function EmergencyFundCard() {
 
       {/* Details */}
       <div className="mt-3 space-y-1.5">
+        {/* Reserve balance — editable */}
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Reserva disponível</span>
-          <span className="font-semibold">{fmt(balance)}</span>
+          <span className="text-muted-foreground">
+            Reserva disponível
+            {hasCustomBalance && (
+              <span className="ml-1 text-[10px] text-primary">(manual)</span>
+            )}
+          </span>
+          {editing ? (
+            <div className="flex items-center gap-1">
+              <span className="text-muted-foreground">R$</span>
+              <input
+                ref={inputRef}
+                type="text"
+                inputMode="decimal"
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') saveBalance();
+                  if (e.key === 'Escape') cancelEditing();
+                }}
+                className="w-24 rounded border bg-background px-1.5 py-0.5 text-right text-xs font-semibold tabular-nums outline-none focus:border-primary"
+                disabled={saving}
+              />
+              <button
+                onClick={saveBalance}
+                disabled={saving}
+                className="rounded p-0.5 text-green-600 hover:bg-green-500/10 dark:text-green-400"
+              >
+                <Check className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={cancelEditing}
+                disabled={saving}
+                className="rounded p-0.5 text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={startEditing}
+              className="group flex items-center gap-1 font-semibold transition-colors hover:text-primary"
+            >
+              {fmt(balance)}
+              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+            </button>
+          )}
         </div>
+
+        {/* Reset to automatic */}
+        {hasCustomBalance && !editing && (
+          <button
+            onClick={resetToAutomatic}
+            className="text-[10px] text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
+          >
+            Usar saldo bancário automaticamente ({fmt(bankTotal)})
+          </button>
+        )}
+
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Despesas mensais</span>
           <span className="font-semibold">{fmt(monthlyExpenses)}</span>
@@ -255,7 +382,6 @@ export function EmergencyFundCard() {
       {/* Tip: realistic actionable advice */}
       {!goalReached && (
         <div className="mt-3 space-y-2">
-          {/* Next milestone (progressive) */}
           {nextMilestone && nextMilestone < targetMonths && (
             <div className="flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2">
               <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -266,7 +392,6 @@ export function EmergencyFundCard() {
             </div>
           )}
 
-          {/* Actionable tip */}
           <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2">
             <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             <p className="text-xs text-muted-foreground">

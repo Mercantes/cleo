@@ -24,6 +24,7 @@ export const budgetSchema = z.object({
 export const goalSchema = z.object({
   monthlySavingsTarget: z.number().min(0).max(1_000_000).optional(),
   retirementAge: z.number().int().min(18).max(120).optional(),
+  emergencyFundBalance: z.number().min(0).max(100_000_000).optional(),
 });
 
 /**
