@@ -7,6 +7,7 @@ import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
 import { useApi } from '@/hooks/use-api';
 import { CardInfoTip } from './card-info-tip';
+import type { TrendMonth } from '@/types/dashboard';
 
 interface AccountsData {
   totalBalance: number;
@@ -23,6 +24,48 @@ interface GoalsData {
   goals: {
     emergency_fund_balance: number | null;
   } | null;
+}
+
+interface TrendsData {
+  months: TrendMonth[];
+}
+
+function computeMonthlyAverages(trends: TrendMonth[] | undefined, currentExpenses: number, currentIncome: number) {
+  if (!trends || trends.length === 0) {
+    return { avgExpenses: currentExpenses, avgIncome: currentIncome, monthsUsed: 1 };
+  }
+
+  const now = new Date();
+  const currentMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const monthProgress = dayOfMonth / daysInMonth;
+
+  // Use completed months from trends; project current month if past half
+  const months: { expenses: number; income: number }[] = [];
+
+  for (const m of trends) {
+    if (m.month === currentMonthKey) {
+      // Current month: only include if past 50%, and project to full month
+      if (monthProgress >= 0.5 && currentExpenses > 0) {
+        months.push({
+          expenses: Math.round(currentExpenses / monthProgress),
+          income: Math.round(currentIncome / monthProgress),
+        });
+      }
+    } else if (m.expenses > 0) {
+      months.push({ expenses: m.expenses, income: m.income });
+    }
+  }
+
+  if (months.length === 0) {
+    return { avgExpenses: currentExpenses, avgIncome: currentIncome, monthsUsed: 1 };
+  }
+
+  const avgExpenses = Math.round(months.reduce((s, m) => s + m.expenses, 0) / months.length);
+  const avgIncome = Math.round(months.reduce((s, m) => s + m.income, 0) / months.length);
+
+  return { avgExpenses, avgIncome, monthsUsed: months.length };
 }
 
 const TARGET_OPTIONS = [3, 6, 9, 12] as const;
@@ -81,13 +124,18 @@ export function EmergencyFundCard() {
   const { data: accounts } = useApi<AccountsData>('/api/dashboard/accounts');
   const { data: summary } = useApi<SummaryData>('/api/dashboard/summary');
   const { data: goalsData, mutate: mutateGoals } = useApi<GoalsData>('/api/goals');
+  const { data: trendsData } = useApi<TrendsData>('/api/dashboard/trends');
 
   const bankTotal = accounts?.bankTotal || 0;
   const userDefinedBalance = goalsData?.goals?.emergency_fund_balance;
   const balance = userDefinedBalance != null ? userDefinedBalance : bankTotal;
   const hasCustomBalance = userDefinedBalance != null;
-  const monthlyExpenses = summary?.expenses || 0;
-  const monthlyIncome = summary?.income || 0;
+
+  const { avgExpenses: monthlyExpenses, avgIncome: monthlyIncome, monthsUsed } = computeMonthlyAverages(
+    trendsData?.months,
+    summary?.expenses || 0,
+    summary?.income || 0,
+  );
 
   function handleTargetChange(months: number) {
     setTargetMonths(months);
@@ -374,7 +422,12 @@ export function EmergencyFundCard() {
         )}
 
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Despesas mensais</span>
+          <span className="text-muted-foreground">
+            Despesas mensais
+            {monthsUsed > 1 && (
+              <span className="ml-1 text-[10px]">(média {monthsUsed} meses)</span>
+            )}
+          </span>
           <span className="font-semibold">{fmt(monthlyExpenses)}</span>
         </div>
         <div className="flex items-center justify-between text-xs">
