@@ -27,7 +27,7 @@ export function GoalProgressCard() {
 
   if (!data?.goals?.monthly_savings_target) {
     return (
-      <div className="rounded-lg border bg-card p-5">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Target className="h-4 w-4" />
           Metas de economia
@@ -53,50 +53,49 @@ export function GoalProgressCard() {
     : 0;
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-card p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm font-medium">
-            <Target className={`h-4 w-4 ${isGoalMet ? 'text-green-500' : 'text-primary'}`} />
-            Meta mensal
-          </div>
-          {isGoalMet && <span className="text-xs font-medium text-green-600 dark:text-green-400">Meta atingida!</span>}
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <Target className={`h-4 w-4 ${isGoalMet ? 'text-green-500' : 'text-primary'}`} />
+          Meta mensal
         </div>
-
-        <div className="mt-3 flex items-end justify-between">
-          <div>
-            <p className="text-2xl font-bold">{fmt(progress.currentSavings)}</p>
-            <p className="text-xs text-muted-foreground">
-              de {fmt(progress.target)}
-            </p>
-          </div>
-          <p className={`text-lg font-bold ${isGoalMet ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>
-            {progress.percentage}%
-          </p>
-        </div>
-
-        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${isGoalMet ? 'bg-green-500' : 'bg-primary'}`}
-            style={{ width: `${Math.min(100, progress.percentage)}%` }}
-          />
-        </div>
-
-        {!isGoalMet && progress.target > progress.currentSavings && (
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            Faltam {fmt(progress.target - progress.currentSavings)} para atingir a meta
-          </p>
-        )}
-
-        {data.goals?.retirement_age_target && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Meta de aposentadoria: {data.goals.retirement_age_target} anos
-          </p>
-        )}
+        {isGoalMet && <span className="text-xs font-medium text-green-600 dark:text-green-400">Meta atingida!</span>}
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
-        <div className="rounded-lg border bg-card p-3 text-center">
+      <div className="mt-3 flex items-end justify-between">
+        <div>
+          <p className="text-2xl font-bold">{fmt(progress.currentSavings)}</p>
+          <p className="text-xs text-muted-foreground">
+            de {fmt(progress.target)}
+          </p>
+        </div>
+        <p className={`text-lg font-bold ${isGoalMet ? 'text-green-600 dark:text-green-400' : 'text-primary'}`}>
+          {progress.percentage}%
+        </p>
+      </div>
+
+      <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={`h-full rounded-full transition-all duration-500 ${isGoalMet ? 'bg-green-500' : 'bg-primary'}`}
+          style={{ width: `${Math.min(100, progress.percentage)}%` }}
+        />
+      </div>
+
+      {!isGoalMet && progress.target > progress.currentSavings && (
+        <p className="mt-1.5 text-xs text-muted-foreground">
+          Faltam {fmt(progress.target - progress.currentSavings)} para atingir a meta
+        </p>
+      )}
+
+      {data.goals?.retirement_age_target && (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Meta de aposentadoria: {data.goals.retirement_age_target} anos
+        </p>
+      )}
+
+      {/* Gamification stats */}
+      <div className="mt-auto grid grid-cols-3 gap-3 border-t pt-4" style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+        <div className="text-center">
           <Star className="mx-auto h-5 w-5 text-yellow-500" />
           <p className="mt-1 text-lg font-bold">Lv.{gamification.level}</p>
           <div className="mt-1 h-1 overflow-hidden rounded-full bg-muted">
@@ -108,7 +107,7 @@ export function GoalProgressCard() {
           <p className="mt-1 text-[10px] text-muted-foreground">{gamification.xp} XP</p>
         </div>
 
-        <div className="rounded-lg border bg-card p-3 text-center">
+        <div className="text-center">
           <Flame className={`mx-auto h-5 w-5 ${gamification.streak >= 3 ? 'text-orange-500' : 'text-muted-foreground'}`} />
           <p className="mt-1 text-lg font-bold">{gamification.streak}</p>
           <p className="mt-1 text-[10px] text-muted-foreground">
@@ -119,7 +118,7 @@ export function GoalProgressCard() {
           )}
         </div>
 
-        <div className="rounded-lg border bg-card p-3 text-center">
+        <div className="text-center">
           <Trophy className="mx-auto h-5 w-5 text-primary" />
           <p className="mt-1 text-lg font-bold">{gamification.totalChallengesCompleted}</p>
           <p className="mt-1 text-[10px] text-muted-foreground">desafios</p>

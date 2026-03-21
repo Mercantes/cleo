@@ -137,7 +137,7 @@ export function FinancialHealthCard() {
   }
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">Saúde Financeira</h3>
         <div className="flex items-baseline gap-1">
