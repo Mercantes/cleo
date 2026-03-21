@@ -61,7 +61,7 @@ export function SpendingForecast() {
 
   if (!hasData || predictions.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-5">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-5">
         <h3 className="text-sm font-medium">Previsão de gastos</h3>
         <p className="mt-2 text-xs text-muted-foreground">
           Ainda não há dados suficientes para gerar previsões. Continue registrando suas transações por mais alguns dias.
@@ -83,7 +83,7 @@ export function SpendingForecast() {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium">Previsão de gastos</h3>
         <span className="text-xs text-muted-foreground">{monthProgress}% do mês</span>

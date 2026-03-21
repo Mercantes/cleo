@@ -24,7 +24,7 @@ export function PartialResultCard({ data }: PartialResultCardProps) {
   const dayOfMonth = now.getDate();
 
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Resultado do Mês</p>
         <Link href="/cashflow" className="text-xs font-medium text-primary hover:underline">

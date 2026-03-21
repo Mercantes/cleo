@@ -60,7 +60,7 @@ export function AccountsCard() {
   if (accounts.length === 0) return null;
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-semibold">Contas Bancárias</h3>
         <Link

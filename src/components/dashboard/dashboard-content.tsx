@@ -282,15 +282,21 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
+          {/* Row 6: Streak + Category Budgets */}
           <AnimateIn delay={275}>
-            <ErrorBoundary><StreakCard /></ErrorBoundary>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ErrorBoundary><StreakCard /></ErrorBoundary>
+              <ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary>
+            </div>
           </AnimateIn>
 
-          <AnimateIn delay={300}><ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary></AnimateIn>
-
-          <AnimateIn delay={325}><ErrorBoundary><SpendingForecast /></ErrorBoundary></AnimateIn>
-
-          <AnimateIn delay={350}><ErrorBoundary><SubscriptionsCard /></ErrorBoundary></AnimateIn>
+          {/* Row 7: Spending Forecast + Subscriptions */}
+          <AnimateIn delay={300}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ErrorBoundary><SpendingForecast /></ErrorBoundary>
+              <ErrorBoundary><SubscriptionsCard /></ErrorBoundary>
+            </div>
+          </AnimateIn>
         </>
       )}
     </div>

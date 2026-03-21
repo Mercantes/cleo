@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Clock, Wallet, CreditCard, Building2 } from 'lucide-react';
+import { Clock, Wallet, CreditCard, Building2, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
@@ -21,8 +22,11 @@ interface AccountsData {
   accounts?: ConsolidatedAccount[];
 }
 
+const MAX_VISIBLE_BANKS = 4;
+
 export function NetWorthCard() {
   const { data } = useApi<AccountsData>('/api/dashboard/accounts');
+  const [showAllBanks, setShowAllBanks] = useState(false);
 
   const [hideValues] = useHideValues();
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
@@ -33,7 +37,7 @@ export function NetWorthCard() {
   const isPositive = balance >= 0;
 
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Patrimônio</p>
         <Link href="/accounts" className="text-xs font-medium text-primary hover:underline">
@@ -112,7 +116,7 @@ export function NetWorthCard() {
             <div className="mt-4 border-t pt-3">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contas por banco</p>
               <div className="space-y-2">
-                {data.accounts.map((bank, i) => {
+                {(showAllBanks ? data.accounts : data.accounts.slice(0, MAX_VISIBLE_BANKS)).map((bank, i) => {
                   const net = bank.bankBalance - bank.creditBalance;
                   const hasCredit = bank.creditBalance > 0;
                   const hasBank = bank.bankBalance > 0;
@@ -145,6 +149,18 @@ export function NetWorthCard() {
                   );
                 })}
               </div>
+              {data.accounts.length > MAX_VISIBLE_BANKS && (
+                <button
+                  onClick={() => setShowAllBanks((v) => !v)}
+                  className="mt-2 flex w-full items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  {showAllBanks ? (
+                    <>Mostrar menos <ChevronUp className="h-3 w-3" /></>
+                  ) : (
+                    <>Ver todos ({data.accounts.length}) <ChevronDown className="h-3 w-3" /></>
+                  )}
+                </button>
+              )}
             </div>
           )}
         </>

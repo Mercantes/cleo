@@ -23,7 +23,7 @@ export function SubscriptionsCard() {
 
   if (data.subscriptions.length === 0 && data.installments.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-4">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4">
         <div className="flex items-center gap-2">
           <Repeat className="h-4 w-4 text-muted-foreground" />
           <p className="text-sm font-medium">Compromissos Recorrentes</p>
@@ -41,7 +41,7 @@ export function SubscriptionsCard() {
     .slice(0, 3);
 
   return (
-    <Link href="/subscriptions" className="block rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50">
+    <Link href="/subscriptions" className="flex h-full flex-col rounded-lg border bg-card p-4 transition-colors hover:bg-accent/50">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Repeat className="h-4 w-4 text-muted-foreground" />

@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { TrendingDown, TrendingUp } from 'lucide-react';
+import { TrendingDown, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { CategoryData } from '@/types/dashboard';
@@ -33,8 +34,11 @@ interface CategoriesTableCardProps {
   month: string; // "YYYY-MM"
 }
 
+const MAX_VISIBLE_CATEGORIES = 5;
+
 export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
   const [hideValues] = useHideValues();
+  const [showAll, setShowAll] = useState(false);
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
 
   const [year, m] = month.split('-').map(Number);
@@ -45,9 +49,10 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
 
   const totalAmount = data.reduce((s, d) => s + d.amount, 0);
   const maxAmount = Math.max(...data.map((d) => d.amount));
+  const visibleData = showAll ? data : data.slice(0, MAX_VISIBLE_CATEGORIES);
 
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Principais Categorias</p>
         <Link href={`/transactions?type=debit&from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">
@@ -71,8 +76,8 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
         <span className="hidden w-24 text-right xl:block">Anterior</span>
       </div>
 
-      <div className="mt-2 space-y-1.5 sm:mt-0 sm:space-y-0">
-        {data.map((cat) => {
+      <div className="mt-2 flex-1 space-y-1.5 sm:mt-0 sm:space-y-0">
+        {visibleData.map((cat) => {
           const barWidth = maxAmount > 0 ? (cat.amount / maxAmount) * 100 : 0;
           const barColorClass = CATEGORY_COLORS[cat.name] || '';
           const prevAmount = cat.change != null && cat.change !== 0
@@ -146,6 +151,19 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
           );
         })}
       </div>
+
+      {data.length > MAX_VISIBLE_CATEGORIES && (
+        <button
+          onClick={() => setShowAll((v) => !v)}
+          className="mt-2 flex w-full items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          {showAll ? (
+            <>Mostrar menos <ChevronUp className="h-3 w-3" /></>
+          ) : (
+            <>Ver todas ({data.length}) <ChevronDown className="h-3 w-3" /></>
+          )}
+        </button>
+      )}
     </div>
   );
 }

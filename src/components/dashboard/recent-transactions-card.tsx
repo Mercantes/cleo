@@ -71,18 +71,19 @@ export function RecentTransactionsCard() {
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
   const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
 
-  const transactions = data?.transactions || [];
+  const allTransactions = data?.transactions || [];
+  const transactions = allTransactions.slice(0, 8);
 
   if (isLoading) {
     return <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />;
   }
 
-  if (transactions.length === 0) return null;
+  if (allTransactions.length === 0) return null;
 
   const grouped = groupByDate(transactions);
 
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
       <div className="flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>
         <Link href={`/transactions?from=${monthStart}&to=${monthEnd}`} className="text-xs font-medium text-primary hover:underline">

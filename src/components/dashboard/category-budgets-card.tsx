@@ -20,7 +20,7 @@ export function CategoryBudgetsCard() {
 
   if (loading) {
     return (
-      <div className="rounded-lg border bg-card p-4">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4">
         <div className="flex items-center justify-between">
           <div className="h-4 w-36 animate-pulse rounded bg-muted" />
           <div className="h-3 w-16 animate-pulse rounded bg-muted" />
@@ -42,7 +42,7 @@ export function CategoryBudgetsCard() {
 
   if (budgets.length === 0) {
     return (
-      <div className="rounded-lg border bg-card p-4">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-semibold">Limites por Categoria</h3>
           <Link
@@ -63,7 +63,7 @@ export function CategoryBudgetsCard() {
   const alerts = budgets.filter((b) => b.status !== 'ok');
 
   return (
-    <div className="rounded-lg border bg-card p-4">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold">Limites por Categoria</h3>
         <Link
