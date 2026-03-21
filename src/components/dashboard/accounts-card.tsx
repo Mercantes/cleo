@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Landmark, ChevronRight, RefreshCw, CreditCard } from 'lucide-react';
+import { Landmark, ChevronRight, RefreshCw, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { cn } from '@/lib/utils';
@@ -45,12 +46,16 @@ const TYPE_LABELS: Record<string, string> = {
   credit: 'Cartão de Crédito',
 };
 
+const MAX_VISIBLE_ACCOUNTS = 5;
+
 export function AccountsCard() {
   const [hideValues] = useHideValues();
+  const [showAll, setShowAll] = useState(false);
   const fmt = (v: number) => hideValues ? HIDDEN_VALUE : formatCurrency(v);
   const { data, isLoading } = useApi<AccountsData>('/api/dashboard/accounts');
 
   const accounts = data?.accounts || [];
+  const visibleAccounts = showAll ? accounts : accounts.slice(0, MAX_VISIBLE_ACCOUNTS);
   const totalBalance = data?.totalBalance || 0;
 
   if (isLoading) {
@@ -72,7 +77,7 @@ export function AccountsCard() {
         </Link>
       </div>
       <div className="space-y-2">
-        {accounts.map((acc) => (
+        {visibleAccounts.map((acc) => (
           <div
             key={acc.id}
             className="flex items-center justify-between rounded-md px-2 py-1.5"
@@ -110,6 +115,18 @@ export function AccountsCard() {
           </div>
         ))}
       </div>
+      {accounts.length > MAX_VISIBLE_ACCOUNTS && (
+        <button
+          onClick={() => setShowAll((v) => !v)}
+          className="mt-2 flex w-full items-center justify-center gap-1 text-xs font-medium text-primary hover:underline"
+        >
+          {showAll ? (
+            <>Mostrar menos <ChevronUp className="h-3 w-3" /></>
+          ) : (
+            <>Ver todas ({accounts.length}) <ChevronDown className="h-3 w-3" /></>
+          )}
+        </button>
+      )}
       <div className="mt-3 space-y-1.5 border-t pt-3">
         {(data?.bankTotal ?? 0) > 0 && (
           <div className="flex items-center justify-between">

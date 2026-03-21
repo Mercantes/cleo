@@ -151,7 +151,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         </span>
       </div>
 
-      <div className="mt-4 h-[160px] w-full" role="img" aria-label="Gráfico de ritmo de gastos comparando mês atual com anterior">
+      <div className="mt-4 min-h-[160px] w-full flex-1" role="img" aria-label="Gráfico de ritmo de gastos comparando mês atual com anterior">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={dailyData}>
             <defs>
