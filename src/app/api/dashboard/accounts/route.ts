@@ -1,6 +1,53 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 
+// Normalize Pluggy connector names to clean display names
+const BANK_DISPLAY_NAMES: Record<string, string> = {
+  'itau': 'Itaú',
+  'itaú': 'Itaú',
+  'nubank': 'Nubank',
+  'nu pagamentos': 'Nubank',
+  'bradesco': 'Bradesco',
+  'santander': 'Santander',
+  'banco do brasil': 'Banco do Brasil',
+  'caixa': 'Caixa',
+  'inter': 'Inter',
+  'c6 bank': 'C6 Bank',
+  'c6': 'C6 Bank',
+  'xp': 'XP',
+  'xp investimentos': 'XP',
+  'btg': 'BTG Pactual',
+  'btg pactual': 'BTG Pactual',
+  'safra': 'Safra',
+  'rico': 'Rico',
+  'modal': 'Modal',
+  'mercado pago': 'Mercado Pago',
+  'picpay': 'PicPay',
+  'neon': 'Neon',
+  'original': 'Banco Original',
+  'sofisa': 'Sofisa',
+  'pagbank': 'PagBank',
+  'pagseguro': 'PagBank',
+  'sicoob': 'Sicoob',
+  'sicredi': 'Sicredi',
+  'stone': 'Stone',
+};
+
+function normalizeBankName(connectorName: string): string {
+  const lower = connectorName.toLowerCase().trim();
+  // Direct match
+  if (BANK_DISPLAY_NAMES[lower]) return BANK_DISPLAY_NAMES[lower];
+  // Partial match
+  for (const [key, display] of Object.entries(BANK_DISPLAY_NAMES)) {
+    if (lower.includes(key) || key.includes(lower)) return display;
+  }
+  // Capitalize first letter of each word as fallback
+  return connectorName
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 export const GET = withAuth(async (_request, { supabase, user }) => {
   const [accountsResult, connectionsResult] = await Promise.all([
     supabase
@@ -38,28 +85,44 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
 
   const totalBalance = bankTotal - creditTotal;
 
-  // Group accounts by bank + type, consolidating balances
-  const grouped = new Map<string, { id: string; name: string; type: string; balance: number; bankName: string }>();
+  // Group accounts by bank (connector_name), consolidating all account types
+  const grouped = new Map<string, {
+    bankName: string;
+    bankBalance: number;
+    creditBalance: number;
+    accountCount: number;
+  }>();
+
   for (const acc of accounts) {
     const conn = acc.bank_connections as unknown as { connector_name: string } | null;
-    const bankName = conn?.connector_name || 'Banco';
-    const key = `${bankName}::${acc.type}`;
-    const existing = grouped.get(key);
+    const rawName = conn?.connector_name || 'Outros';
+    const bankName = normalizeBankName(rawName);
+    const existing = grouped.get(bankName);
+    const balance = acc.balance || 0;
+
     if (existing) {
-      existing.balance += acc.balance || 0;
+      if (acc.type === 'credit') {
+        existing.creditBalance += balance;
+      } else {
+        existing.bankBalance += balance;
+      }
+      existing.accountCount += 1;
     } else {
-      grouped.set(key, {
-        id: acc.id,
-        name: acc.name,
-        type: acc.type,
-        balance: acc.balance || 0,
+      grouped.set(bankName, {
         bankName,
+        bankBalance: acc.type === 'credit' ? 0 : balance,
+        creditBalance: acc.type === 'credit' ? balance : 0,
+        accountCount: 1,
       });
     }
   }
 
+  // Sort: banks with highest absolute net balance first
+  const consolidatedAccounts = [...grouped.values()]
+    .sort((a, b) => Math.abs(b.bankBalance - b.creditBalance) - Math.abs(a.bankBalance - a.creditBalance));
+
   return NextResponse.json({
-    accounts: [...grouped.values()],
+    accounts: consolidatedAccounts,
     totalBalance,
     bankTotal,
     creditTotal,

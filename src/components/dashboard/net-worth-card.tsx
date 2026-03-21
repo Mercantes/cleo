@@ -1,16 +1,24 @@
 'use client';
 
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, Clock, Wallet, CreditCard } from 'lucide-react';
+import { Clock, Wallet, CreditCard, Building2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { useApi } from '@/hooks/use-api';
+import { cn } from '@/lib/utils';
+
+interface ConsolidatedAccount {
+  bankName: string;
+  bankBalance: number;
+  creditBalance: number;
+  accountCount: number;
+}
 
 interface AccountsData {
   totalBalance: number;
   bankTotal: number;
   creditTotal: number;
-  accounts?: Array<{ balance: number; name: string; type: string }>;
+  accounts?: ConsolidatedAccount[];
 }
 
 export function NetWorthCard() {
@@ -99,19 +107,43 @@ export function NetWorthCard() {
             </div>
           )}
 
-          {/* Individual accounts */}
+          {/* Consolidated accounts by bank */}
           {data.accounts && data.accounts.length > 0 && (
             <div className="mt-4 border-t pt-3">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contas</p>
-              <div className="space-y-1.5">
-                {data.accounts.map((acc, i) => (
-                  <div key={i} className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">{acc.name}</span>
-                    <span className={`font-medium ${acc.type === 'credit' ? 'text-red-500 dark:text-red-400' : ''}`}>
-                      {acc.type === 'credit' ? '-' : ''}{fmt(acc.balance)}
-                    </span>
-                  </div>
-                ))}
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Contas por banco</p>
+              <div className="space-y-2">
+                {data.accounts.map((bank, i) => {
+                  const net = bank.bankBalance - bank.creditBalance;
+                  const hasCredit = bank.creditBalance > 0;
+                  const hasBank = bank.bankBalance > 0;
+                  return (
+                    <div key={i} className="rounded-md bg-muted/30 px-3 py-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm font-medium">{bank.bankName}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {bank.accountCount} {bank.accountCount === 1 ? 'conta' : 'contas'}
+                          </span>
+                        </div>
+                        <span className={cn(
+                          'text-sm font-bold tabular-nums',
+                          net < 0 ? 'text-red-500 dark:text-red-400' : 'text-foreground',
+                        )}>
+                          {fmt(Math.abs(net))}{net < 0 ? '' : ''}
+                          {net < 0 && <span className="text-[10px] font-normal"> dívida</span>}
+                        </span>
+                      </div>
+                      {/* Sub-breakdown when bank has both account types */}
+                      {hasCredit && hasBank && (
+                        <div className="mt-1 flex items-center gap-3 text-[11px] text-muted-foreground">
+                          <span>Saldo: <span className="text-green-600 dark:text-green-400">{fmt(bank.bankBalance)}</span></span>
+                          <span>Cartão: <span className="text-red-500 dark:text-red-400">-{fmt(bank.creditBalance)}</span></span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
