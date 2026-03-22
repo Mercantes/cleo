@@ -52,7 +52,7 @@ export function Toaster() {
       role="status"
       aria-live="polite"
       className={cn(
-        'fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 rounded-lg px-4 py-2 text-sm shadow-lg transition-all duration-300 md:bottom-6',
+        'fixed bottom-[5.5rem] left-1/2 z-[60] -translate-x-1/2 rounded-lg px-4 py-2 text-sm shadow-lg transition-all duration-300 md:bottom-6',
         VARIANT_STYLES[state.variant],
         visible ? 'translate-y-0 opacity-100' : 'pointer-events-none translate-y-2 opacity-0',
       )}

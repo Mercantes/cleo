@@ -5,23 +5,20 @@ type Bank = {
   logo: string;
   width: number;
   height: number;
-  darkInvert?: boolean;
 };
 
 const BANKS: Bank[] = [
   { name: 'Itaú', logo: '/logos/itau.svg', width: 80, height: 80 },
   { name: 'Nubank', logo: '/logos/nubank.svg', width: 144, height: 80 },
   { name: 'Bradesco', logo: '/logos/bradesco.svg', width: 140, height: 28 },
-  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 80, height: 75, darkInvert: true },
+  { name: 'XP Investimentos', logo: '/logos/xp.svg', width: 80, height: 75 },
   { name: 'Banco do Brasil', logo: '/logos/bb.svg', width: 140, height: 26 },
-  { name: 'Safra', logo: '/logos/safra.svg', width: 343, height: 104, darkInvert: true },
-  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 800, height: 336, darkInvert: true },
-  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 140, height: 28, darkInvert: true },
+  { name: 'Safra', logo: '/logos/safra.svg', width: 343, height: 104 },
+  { name: 'BTG Pactual', logo: '/logos/btg.svg', width: 800, height: 336 },
+  { name: 'C6 Bank', logo: '/logos/c6bank.svg', width: 140, height: 28 },
   { name: 'Santander', logo: '/logos/santander.svg', width: 140, height: 26 },
   { name: 'Inter', logo: '/logos/inter.svg', width: 120, height: 30 },
 ];
-
-const LOGO_HEIGHT = 'max-h-7';
 
 export function BankLogos() {
   return (
@@ -31,16 +28,16 @@ export function BankLogos() {
           Integrado com os principais bancos
         </p>
         <div className="relative overflow-hidden">
-          {/* Fade edges */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-gradient-to-r from-muted/30 to-transparent md:w-24 md:via-muted/20" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-gradient-to-l from-muted/30 to-transparent md:w-24 md:via-muted/20" />
+          {/* Fade edges — hidden on mobile to avoid covering logos */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent md:block" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent md:block" />
 
           {/* Scrolling logos — tripled for seamless loop */}
-          <div className="flex w-max animate-scroll items-center gap-12 md:gap-20">
+          <div className="flex w-max animate-scroll items-center gap-6 md:gap-20">
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <div
                 key={i}
-                className="flex h-8 shrink-0 items-center"
+                className="flex h-8 shrink-0 items-center md:h-10"
               >
                 <Image
                   src={bank.logo}
@@ -48,7 +45,7 @@ export function BankLogos() {
                   width={bank.width}
                   height={bank.height}
                   unoptimized
-                  className={`${LOGO_HEIGHT} w-auto object-contain${bank.darkInvert ? ' dark:brightness-0 dark:invert' : ''}`}
+                  className="max-h-7 w-auto object-contain dark:brightness-0 dark:invert md:max-h-8"
                 />
               </div>
             ))}

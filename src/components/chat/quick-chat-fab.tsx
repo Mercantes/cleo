@@ -134,7 +134,7 @@ export function QuickChatFab() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-24 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 md:h-14 md:w-14"
+          className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 md:h-14 md:w-14"
           aria-label="Perguntar à Cleo"
         >
           <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
@@ -143,7 +143,7 @@ export function QuickChatFab() {
 
       {/* Quick Chat Panel */}
       {open && (
-        <div className="fixed bottom-24 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-sm flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl md:bottom-6 md:right-6 md:w-96">
+        <div className="fixed bottom-20 left-2 right-2 z-40 flex max-h-[80vh] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl sm:left-auto sm:right-4 sm:w-96 md:bottom-6 md:right-6">
           {/* Header */}
           <div className="flex items-center justify-between border-b px-4 py-3">
             <div className="flex items-center gap-2">

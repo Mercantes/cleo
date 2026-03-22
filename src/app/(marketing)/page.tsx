@@ -62,7 +62,7 @@ export default function LandingPage() {
               <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">
                 Suas finanças no piloto automático
               </p>
-              <h1 className="mt-3 text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-[56px] lg:leading-[1.1]">
+              <h1 className="mt-3 text-3xl font-bold leading-tight tracking-tight sm:text-4xl md:text-5xl lg:text-[56px] lg:leading-[1.1]">
                 Veja seu futuro financeiro,{' '}
                 <span className="text-primary">não só seu passado.</span>
               </h1>

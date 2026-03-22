@@ -129,7 +129,7 @@ export function Header({ userName }: HeaderProps) {
         >
           {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </button>
-        <h1 className="text-lg font-semibold">{pageTitle}</h1>
+        <h1 className="truncate text-base font-semibold md:text-lg">{pageTitle}</h1>
       </div>
 
       <div className="flex items-center gap-1">

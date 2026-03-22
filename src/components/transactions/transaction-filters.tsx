@@ -162,10 +162,10 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
       </div>
 
       {/* Filters row */}
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         {/* Date presets */}
-        <div className="flex items-center gap-1.5">
-          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex items-center gap-1 overflow-x-auto sm:gap-1.5">
+          <Calendar className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
           {datePresets.map((preset) => (
             <button
               key={preset.id}
@@ -173,7 +173,7 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
               aria-label={`Filtrar: ${preset.label}`}
               aria-pressed={activePreset === preset.id}
               className={cn(
-                'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                'shrink-0 rounded-full px-2 py-1 text-[11px] font-medium transition-colors sm:px-2.5 sm:text-xs',
                 activePreset === preset.id
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-accent hover:text-foreground',
@@ -190,7 +190,7 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
             value={bank}
             onChange={(e) => setBank(e.target.value)}
             aria-label="Filtrar por conta"
-            className="h-9 max-w-[10rem] truncate rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            className="h-8 max-w-[8rem] truncate rounded-md border border-input bg-background px-2 text-xs text-foreground sm:h-9 sm:max-w-[10rem] sm:px-3 sm:text-sm"
           >
             <option value="">Conta</option>
             {accounts.map((acc) => (
@@ -205,7 +205,7 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
           value={type}
           onChange={(e) => setType(e.target.value)}
           aria-label="Filtrar por tipo"
-          className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+          className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground sm:h-9 sm:px-3 sm:text-sm"
         >
           <option value="">Todas as Transações</option>
           <option value="credit">Receitas</option>
@@ -217,7 +217,7 @@ export function TransactionFilters({ onFiltersChange, onExportCSV }: Transaction
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             aria-label="Filtrar por categoria"
-            className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground"
+            className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground sm:h-9 sm:px-3 sm:text-sm"
           >
             <option value="">Categorias</option>
             <option value="uncategorized">Sem categoria</option>
