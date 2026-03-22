@@ -24,7 +24,9 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
   }
 
   // Reverse to get chronological order
-  return NextResponse.json({ messages: (data || []).reverse() });
+  return NextResponse.json({ messages: (data || []).reverse() }, {
+    headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' },
+  });
 });
 
 export const DELETE = withAuth(async (_request, { supabase, user }) => {

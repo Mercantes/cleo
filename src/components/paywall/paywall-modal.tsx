@@ -68,7 +68,7 @@ export function PaywallModal({ feature, current, limit, onClose }: PaywallModalP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true" aria-labelledby="paywall-title">
-      <div ref={dialogRef} className="relative w-full max-w-md rounded-xl bg-background p-6 shadow-2xl sm:p-8">
+      <div ref={dialogRef} className="relative max-h-[calc(100dvh-4rem)] w-full max-w-[calc(100%-1rem)] overflow-y-auto rounded-xl bg-background p-6 shadow-2xl sm:max-w-md sm:p-8">
         <Button
           variant="ghost"
           size="icon"

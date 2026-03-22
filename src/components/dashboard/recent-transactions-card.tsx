@@ -134,7 +134,7 @@ export function RecentTransactionsCard() {
                       </p>
                     </div>
 
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${getCategoryBadgeColor(categoryName)}`}>
+                    <span className={`max-w-[100px] truncate rounded-full px-2 py-0.5 text-[10px] font-medium sm:max-w-none sm:shrink-0 ${getCategoryBadgeColor(categoryName)}`}>
                       {tx.categories?.icon ? `${tx.categories.icon} ` : ''}{categoryName}
                     </span>
 

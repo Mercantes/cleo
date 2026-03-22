@@ -38,12 +38,12 @@ export function MonthSelector({ month, onChange }: MonthSelectorProps) {
   }
 
   return (
-    <div className="flex items-center gap-2" onKeyDown={handleKeyDown}>
-      <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Mês anterior">
-        <ChevronLeft className="h-4 w-4" />
+    <div className="flex items-center gap-1 sm:gap-2" onKeyDown={handleKeyDown}>
+      <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Mês anterior" className="h-10 w-10 sm:h-9 sm:w-9">
+        <ChevronLeft className="h-5 w-5 sm:h-4 sm:w-4" />
       </Button>
       <span
-        className="min-w-[140px] text-center text-sm font-medium"
+        className="min-w-[110px] text-center text-sm font-medium sm:min-w-[140px]"
         tabIndex={0}
         role="status"
         aria-live="polite"
@@ -56,15 +56,16 @@ export function MonthSelector({ month, onChange }: MonthSelectorProps) {
         onClick={() => navigate(1)}
         disabled={isCurrentMonth}
         aria-label="Próximo mês"
+        className="h-10 w-10 sm:h-9 sm:w-9"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-5 w-5 sm:h-4 sm:w-4" />
       </Button>
       {!isCurrentMonth && (
         <Button
           variant="outline"
           size="sm"
           onClick={() => onChange(currentMonth)}
-          className="ml-1 h-7 px-2 text-[10px]"
+          className="ml-1 h-8 px-2.5 text-xs sm:h-7 sm:px-2 sm:text-[10px]"
         >
           Hoje
         </Button>

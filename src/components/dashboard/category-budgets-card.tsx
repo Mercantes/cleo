@@ -101,7 +101,7 @@ export function CategoryBudgetsCard() {
             <div className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5">
                 <span>{b.categoryIcon}</span>
-                <span className="font-medium">{b.categoryName}</span>
+                <span className="max-w-[120px] truncate font-medium sm:max-w-none">{b.categoryName}</span>
               </span>
               <span className="flex items-center gap-1.5 text-muted-foreground">
                 <span>{fmt(b.spent)} / {fmt(b.monthlyLimit)}</span>

@@ -208,6 +208,12 @@ export async function POST(request: NextRequest) {
           let toolRound = 0;
 
           while (toolRound <= MAX_TOOL_ROUNDS) {
+            // Check if client disconnected
+            if (request.signal.aborted) {
+              controller.close();
+              return;
+            }
+
             const stream = anthropic.messages.stream({
               model: 'claude-sonnet-4-20250514',
               max_tokens: 1024,

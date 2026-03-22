@@ -7,7 +7,8 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
     .select('*')
     .eq('user_id', user.id)
     .eq('status', 'active')
-    .order('amount', { ascending: false });
+    .order('amount', { ascending: false })
+    .limit(100);
 
   if (error) {
     console.error('[recurring] query failed:', error.message);

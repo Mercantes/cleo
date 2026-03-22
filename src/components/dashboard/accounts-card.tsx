@@ -95,7 +95,7 @@ export function AccountsCard() {
                 )}
               </div>
               <div>
-                <p className="text-sm font-medium leading-tight">{acc.name}</p>
+                <p className="max-w-[140px] truncate text-sm font-medium leading-tight sm:max-w-none">{acc.name}</p>
                 <p className="text-xs text-muted-foreground">{TYPE_LABELS[acc.type] || acc.type}</p>
               </div>
             </div>
