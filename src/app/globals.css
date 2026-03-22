@@ -160,20 +160,21 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
-/* Bank logos marquee animation (3x duplicated logos → scroll 1/3) */
+/* Bank logos marquee animation (2x duplicated logos → scroll 50%) */
 @keyframes scroll {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-33.333%, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 .animate-scroll {
-  animation: scroll 20s linear infinite;
-  will-change: transform;
+  animation: scroll 25s linear infinite;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 @media (max-width: 768px) {
   .animate-scroll {
-    animation-duration: 15s;
+    animation-duration: 18s;
   }
 }
 
