@@ -21,39 +21,45 @@ const BANKS: Bank[] = [
 ];
 
 export function BankLogos() {
-  // Double the logos for seamless infinite scroll
-  const logos = [...BANKS, ...BANKS];
-
   return (
-    <section className="border-y bg-muted/30 py-10">
+    <section className="border-y bg-muted/30 py-8 md:py-10">
       <div className="mx-auto max-w-6xl px-4 md:px-6">
-        <p className="mb-8 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        <p className="mb-6 text-center text-xs font-medium uppercase tracking-wider text-muted-foreground md:mb-8">
           Integrado com os principais bancos
         </p>
-        <div className="relative overflow-hidden">
-          {/* Fade edges — hidden on mobile to avoid covering logos */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 hidden w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent md:block" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 hidden w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent md:block" />
 
-          {/* Scrolling logos — doubled for seamless loop */}
-          <div
-            className="flex animate-scroll items-center"
-            style={{ width: 'max-content' }}
-          >
-            {logos.map((bank, i) => (
-              <div
+        {/* Mobile: static grid — no animation, no iOS Safari issues */}
+        <div className="grid grid-cols-5 items-center gap-x-4 gap-y-6 md:hidden">
+          {BANKS.map((bank) => (
+            <div key={bank.name} className="flex items-center justify-center">
+              <Image
+                src={bank.logo}
+                alt={bank.name}
+                width={bank.width}
+                height={bank.height}
+                unoptimized
+                className="max-h-6 w-auto object-contain"
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: animated marquee (3x duplication for seamless loop) */}
+        <div className="relative hidden overflow-hidden md:block">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent" />
+
+          <div className="flex w-max animate-scroll items-center gap-20">
+            {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
+              <Image
                 key={i}
-                className="flex h-8 shrink-0 items-center justify-center px-4 md:h-10 md:px-10"
-              >
-                <Image
-                  src={bank.logo}
-                  alt={bank.name}
-                  width={bank.width}
-                  height={bank.height}
-                  unoptimized
-                  className="max-h-6 w-auto max-w-[80px] object-contain opacity-70 dark:brightness-0 dark:invert md:max-h-8 md:max-w-[120px] md:opacity-100"
-                />
-              </div>
+                src={bank.logo}
+                alt={bank.name}
+                width={bank.width}
+                height={bank.height}
+                unoptimized
+                className="max-h-8 w-auto shrink-0 object-contain"
+              />
             ))}
           </div>
         </div>
