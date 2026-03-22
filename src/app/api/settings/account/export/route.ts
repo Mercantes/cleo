@@ -7,11 +7,11 @@ export const GET = withAuth(async (_request, { supabase, user }) => {
   const [profile, transactions, bankConnections, chatMessages, settings, recurring] =
     await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }),
+      supabase.from('transactions').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(5000),
       supabase.from('bank_connections').select('id, connector_name, status, created_at').eq('user_id', userId),
-      supabase.from('chat_messages').select('role, content, created_at').eq('user_id', userId).order('created_at'),
+      supabase.from('chat_messages').select('role, content, created_at').eq('user_id', userId).order('created_at').limit(1000),
       supabase.from('user_settings').select('*').eq('user_id', userId).single(),
-      supabase.from('recurring_transactions').select('*').eq('user_id', userId),
+      supabase.from('recurring_transactions').select('*').eq('user_id', userId).limit(200),
     ]);
 
   const exportData = {

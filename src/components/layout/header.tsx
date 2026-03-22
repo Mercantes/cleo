@@ -124,7 +124,7 @@ export function Header({ userName }: HeaderProps) {
         </Sheet>
         <button
           onClick={toggleSidebar}
-          className="hidden rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex"
+          className="hidden h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:inline-flex"
           aria-label={sidebarCollapsed ? 'Expandir menu' : 'Minimizar menu'}
         >
           {sidebarCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}

@@ -41,7 +41,7 @@ export const GET = withAuth(async (request: NextRequest, { supabase, user }) => 
 
   let query = supabase
     .from('transactions')
-    .select('*, categories(*), accounts(id, name, type, bank_connections(connector_name, connector_logo_url))', { count: 'exact' })
+    .select('id, description, amount, date, type, merchant, category_id, categories(id, name, icon), account_id, accounts(id, name, type, bank_connections(connector_name, connector_logo_url))', { count: 'exact' })
     .eq('user_id', user.id)
     .order('date', { ascending: false })
     .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);

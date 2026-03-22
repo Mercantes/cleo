@@ -218,7 +218,7 @@ export function TransactionRow({
                       onClick={() => handleCategoryChange(cat.id)}
                       disabled={isSaving}
                       className={cn(
-                        'flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs transition-colors',
+                        'flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors',
                         isSelected
                           ? 'border-primary bg-primary/10 text-primary font-medium'
                           : 'border-muted hover:border-primary/50 hover:bg-accent',

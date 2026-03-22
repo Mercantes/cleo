@@ -3,6 +3,8 @@ import { withAuth } from '@/lib/utils/with-auth';
 import { createClient } from '@supabase/supabase-js';
 import { formatCurrency } from '@/lib/utils/format';
 
+export const maxDuration = 15;
+
 function getServiceClient() {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

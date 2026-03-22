@@ -233,7 +233,7 @@ export function MonthlyReport() {
       {report.dailySpending.length > 0 && (
         <div className="rounded-lg border bg-card p-4">
           <h3 className="mb-3 font-medium">Gastos diários</h3>
-          <div className="flex h-32 items-end gap-0.5">
+          <div className="flex h-32 items-end gap-0.5 overflow-x-auto">
             {report.dailySpending.map(day => (
               <div
                 key={day.date}
