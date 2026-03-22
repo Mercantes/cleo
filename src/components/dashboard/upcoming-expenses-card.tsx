@@ -48,7 +48,7 @@ export function UpcomingExpensesCard() {
 
   if (!data) {
     return (
-      <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <div className="h-3 w-28 animate-pulse rounded bg-muted" />
           <div className="h-3 w-16 animate-pulse rounded bg-muted" />
@@ -75,7 +75,7 @@ export function UpcomingExpensesCard() {
     .sort((a, b) => new Date(a.next_expected_date).getTime() - new Date(b.next_expected_date).getTime());
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Próximas Despesas</p>

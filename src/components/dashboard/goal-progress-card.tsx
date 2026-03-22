@@ -28,7 +28,7 @@ export function GoalProgressCard() {
 
   if (!data?.goals?.monthly_savings_target) {
     return (
-      <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
           <Target className="h-4 w-4" />
           Metas de economia
@@ -55,7 +55,7 @@ export function GoalProgressCard() {
     : 0;
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Target className={`h-4 w-4 ${isGoalMet ? 'text-green-500' : 'text-primary'}`} />

@@ -29,7 +29,7 @@ export function StreakCard() {
 
   if (loading) {
     return (
-      <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+      <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
         <div className="flex items-center justify-between">
           <div className="h-4 w-32 animate-pulse rounded bg-muted" />
           <div className="h-3 w-24 animate-pulse rounded bg-muted" />
@@ -65,7 +65,7 @@ export function StreakCard() {
   const currentMonthStr = now.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toLowerCase();
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Flame className={cn('h-4 w-4', currentStreak >= 2 ? 'text-orange-500' : 'text-muted-foreground')} />

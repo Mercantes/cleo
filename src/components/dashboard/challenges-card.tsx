@@ -107,7 +107,7 @@ export function ChallengesCard() {
   };
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Zap className="h-4 w-4 text-yellow-500" />

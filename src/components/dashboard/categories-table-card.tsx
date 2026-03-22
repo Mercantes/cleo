@@ -49,7 +49,7 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
   const visibleData = showAll ? data : data.slice(0, MAX_VISIBLE_CATEGORIES);
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Principais Categorias</p>

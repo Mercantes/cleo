@@ -149,11 +149,11 @@ export function DashboardContent() {
           </div>
           <div className="h-9 w-28 animate-pulse rounded-md bg-muted" />
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
           <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />
           <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />
         </div>
-        <div className="grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
           <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />
           <div className="h-[250px] animate-pulse rounded-lg border bg-muted" />
         </div>
@@ -175,7 +175,7 @@ export function DashboardContent() {
   const hasData = summary && (summary.income > 0 || summary.expenses > 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Pull-to-refresh indicator (mobile) */}
       <div
         ref={indicatorRef}
@@ -186,10 +186,10 @@ export function DashboardContent() {
         <span className="text-[10px] text-muted-foreground">Puxe para atualizar</span>
       </div>
 
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="space-y-2 sm:space-y-0 sm:flex sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between sm:block">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{getGreeting()}</h1>
+            <h1 className="text-xl font-bold sm:text-2xl">{getGreeting()}</h1>
             <button
               onClick={() => fetchData(month, true)}
               disabled={isRefreshing}
@@ -199,11 +199,19 @@ export function DashboardContent() {
               <RefreshCw className={`h-3.5 w-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             </button>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {getQuickInsight(summary) || 'Aqui está o resumo das suas finanças'}
-          </p>
+          <div className="sm:hidden">
+            <MonthSelector month={month} onChange={handleMonthChange} />
+          </div>
         </div>
-        <MonthSelector month={month} onChange={handleMonthChange} />
+        <p className="text-xs text-muted-foreground sm:text-sm sm:hidden">
+          {getQuickInsight(summary) || 'Aqui está o resumo das suas finanças'}
+        </p>
+        <p className="hidden text-sm text-muted-foreground sm:block">
+          {getQuickInsight(summary) || 'Aqui está o resumo das suas finanças'}
+        </p>
+        <div className="hidden sm:block">
+          <MonthSelector month={month} onChange={handleMonthChange} />
+        </div>
       </div>
 
       <SetupChecklist />
@@ -233,7 +241,7 @@ export function DashboardContent() {
         <>
           {/* Row 1: Spending Pace + Net Worth */}
           <AnimateIn delay={100}>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
               <ErrorBoundary>
                 {summary && <SpendingPaceCard data={summary} />}
               </ErrorBoundary>
@@ -245,7 +253,7 @@ export function DashboardContent() {
 
           {/* Row 2: Partial Result + Categories Table */}
           <AnimateIn delay={150}>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
               <ErrorBoundary>
                 {summary && <PartialResultCard data={summary} />}
               </ErrorBoundary>
@@ -262,7 +270,7 @@ export function DashboardContent() {
 
           {/* Row 4: Recent Transactions + Upcoming Expenses */}
           <AnimateIn delay={225}>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
               <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
               <ErrorBoundary><UpcomingExpensesCard /></ErrorBoundary>
             </div>
@@ -270,7 +278,7 @@ export function DashboardContent() {
 
           {/* Row 5: Category Budgets + Subscriptions */}
           <AnimateIn delay={250}>
-            <div className="grid gap-4 lg:grid-cols-2">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
               <ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary>
               <ErrorBoundary><SubscriptionsCard /></ErrorBoundary>
             </div>
@@ -278,7 +286,7 @@ export function DashboardContent() {
 
           {/* Row 6: Goals, Challenges, Health */}
           <AnimateIn delay={275}>
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
               <ErrorBoundary><GoalProgressCard /></ErrorBoundary>
               <ErrorBoundary><ChallengesCard /></ErrorBoundary>
               <ErrorBoundary><FinancialHealthCard /></ErrorBoundary>
@@ -287,7 +295,7 @@ export function DashboardContent() {
 
           {/* Row 7: Emergency Fund + Spending Forecast */}
           <AnimateIn delay={300}>
-            <div className="grid gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
+            <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
               <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
               <ErrorBoundary><SpendingForecast /></ErrorBoundary>
             </div>

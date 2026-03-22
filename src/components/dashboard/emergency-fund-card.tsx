@@ -41,12 +41,10 @@ function computeMonthlyAverages(trends: TrendMonth[] | undefined, currentExpense
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const monthProgress = dayOfMonth / daysInMonth;
 
-  // Use completed months from trends; project current month if past half
   const months: { expenses: number; income: number }[] = [];
 
   for (const m of trends) {
     if (m.month === currentMonthKey) {
-      // Current month: only include if past 50%, and project to full month
       if (monthProgress >= 0.5 && currentExpenses > 0) {
         months.push({
           expenses: Math.round(currentExpenses / monthProgress),
@@ -96,19 +94,19 @@ function formatMonthsCovered(months: number, hide: boolean): string {
   return `~${weeks} ${weeks === 1 ? 'semana' : 'semanas'}`;
 }
 
-function getNextMilestone(current: number, target: number): number | null {
-  const milestones = [1, 3, 6, 9, 12];
-  for (const m of milestones) {
-    if (m > current && m <= target) return m;
-  }
-  return null;
-}
-
 function parseCurrencyInput(value: string): number {
-  // Remove R$, spaces, dots (thousands), replace comma with dot
   const cleaned = value.replace(/[R$\s.]/g, '').replace(',', '.');
   const num = parseFloat(cleaned);
   return isNaN(num) ? 0 : num;
+}
+
+function formatTimeToGoal(months: number): string {
+  if (months <= 0) return '—';
+  if (months <= 12) return `${months} ${months === 1 ? 'mês' : 'meses'}`;
+  const years = Math.floor(months / 12);
+  const remaining = months % 12;
+  if (remaining === 0) return `${years} ${years === 1 ? 'ano' : 'anos'}`;
+  return `${years}a ${remaining}m`;
 }
 
 export function EmergencyFundCard() {
@@ -204,20 +202,20 @@ export function EmergencyFundCard() {
   // Empty state
   if (bankTotal <= 0 || monthlyExpenses <= 0) {
     return (
-      <div className="rounded-lg border bg-card p-5">
+      <div className="rounded-lg border bg-card p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
             <Shield className="h-5 w-5 text-muted-foreground" />
           </div>
           <div>
             <span className="flex items-center gap-1.5">
-              <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
-              <CardInfoTip text="Quanto tempo sua reserva cobre suas despesas mensais. O ideal é ter de 3 a 6 meses de gastos guardados." />
+              <h3 className="text-sm font-semibold">Fundo de Emergencia</h3>
+              <CardInfoTip text="A Cleo calcula automaticamente quanto voce precisa ter guardado com base nos seus gastos mensais." />
             </span>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {bankTotal <= 0
-                ? 'Conecte uma conta bancária para acompanhar sua reserva.'
-                : 'Registre transações para calcular sua reserva em meses.'}
+                ? 'Conecte uma conta bancaria para acompanhar sua reserva.'
+                : 'Registre transacoes para calcular sua reserva em meses.'}
             </p>
           </div>
         </div>
@@ -230,12 +228,21 @@ export function EmergencyFundCard() {
   const goalReached = monthsCovered >= targetMonths;
   const remaining = Math.max(0, goalAmount - balance);
   const monthlySavings = monthlyIncome > monthlyExpenses ? monthlyIncome - monthlyExpenses : 0;
-  const monthsToGoal = monthlySavings > 0 && !goalReached ? Math.ceil(remaining / monthlySavings) : 0;
-  const coveragePercent = Math.round((balance / goalAmount) * 100);
+  const coveragePercent = Math.min(Math.round((balance / goalAmount) * 100), 100);
 
-  const nextMilestone = getNextMilestone(monthsCovered, targetMonths);
-  const nextMilestoneAmount = nextMilestone ? monthlyExpenses * nextMilestone : 0;
-  const remainingToMilestone = nextMilestone ? Math.max(0, nextMilestoneAmount - balance) : 0;
+  // Savings scenarios for the recommendation
+  const scenarios = [
+    { percent: 10, label: '10% da renda' },
+    { percent: 15, label: '15% da renda' },
+    { percent: 20, label: '20% da renda' },
+  ].map(s => {
+    const monthlyAmount = Math.round(monthlyIncome * s.percent / 100);
+    const monthsNeeded = monthlyAmount > 0 ? Math.ceil(remaining / monthlyAmount) : 0;
+    return { ...s, monthlyAmount, monthsNeeded };
+  }).filter(s => s.monthlyAmount > 0 && s.monthsNeeded > 0);
+
+  // Best scenario: use actual savings if positive, else suggest 10%
+  const currentSavingsMonths = monthlySavings > 0 && remaining > 0 ? Math.ceil(remaining / monthlySavings) : 0;
 
   let status: 'good' | 'warning' | 'bad';
   let Icon = Shield;
@@ -272,13 +279,8 @@ export function EmergencyFundCard() {
     },
   };
 
-  const idealMonthlySaving = monthlySavings > 0
-    ? Math.min(monthlySavings, monthlyIncome * 0.2)
-    : monthlyIncome * 0.1;
-  const monthsToGoalRealistic = idealMonthlySaving > 0 ? Math.ceil(remaining / idealMonthlySaving) : 0;
-
   return (
-    <div className="rounded-lg border bg-card p-5">
+    <div className="rounded-lg border bg-card p-4 sm:p-5">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -287,8 +289,8 @@ export function EmergencyFundCard() {
           </div>
           <div>
             <span className="flex items-center gap-1.5">
-              <h3 className="text-sm font-semibold">Fundo de Emergência</h3>
-              <CardInfoTip text="Quanto tempo sua reserva cobre suas despesas mensais. O ideal é ter de 3 a 6 meses de gastos guardados." />
+              <h3 className="text-sm font-semibold">Fundo de Emergencia</h3>
+              <CardInfoTip text="A Cleo calcula automaticamente o valor ideal da sua reserva de emergencia com base na media dos seus gastos mensais. Voce so precisa escolher quantos meses quer cobrir." />
             </span>
             <p className={cn('text-lg font-bold tabular-nums', colors[status].text)}>
               {formatMonthsCovered(monthsCovered, hideValues)}
@@ -352,130 +354,163 @@ export function EmergencyFundCard() {
             );
           })}
         </div>
-        <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground tabular-nums">
+        <div className="mt-1 flex justify-between text-[10px] text-muted-foreground tabular-nums">
           <span>0</span>
-          <span>{Math.ceil(targetMonths / 2)}m</span>
+          {targetMonths >= 6 && <span>{Math.ceil(targetMonths / 2)}m</span>}
           <span>{targetMonths}m</span>
         </div>
       </div>
 
-      {/* Details */}
-      <div className="mt-3 space-y-1.5">
-        {/* Reserve balance — editable */}
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">
-            Reserva disponível
-            {hasCustomBalance && (
-              <span className="ml-1 text-[10px] text-primary">(manual)</span>
+      {/* Cleo's calculation — the core value proposition */}
+      <div className="mt-4 rounded-md border bg-muted/30 p-3">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Calculo da Cleo</p>
+        <div className="mt-2 space-y-2">
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              Custo mensal medio
+              {monthsUsed > 1 && <span className="ml-1 text-[10px]">({monthsUsed} meses)</span>}
+            </span>
+            <span className="font-semibold tabular-nums">{fmt(monthlyExpenses)}</span>
+          </div>
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">Reserva ideal ({targetMonths} meses)</span>
+            <span className="font-bold tabular-nums text-foreground">{fmt(goalAmount)}</span>
+          </div>
+          <div className="h-px bg-border" />
+          <div className="flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              Voce tem hoje
+              {hasCustomBalance && <span className="ml-1 text-[10px] text-primary">(manual)</span>}
+            </span>
+            {editing ? (
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">R$</span>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  inputMode="decimal"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveBalance();
+                    if (e.key === 'Escape') cancelEditing();
+                  }}
+                  className="w-24 rounded border bg-background px-1.5 py-0.5 text-right text-xs font-semibold tabular-nums outline-none focus:border-primary"
+                  disabled={saving}
+                />
+                <button
+                  onClick={saveBalance}
+                  disabled={saving}
+                  className="rounded p-0.5 text-green-600 hover:bg-green-500/10 dark:text-green-400"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onClick={cancelEditing}
+                  disabled={saving}
+                  className="rounded p-0.5 text-muted-foreground hover:bg-muted"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={startEditing}
+                className="group flex items-center gap-1 font-semibold tabular-nums transition-colors hover:text-primary"
+                title="Clique para informar o valor da sua reserva de emergencia"
+              >
+                {fmt(balance)}
+                <Pencil className="h-3 w-3 text-muted-foreground opacity-60 transition-opacity group-hover:opacity-100" />
+              </button>
             )}
-          </span>
-          {editing ? (
-            <div className="flex items-center gap-1">
-              <span className="text-muted-foreground">R$</span>
-              <input
-                ref={inputRef}
-                type="text"
-                inputMode="decimal"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') saveBalance();
-                  if (e.key === 'Escape') cancelEditing();
-                }}
-                className="w-24 rounded border bg-background px-1.5 py-0.5 text-right text-xs font-semibold tabular-nums outline-none focus:border-primary"
-                disabled={saving}
-              />
-              <button
-                onClick={saveBalance}
-                disabled={saving}
-                className="rounded p-0.5 text-green-600 hover:bg-green-500/10 dark:text-green-400"
-              >
-                <Check className="h-3.5 w-3.5" />
-              </button>
-              <button
-                onClick={cancelEditing}
-                disabled={saving}
-                className="rounded p-0.5 text-muted-foreground hover:bg-muted"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          ) : (
+          </div>
+          {hasCustomBalance && !editing && (
             <button
-              onClick={startEditing}
-              className="group flex items-center gap-1 font-semibold transition-colors hover:text-primary"
+              onClick={resetToAutomatic}
+              className="text-[10px] text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
             >
-              {fmt(balance)}
-              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+              Usar saldo bancario automaticamente ({fmt(bankTotal)})
             </button>
           )}
-        </div>
-
-        {/* Reset to automatic */}
-        {hasCustomBalance && !editing && (
-          <button
-            onClick={resetToAutomatic}
-            className="text-[10px] text-muted-foreground underline-offset-2 transition-colors hover:text-foreground hover:underline"
-          >
-            Usar saldo bancário automaticamente ({fmt(bankTotal)})
-          </button>
-        )}
-
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">
-            Despesas mensais
-            {monthsUsed > 1 && (
-              <span className="ml-1 text-[10px]">(média {monthsUsed} meses)</span>
-            )}
-          </span>
-          <span className="font-semibold">{fmt(monthlyExpenses)}</span>
-        </div>
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Meta ({targetMonths} meses)</span>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-muted-foreground">{hideValues ? '' : `${coveragePercent}%`}</span>
-            <span className="font-semibold">{fmt(goalAmount)}</span>
-          </div>
+          {!goalReached && (
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Faltam</span>
+              <span className={cn('font-bold tabular-nums', colors[status].text)}>{fmt(remaining)}</span>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tip: realistic actionable advice */}
+      {/* Recommendation — how to get there */}
       {!goalReached && (
-        <div className="mt-3 space-y-2">
-          {nextMilestone && nextMilestone < targetMonths && (
-            <div className="flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2">
-              <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+        <div className="mt-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Como chegar la</p>
+
+          {/* Current pace (if saving) */}
+          {monthlySavings > 0 && currentSavingsMonths > 0 && (
+            <div className="mt-2 flex items-start gap-2 rounded-md bg-primary/5 px-3 py-2">
+              <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
               <p className="text-xs text-muted-foreground">
-                <span>Próxima meta: <strong className="text-foreground">{nextMilestone} {nextMilestone === 1 ? 'mês' : 'meses'}</strong>. </span>
-                <span>Faltam <strong className="text-foreground">{fmt(remainingToMilestone)}</strong>.</span>
+                <span>No seu ritmo atual </span>
+                <span className="font-semibold text-foreground">({fmt(monthlySavings)}/mes)</span>
+                <span>, voce atinge a meta em </span>
+                <span className="font-semibold text-foreground">{formatTimeToGoal(currentSavingsMonths)}</span>.
               </p>
             </div>
           )}
 
-          <div className="flex items-start gap-2 rounded-md bg-muted/50 px-3 py-2">
-            <TrendingUp className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
-              {monthlySavings > 0 && monthlySavings <= monthlyIncome * 0.5 ? (
-                <>
-                  <span>No seu ritmo atual ({fmt(monthlySavings)}/mês), </span>
-                  <span>você atinge a meta em <strong className="text-foreground">{monthsToGoal} {monthsToGoal === 1 ? 'mês' : 'meses'}</strong>.</span>
-                </>
-              ) : (
-                <>
-                  <span>Guardando <strong className="text-foreground">{fmt(idealMonthlySaving)}/mês</strong> </span>
-                  <span>(~{Math.round((idealMonthlySaving / monthlyIncome) * 100)}% da renda), </span>
-                  <span>você atinge em <strong className="text-foreground">
-                    {monthsToGoalRealistic > 12
-                      ? `${Math.round(monthsToGoalRealistic / 12)} ${Math.round(monthsToGoalRealistic / 12) === 1 ? 'ano' : 'anos'}`
-                      : `${monthsToGoalRealistic} ${monthsToGoalRealistic === 1 ? 'mês' : 'meses'}`
-                    }
-                  </strong>.</span>
-                </>
-              )}
-            </p>
-          </div>
+          {/* Savings scenarios table */}
+          {scenarios.length > 0 && (
+            <div className="mt-2 rounded-md border">
+              <div className="grid grid-cols-3 border-b px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                <span>Guardar/mes</span>
+                <span className="text-center">% da renda</span>
+                <span className="text-right">Tempo</span>
+              </div>
+              {scenarios.map((s) => (
+                <div
+                  key={s.percent}
+                  className={cn(
+                    'grid grid-cols-3 items-center px-3 py-2 text-xs transition-colors',
+                    s.percent === 15 && 'bg-primary/5',
+                  )}
+                >
+                  <span className="font-semibold tabular-nums">{fmt(s.monthlyAmount)}</span>
+                  <span className="text-center text-muted-foreground">{s.label}</span>
+                  <span className="text-right font-medium tabular-nums">{formatTimeToGoal(s.monthsNeeded)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Quick tip */}
+          {monthlySavings <= 0 && (
+            <div className="mt-2 flex items-start gap-2 rounded-md bg-amber-500/10 px-3 py-2">
+              <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+              <p className="text-xs text-muted-foreground">
+                Seus gastos estao iguais ou acima da renda. Tente reduzir despesas para comecar a montar sua reserva.
+              </p>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Progress summary footer */}
+      <div className="mt-3 flex items-center justify-between">
+        <span className="text-[10px] text-muted-foreground">
+          {coveragePercent}% da meta
+        </span>
+        <span className={cn(
+          'rounded-full px-2 py-0.5 text-[10px] font-medium',
+          goalReached
+            ? 'bg-green-500/10 text-green-600 dark:text-green-400'
+            : coveragePercent >= 50
+              ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+              : 'bg-red-500/10 text-red-500 dark:text-red-400',
+        )}>
+          {goalReached ? 'Meta atingida' : coveragePercent >= 50 ? 'Caminho certo' : 'Construindo'}
+        </span>
+      </div>
     </div>
   );
 }

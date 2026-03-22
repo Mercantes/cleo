@@ -84,7 +84,7 @@ export function RecentTransactionsCard() {
   const grouped = groupByDate(transactions);
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Transações Recentes</p>

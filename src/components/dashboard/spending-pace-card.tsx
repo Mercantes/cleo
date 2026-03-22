@@ -106,7 +106,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
   const monthEnd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}`;
 
   return (
-    <div className="flex h-full flex-col rounded-lg border bg-card p-5">
+    <div className="flex h-full flex-col rounded-lg border bg-card p-4 sm:p-5">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Ritmo de Gastos</p>
@@ -155,7 +155,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
         </span>
       </div>
 
-      <div className="mt-4 min-h-[160px] w-full flex-1" role="img" aria-label="Gráfico de ritmo de gastos comparando mês atual com anterior">
+      <div className="mt-3 h-[140px] w-full sm:mt-4 sm:min-h-[160px] sm:flex-1" role="img" aria-label="Gráfico de ritmo de gastos comparando mês atual com anterior">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={dailyData}>
             <defs>
@@ -180,7 +180,7 @@ export function SpendingPaceCard({ data }: SpendingPaceCardProps) {
               axisLine={false}
               className="fill-muted-foreground"
               tickFormatter={(v: number) => v >= 1000 ? `R$ ${(v / 1000).toFixed(0)}k` : `R$ ${v}`}
-              width={60}
+              width={55}
             />
             <Tooltip content={<PaceTooltip />} cursor={{ stroke: 'hsl(var(--border))' }} />
             {/* Last month - dashed gray */}
