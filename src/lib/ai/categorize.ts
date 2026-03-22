@@ -148,7 +148,11 @@ export async function categorizeTransactions(
   transactions: TransactionToCategorize[],
 ): Promise<number> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey || transactions.length === 0) return 0;
+  if (!apiKey) {
+    console.error('[categorize] ANTHROPIC_API_KEY not set');
+    return 0;
+  }
+  if (transactions.length === 0) return 0;
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -156,11 +160,14 @@ export async function categorizeTransactions(
   );
 
   // Load categories from DB for UUID mapping
-  const { data: dbCategories } = await supabase
+  const { data: dbCategories, error: catError } = await supabase
     .from('categories')
     .select('id, name');
 
-  if (!dbCategories) return 0;
+  if (!dbCategories) {
+    console.error('[categorize] failed to load categories:', catError?.message);
+    return 0;
+  }
 
   const categoryMap = new Map(dbCategories.map((c) => [c.name, c.id]));
   let categorized = 0;
@@ -204,23 +211,18 @@ export async function categorizeTransactions(
         }),
       });
 
-      if (!response.ok) continue;
+      if (!response.ok) {
+        const errBody = await response.text().catch(() => '');
+        console.error(`[categorize] Anthropic API error: status=${response.status} body=${errBody.slice(0, 200)}`);
+        continue;
+      }
 
       const data = await response.json();
       const text = data.content?.[0]?.text || '';
       const results = parseAIResponse(text);
 
-      // Log token usage for cost monitoring (dev only)
-      if (process.env.NODE_ENV === 'development') {
-        const usage = data.usage;
-        if (usage) {
-          const batchIndex = Math.floor(i / BATCH_SIZE);
-          const estimatedCost = (usage.input_tokens * 0.25 + usage.output_tokens * 1.25) / 1_000_000;
-          console.log(
-            `[categorize] batch=${batchIndex} tokens_in=${usage.input_tokens} tokens_out=${usage.output_tokens} cost_usd=${estimatedCost.toFixed(6)}`,
-          );
-        }
-      }
+      const batchIndex = Math.floor(i / BATCH_SIZE);
+      console.log(`[categorize] batch=${batchIndex} needsAI=${batch.length} aiResults=${results.length}`);
 
       // Update transactions with categories
       for (const result of results) {

@@ -49,9 +49,13 @@ export const POST = withAuth(async (request: NextRequest, { supabase, user }) =>
       .is('category_id', null)
       .limit(200);
 
+    console.log(`[pluggy-sync] imported=${syncResult.imported} uncategorized=${uncategorized?.length || 0}`);
+
     if (uncategorized && uncategorized.length > 0) {
       categorized = await categorizeTransactions(uncategorized);
     }
+
+    console.log(`[pluggy-sync] categorized=${categorized}`);
 
     return NextResponse.json({
       success: true,
