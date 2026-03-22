@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
+export const maxDuration = 60;
+
 export const POST = withAuth(async (_request, { supabase, user }) => {
   const { data: uncategorized, error } = await supabase
     .from('transactions')

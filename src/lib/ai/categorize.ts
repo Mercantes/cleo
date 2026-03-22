@@ -5,25 +5,30 @@ const BATCH_SIZE = 50;
 // Rule-based pre-categorization: substring match (case-insensitive) → category name
 const MERCHANT_CATEGORY_RULES: Record<string, string[]> = {
   'Alimentação': [
-    'ifood', 'uber eats', 'rappi', 'zé delivery', 'ze delivery',
+    'ifood', 'ifd*', 'uber eats', 'rappi', 'zé delivery', 'ze delivery',
+    '99food', '99 food',
     'mcdonalds', 'mcdonald', 'burger king', 'subway', 'starbucks',
-    'restaurante', 'lanchonete', 'padaria', 'pizzaria', 'açougue',
+    'restaurante', 'rest ', 'lanchonete', 'padaria', 'pizzaria', 'açougue',
+    'esfiha', 'churrascaria', 'cafeteria', 'cafe ',
     'supermercado', 'mercado', 'hortifruti', 'pao de acucar', 'carrefour',
     'assai', 'atacadao', 'extra', 'dia supermercado', 'sams club',
+    'bebidas e alimento', 'meat', 'frango',
   ],
   'Transporte': [
     'uber ', 'uber trip', '99 ', '99app', 'cabify', 'lyft',
     'posto', 'combustivel', 'combustível', 'shell', 'ipiranga', 'br distribuidora',
-    'estacionamento', 'parking', 'pedagio', 'pedágio', 'sem parar',
+    'estacionamento', 'parking', 'multipark', 'park ', 'pedagio', 'pedágio', 'sem parar',
     'recarga bilhete', 'metro ', 'metrô',
+    'porto seguro auto', 'seguro auto',
   ],
   'Assinaturas': [
-    'netflix', 'spotify', 'amazon prime', 'disney', 'hbo', 'star+',
-    'youtube premium', 'apple.com', 'google storage', 'icloud',
+    'netflix', 'spotify', 'amazon prime', 'amazon ad free', 'disney', 'hbo', 'star+',
+    'youtube premium', 'apple.com', 'applecombill', 'google storage', 'icloud',
     'deezer', 'globoplay', 'paramount', 'crunchyroll',
+    'wellhub', 'gympass',
   ],
   'Saúde': [
-    'farmacia', 'farmácia', 'drogaria', 'drogasil', 'droga raia',
+    'farmacia', 'farmácia', 'drogaria', 'drogasil', 'droga raia', 'drogal',
     'raia drogasil', 'panvel', 'unimed', 'amil', 'sulamerica',
     'hapvida', 'notredame', 'hospital', 'clinica', 'clínica',
     'laboratório', 'laboratorio', 'dentista', 'odonto',
@@ -36,11 +41,22 @@ const MERCHANT_CATEGORY_RULES: Record<string, string[]> = {
     'aluguel', 'condominio', 'condomínio', 'iptu', 'luz', 'energia',
     'enel', 'cemig', 'copel', 'eletropaulo', 'sabesp', 'agua ',
     'água ', 'gas ', 'gás ', 'internet', 'claro', 'vivo', 'tim', 'oi ',
+    'pisos', 'materiais',
+  ],
+  'Compras': [
+    'amazonmktplc', 'amazon br', 'americanas', 'magazine luiza', 'magalu',
+    'shopee', 'mercado livre', 'aliexpress', 'shein',
+    'shoes', 'clothing', 'renner', 'riachuelo', 'c&a', 'zara',
+    'shopping', 'sh park',
   ],
   'Receita': [
     'salario', 'salário', 'pagamento recebido', 'pix recebido',
     'transferencia recebida', 'transferência recebida', 'rendimento',
     'dividendo', 'reembolso', 'cashback',
+  ],
+  'Lazer': [
+    'arena beach', 'cinema', 'teatro', 'ingresso', 'show ',
+    'barbershop', 'barbearia', 'salao', 'salão',
   ],
 };
 
