@@ -76,7 +76,7 @@ export function RecentTransactionsCard() {
   const transactions = allTransactions.slice(0, 8);
 
   if (isLoading) {
-    return <div className="h-[300px] animate-pulse rounded-lg border bg-muted" />;
+    return <div className="h-[220px] animate-pulse rounded-lg border bg-muted sm:h-[300px]" />;
   }
 
   if (allTransactions.length === 0) return null;
@@ -98,7 +98,7 @@ export function RecentTransactionsCard() {
         const debits = transactions.filter(t => t.type === 'debit');
         const credits = transactions.filter(t => t.type === 'credit');
         return (
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs">
             {debits.length} despesa{debits.length !== 1 ? 's' : ''}
             {credits.length > 0 && ` · ${credits.length} receita${credits.length !== 1 ? 's' : ''}`}
           </p>
@@ -109,10 +109,10 @@ export function RecentTransactionsCard() {
         {Array.from(grouped.entries()).map(([dateLabel, txs]) => (
           <div key={dateLabel}>
             <div className="mb-1.5 flex items-center justify-between">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground sm:text-xs">
                 {dateLabel}
               </p>
-              <span className="text-[10px] font-medium text-muted-foreground">
+              <span className="text-[10px] font-medium text-muted-foreground sm:text-xs">
                 {hideValues ? HIDDEN_VALUE : formatCurrency(txs.reduce((s, t) => s + (t.type === 'credit' ? t.amount : -t.amount), 0))}
               </span>
             </div>
@@ -126,7 +126,7 @@ export function RecentTransactionsCard() {
                   <Link
                     key={tx.id}
                     href={`/transactions?search=${encodeURIComponent(displayName)}`}
-                    className="flex items-center justify-between gap-2 rounded-md px-1 py-2 transition-colors hover:bg-accent/50"
+                    className="flex items-center justify-between gap-2 rounded-md px-1 py-2.5 transition-colors hover:bg-accent/50 sm:py-2"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm">
@@ -134,7 +134,7 @@ export function RecentTransactionsCard() {
                       </p>
                     </div>
 
-                    <span className={`max-w-[100px] truncate rounded-full px-2 py-0.5 text-[10px] font-medium sm:max-w-none sm:shrink-0 ${getCategoryBadgeColor(categoryName)}`}>
+                    <span className={`hidden rounded-full px-2 py-0.5 text-[10px] font-medium sm:inline-block sm:shrink-0 ${getCategoryBadgeColor(categoryName)}`}>
                       {tx.categories?.icon ? `${tx.categories.icon} ` : ''}{categoryName}
                     </span>
 

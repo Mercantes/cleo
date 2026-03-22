@@ -9,7 +9,7 @@ export function ChatBarChart({ data, title }: { data: BarChartData[]; title: str
   const [hideValues] = useHideValues();
 
   return (
-    <div className="my-2 w-full max-w-sm sm:max-w-md">
+    <div className="my-2 w-full max-w-[calc(100vw-4rem)] sm:max-w-md">
       <p className="mb-1 text-xs font-medium text-muted-foreground">{title}</p>
       <ResponsiveContainer width="100%" height={180}>
         <BarChart data={data}>

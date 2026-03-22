@@ -164,7 +164,7 @@ export function QuickChatFab() {
                     router.push('/chat');
                     setOpen(false);
                   }}
-                  className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
+                  className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
                   aria-label="Abrir chat completo"
                   title="Chat completo"
                 >
@@ -172,7 +172,7 @@ export function QuickChatFab() {
                 </button>
                 <button
                   onClick={() => setOpen(false)}
-                  className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
+                  className="flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
                   aria-label="Fechar"
                 >
                   <X className="h-5 w-5 sm:h-4 sm:w-4" />

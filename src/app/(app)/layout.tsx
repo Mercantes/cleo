@@ -53,7 +53,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header userName={displayName} />
-        <main id="main-content" className="flex-1 overflow-auto p-4 pb-20 md:p-6 md:pb-6">
+        <main id="main-content" className="flex-1 overflow-auto p-3 pb-20 sm:p-4 md:p-6 md:pb-6">
           <Suspense fallback={
             <div className="flex h-48 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-primary" />

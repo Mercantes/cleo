@@ -47,7 +47,7 @@ export function ChatTable({ data, title }: { data: TableData; title: string }) {
   }
 
   return (
-    <div className="my-2 w-full max-w-sm overflow-x-auto sm:max-w-md">
+    <div className="my-2 w-full max-w-[calc(100vw-4rem)] overflow-x-auto sm:max-w-md">
       <p className="mb-1 text-xs font-medium text-muted-foreground">{title}</p>
       <table className="w-full text-xs">
         <thead>

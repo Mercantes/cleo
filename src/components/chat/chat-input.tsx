@@ -173,7 +173,7 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
                 <FileText className="h-5 w-5 text-muted-foreground" />
               )}
               <div className="flex flex-col">
-                <span className="max-w-[120px] truncate text-xs font-medium">
+                <span className="max-w-[80px] truncate text-xs font-medium sm:max-w-[120px]">
                   {att.name}
                 </span>
                 <span className="text-[10px] text-muted-foreground">
@@ -196,7 +196,7 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || attachments.length >= MAX_FILES}
           aria-label="Anexar arquivo"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 sm:h-9 sm:w-9"
         >
           <Paperclip className="h-4 w-4" />
         </button>

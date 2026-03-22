@@ -98,7 +98,7 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
               className="flex items-center gap-3 rounded-md px-1 py-2 transition-colors hover:bg-accent/50 sm:py-2.5"
             >
               {/* Category icon + name */}
-              <span className="flex w-28 shrink-0 items-center gap-2 sm:w-40">
+              <span className="flex w-24 shrink-0 items-center gap-2 sm:w-40">
                 <span
                   className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${barColorClass}`}
                   style={!barColorClass ? { backgroundColor: cat.color } : undefined}
@@ -107,7 +107,7 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
               </span>
 
               {/* Amount */}
-              <span className="w-24 shrink-0 text-right">
+              <span className="flex-1 shrink text-right sm:w-24 sm:flex-none sm:shrink-0">
                 <span className="text-sm font-medium">{fmt(cat.amount)}</span>
                 {totalAmount > 0 && (
                   <span className="ml-1 text-[10px] text-muted-foreground">
@@ -130,7 +130,7 @@ export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
               </span>
 
               {/* Change % */}
-              <span className="w-16 shrink-0 text-right">
+              <span className="w-14 shrink-0 text-right sm:w-16">
                 {cat.change != null && cat.change !== 0 ? (
                   <span className={`inline-flex items-center gap-0.5 text-xs font-medium ${
                     cat.change > 0 ? 'text-red-500' : 'text-green-500'

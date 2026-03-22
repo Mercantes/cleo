@@ -69,7 +69,7 @@ export function Header({ userName }: HeaderProps) {
     .slice(0, 2);
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
+    <header className="flex h-14 items-center justify-between border-b px-3 sm:px-4 md:px-6">
       <div className="flex items-center gap-3">
         <Sheet>
           <SheetTrigger
