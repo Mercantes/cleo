@@ -42,18 +42,23 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const shouldAutoScroll = useRef(true);
+
   const isNearBottom = useCallback(() => {
     const el = scrollContainerRef.current;
     if (!el) return true;
     return el.scrollHeight - el.scrollTop - el.clientHeight < 150;
   }, []);
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   }, []);
 
   useEffect(() => {
-    if (isNearBottom()) scrollToBottom();
+    if (shouldAutoScroll.current || isNearBottom()) {
+      scrollToBottom();
+      shouldAutoScroll.current = false;
+    }
   }, [messages, isLoading, scrollToBottom, isNearBottom]);
 
   useEffect(() => {
@@ -62,6 +67,7 @@ export function ChatInterface() {
         const res = await fetch('/api/chat/history');
         const data = await res.json();
         setMessages(data.messages || []);
+        shouldAutoScroll.current = true;
       } catch {
         // Start with empty chat
       } finally {
@@ -100,6 +106,7 @@ export function ChatInterface() {
       metadata: attachmentMeta.length > 0 ? { attachments: attachmentMeta } : undefined,
     };
 
+    shouldAutoScroll.current = true;
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setAttachments([]);
