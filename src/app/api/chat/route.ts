@@ -7,6 +7,8 @@ import { checkTierLimit, incrementUsage } from '@/lib/finance/tier-check';
 import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 import { getAnthropicTools, executeTool } from '@/lib/ai/tools';
 
+export const maxDuration = 60; // Vision requests need more time
+
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
@@ -298,7 +300,8 @@ export async function POST(request: NextRequest) {
           sendSSE({ done: true, userMessage, assistantMessage });
           controller.close();
         } catch (error) {
-          console.error('[chat] streaming error:', error);
+          const errDetail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+          console.error('[chat] streaming error:', errDetail, error instanceof Anthropic.APIError ? `status=${error.status}` : '');
 
           let errorMessage = 'Erro ao processar resposta. Tente novamente.';
           if (error instanceof Anthropic.APIError) {
