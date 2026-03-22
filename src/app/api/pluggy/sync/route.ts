@@ -3,6 +3,8 @@ import { withAuth } from '@/lib/utils/with-auth';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 
+export const maxDuration = 60; // Sync + AI categorization needs time
+
 export const POST = withAuth(async (request: NextRequest, { supabase, user }) => {
   try {
     const body = (await request.json()) as { connectionId: string };
@@ -38,19 +40,17 @@ export const POST = withAuth(async (request: NextRequest, { supabase, user }) =>
       .update({ status: 'active', last_sync_at: new Date().toISOString() })
       .eq('id', connection.id);
 
-    // Categorize new transactions
+    // Categorize uncategorized transactions (always check, not just new imports)
     let categorized = 0;
-    if (syncResult.imported > 0) {
-      const { data: uncategorized } = await supabase
-        .from('transactions')
-        .select('id, description, amount, type')
-        .eq('user_id', user.id)
-        .is('category_id', null)
-        .limit(200);
+    const { data: uncategorized } = await supabase
+      .from('transactions')
+      .select('id, description, amount, type')
+      .eq('user_id', user.id)
+      .is('category_id', null)
+      .limit(200);
 
-      if (uncategorized && uncategorized.length > 0) {
-        categorized = await categorizeTransactions(uncategorized);
-      }
+    if (uncategorized && uncategorized.length > 0) {
+      categorized = await categorizeTransactions(uncategorized);
     }
 
     return NextResponse.json({
