@@ -31,7 +31,7 @@ interface CategoriesTableCardProps {
   month: string; // "YYYY-MM"
 }
 
-const MAX_VISIBLE_CATEGORIES = 5;
+const MAX_VISIBLE_CATEGORIES = 10;
 
 export function CategoriesTableCard({ data, month }: CategoriesTableCardProps) {
   const [hideValues] = useHideValues();

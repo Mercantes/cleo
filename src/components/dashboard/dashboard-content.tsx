@@ -255,24 +255,29 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
-          {/* Row 3: Recent Transactions + Upcoming Expenses */}
+          {/* Row 3: Accounts (full-width) */}
           <AnimateIn delay={200}>
+            <ErrorBoundary><AccountsCard /></ErrorBoundary>
+          </AnimateIn>
+
+          {/* Row 4: Recent Transactions + Upcoming Expenses */}
+          <AnimateIn delay={225}>
             <div className="grid gap-4 lg:grid-cols-2">
               <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
               <ErrorBoundary><UpcomingExpensesCard /></ErrorBoundary>
             </div>
           </AnimateIn>
 
-          {/* Row 4: Accounts + Emergency Fund */}
-          <AnimateIn delay={225}>
-            <div className="grid gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
-              <ErrorBoundary><AccountsCard /></ErrorBoundary>
-              <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
+          {/* Row 5: Category Budgets + Subscriptions */}
+          <AnimateIn delay={250}>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary>
+              <ErrorBoundary><SubscriptionsCard /></ErrorBoundary>
             </div>
           </AnimateIn>
 
-          {/* Row 4: Goals, Challenges, Health */}
-          <AnimateIn delay={250}>
+          {/* Row 6: Goals, Challenges, Health */}
+          <AnimateIn delay={275}>
             <div className="grid gap-4 lg:grid-cols-3">
               <ErrorBoundary><GoalProgressCard /></ErrorBoundary>
               <ErrorBoundary><ChallengesCard /></ErrorBoundary>
@@ -280,20 +285,17 @@ export function DashboardContent() {
             </div>
           </AnimateIn>
 
-          {/* Row 6: Streak + Category Budgets */}
-          <AnimateIn delay={275}>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ErrorBoundary><StreakCard /></ErrorBoundary>
-              <ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary>
+          {/* Row 7: Emergency Fund + Spending Forecast */}
+          <AnimateIn delay={300}>
+            <div className="grid gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
+              <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
+              <ErrorBoundary><SpendingForecast /></ErrorBoundary>
             </div>
           </AnimateIn>
 
-          {/* Row 7: Spending Forecast + Subscriptions */}
-          <AnimateIn delay={300}>
-            <div className="grid gap-4 lg:grid-cols-2">
-              <ErrorBoundary><SpendingForecast /></ErrorBoundary>
-              <ErrorBoundary><SubscriptionsCard /></ErrorBoundary>
-            </div>
+          {/* Row 8: Streak */}
+          <AnimateIn delay={325}>
+            <ErrorBoundary><StreakCard /></ErrorBoundary>
           </AnimateIn>
         </>
       )}
