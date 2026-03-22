@@ -178,6 +178,14 @@ input[type="number"] {
 }
 
 
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility bottom-safe {
+  bottom: env(safe-area-inset-bottom, 0px);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

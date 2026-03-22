@@ -143,111 +143,118 @@ export function QuickChatFab() {
 
       {/* Quick Chat Panel */}
       {open && (
-        <div className="fixed bottom-20 left-2 right-2 z-40 flex max-h-[80vh] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl sm:left-auto sm:right-4 sm:w-96 md:bottom-6 md:right-6">
-          {/* Header */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10">
-                <MessageSquare className="h-3.5 w-3.5 text-primary" />
-              </div>
-              <span className="text-sm font-semibold">Cleo</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => {
-                  router.push('/chat');
-                  setOpen(false);
-                }}
-                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                aria-label="Abrir chat completo"
-                title="Chat completo"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                aria-label="Fechar"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-          </div>
-
-          {/* Messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-3" style={{ maxHeight: '320px', minHeight: '200px' }}>
-            {messages.length === 0 ? (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <p className="text-sm text-muted-foreground">Pergunte qualquer coisa sobre suas finanças</p>
-                <div className="flex flex-wrap justify-center gap-1.5">
-                  {quickPrompts.map((prompt) => (
-                    <button
-                      key={prompt}
-                      onClick={() => sendMessage(prompt)}
-                      className="rounded-full border px-3 py-1.5 text-xs transition-colors hover:bg-accent"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
+        <>
+          {/* Backdrop (mobile only) */}
+          <div
+            className="fixed inset-0 z-40 bg-black/40 sm:hidden"
+            onClick={() => setOpen(false)}
+          />
+          <div className="fixed inset-x-0 bottom-0 top-0 z-50 flex flex-col bg-background sm:inset-auto sm:bottom-20 sm:left-auto sm:right-4 sm:top-auto sm:z-40 sm:max-h-[80vh] sm:w-96 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-2xl md:bottom-6 md:right-6">
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10">
+                  <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 </div>
+                <span className="text-sm font-semibold">Cleo</span>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
-                      msg.role === 'user'
-                        ? 'ml-auto bg-primary text-primary-foreground'
-                        : 'bg-muted',
-                    )}
-                  >
-                    {msg.content || (
-                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    )}
-                  </div>
-                ))}
-                {isLoading && messages[messages.length - 1]?.role === 'user' && (
-                  <div className="max-w-[85%] rounded-2xl bg-muted px-3 py-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => {
+                    router.push('/chat');
+                    setOpen(false);
+                  }}
+                  className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
+                  aria-label="Abrir chat completo"
+                  title="Chat completo"
+                >
+                  <ArrowUpRight className="h-5 w-5 sm:h-4 sm:w-4" />
+                </button>
+                <button
+                  onClick={() => setOpen(false)}
+                  className="flex h-10 w-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground sm:h-auto sm:w-auto sm:p-1.5"
+                  aria-label="Fechar"
+                >
+                  <X className="h-5 w-5 sm:h-4 sm:w-4" />
+                </button>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Input */}
-          <div className="border-t px-3 py-2">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                sendMessage();
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Pergunte à Cleo..."
-                disabled={isLoading}
-                className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
-                autoComplete="off"
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isLoading}
-                className="rounded-full bg-primary p-1.5 text-primary-foreground transition-opacity disabled:opacity-30"
-                aria-label="Enviar"
+            {/* Messages */}
+            <div className="flex-1 overflow-y-auto px-4 py-3 sm:max-h-[320px] sm:min-h-[200px]">
+              {messages.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center gap-3 py-4">
+                  <p className="text-sm text-muted-foreground">Pergunte qualquer coisa sobre suas finanças</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {quickPrompts.map((prompt) => (
+                      <button
+                        key={prompt}
+                        onClick={() => sendMessage(prompt)}
+                        className="rounded-full border px-3 py-2 text-xs transition-colors hover:bg-accent active:bg-accent"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {messages.map((msg, i) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        'max-w-[85%] rounded-2xl px-3 py-2 text-sm',
+                        msg.role === 'user'
+                          ? 'ml-auto bg-primary text-primary-foreground'
+                          : 'bg-muted',
+                      )}
+                    >
+                      {msg.content || (
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                      )}
+                    </div>
+                  ))}
+                  {isLoading && messages[messages.length - 1]?.role === 'user' && (
+                    <div className="max-w-[85%] rounded-2xl bg-muted px-3 py-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </div>
+
+            {/* Input */}
+            <div className="border-t px-3 py-2 pb-safe">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sendMessage();
+                }}
+                className="flex items-center gap-2"
               >
-                <Send className="h-3.5 w-3.5" />
-              </button>
-            </form>
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Pergunte à Cleo..."
+                  disabled={isLoading}
+                  className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-50"
+                  autoComplete="off"
+                />
+                <button
+                  type="submit"
+                  disabled={!input.trim() || isLoading}
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-30 sm:h-auto sm:w-auto sm:p-1.5"
+                  aria-label="Enviar"
+                >
+                  <Send className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        </>
       )}
     </>
   );
