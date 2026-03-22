@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { RecurringList } from '@/components/recurring/recurring-list';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Recorrentes' };
 
 export default function SubscriptionsPage() {
   return (

@@ -216,8 +216,6 @@ export function RecurringList() {
   const rawSubscriptions = data?.subscriptions || [];
   const rawInstallments = data?.installments || [];
   const rawIncome = data?.income || [];
-  const rawMonthlyTotal = data?.monthlyTotal || 0;
-  const rawMonthlyIncome = data?.monthlyIncome || 0;
   const hasExpenseData = rawSubscriptions.length > 0 || rawInstallments.length > 0;
   const hasIncomeData = rawIncome.length > 0;
   const hasAnyData = hasExpenseData || hasIncomeData;

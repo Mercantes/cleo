@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { BudgetsContent } from '@/components/budgets/budgets-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Orçamentos' };
 
 export default function BudgetsPage() {
   return (

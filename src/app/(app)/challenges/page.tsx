@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { ChallengesContent } from '@/components/challenges/challenges-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Desafios' };
 
 export default function ChallengesPage() {
   return (

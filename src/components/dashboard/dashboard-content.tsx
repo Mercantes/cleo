@@ -31,7 +31,7 @@ import { UpcomingExpensesCard } from './upcoming-expenses-card';
 import { AnimateIn } from '@/components/ui/animate-in';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
-import type { SummaryData, CategoryData, TrendMonth } from '@/types/dashboard';
+import type { SummaryData, CategoryData } from '@/types/dashboard';
 
 const SpendingPaceCard = dynamic(() => import('./spending-pace-card').then((m) => m.SpendingPaceCard), {
   ssr: false,
@@ -83,7 +83,6 @@ export function DashboardContent() {
   const [month, setMonth] = useState(currentMonth);
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [trends, setTrends] = useState<TrendMonth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState(false);
@@ -103,15 +102,14 @@ export function DashboardContent() {
         throw new Error('Failed to fetch dashboard data');
       }
 
-      const [summaryData, categoriesData, trendsData] = await Promise.all([
+      const [summaryData, categoriesData] = await Promise.all([
         summaryRes.json(),
         categoriesRes.json(),
-        trendsRes.json(),
+        trendsRes.json(), // consumed for status check; SpendingPaceCard fetches its own data
       ]);
 
       setSummary(summaryData);
       setCategories(categoriesData.categories || []);
-      setTrends(trendsData.months || []);
     } catch {
       setError(true);
     } finally {

@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { GoalsContent } from '@/components/goals/goals-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Metas' };
 
 export default function GoalsPage() {
   return (

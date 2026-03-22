@@ -1,6 +1,7 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { AccountsContent } from '@/components/accounts/accounts-content';
+
+export const metadata: Metadata = { title: 'Contas' };
 
 export default function AccountsPage() {
   return (

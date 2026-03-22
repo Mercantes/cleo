@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { ProjectionsContent } from '@/components/projections/projections-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Projeções Financeiras' };
 
 export default function ProjectionsPage() {
   return (

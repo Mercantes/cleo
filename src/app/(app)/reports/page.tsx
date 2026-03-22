@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { ReportsContent } from '@/components/reports/reports-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Relatórios' };
 
 export default function ReportsPage() {
   return (

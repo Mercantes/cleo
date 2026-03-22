@@ -26,10 +26,6 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Hospital/Labs': 'bg-rose-500',
 };
 
-function getCategoryBarColor(name: string, fallbackColor: string): string {
-  return CATEGORY_COLORS[name] || `bg-[${fallbackColor}]`;
-}
-
 interface CategoriesTableCardProps {
   data: CategoryData[];
   month: string; // "YYYY-MM"

@@ -1,6 +1,7 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { CashFlowContent } from '@/components/cashflow/cashflow-content';
+
+export const metadata: Metadata = { title: 'Fluxo de Caixa' };
 
 export default function CashFlowPage() {
   return (

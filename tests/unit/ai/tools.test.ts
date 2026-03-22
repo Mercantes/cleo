@@ -7,8 +7,6 @@ type MockResult = {
   error: { message: string } | null;
 };
 
-let mockResults: Record<string, MockResult> = {};
-
 /**
  * Creates a chainable Supabase mock. Every method returns `self` synchronously,
  * and `await`-ing the chain resolves to `terminal` via a custom `then`.
@@ -80,7 +78,6 @@ describe('AI Tools', () => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co';
     process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-key';
-    mockResults = {};
     // Default: noop handler
     fromHandler = () => chainable({ data: null, error: null });
   });

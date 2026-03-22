@@ -1,6 +1,5 @@
 import {
   LayoutDashboard,
-  MessageSquare,
   ArrowLeftRight,
   Repeat,
   TrendingUp,

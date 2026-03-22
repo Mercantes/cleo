@@ -242,7 +242,6 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     if (monthlyCV > maxCV) continue;
 
     const avgMonthlyAmount = monthlyAmounts.reduce((a, b) => a + b, 0) / monthlyAmounts.length;
-    const latestMonthAmount = monthlyAmounts[monthlyAmounts.length - 1];
     const daysSinceLast = daysBetween(latest.date, new Date().toLocaleDateString('en-CA'));
     const isActive = daysSinceLast <= 65;
 

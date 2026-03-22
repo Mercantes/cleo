@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import type { SummaryData } from '@/types/dashboard';

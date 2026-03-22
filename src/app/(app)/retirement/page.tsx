@@ -1,7 +1,8 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { RetirementContent } from '@/components/retirement/retirement-content';
 import { ProGate } from '@/components/paywall/pro-gate';
+
+export const metadata: Metadata = { title: 'Patrimônio' };
 
 export default function RetirementPage() {
   return (

@@ -1,6 +1,7 @@
-'use client';
-
+import type { Metadata } from 'next';
 import { SplitsContent } from '@/components/splits/splits-content';
+
+export const metadata: Metadata = { title: 'Dividir Despesas' };
 
 export default function SplitsPage() {
   return (

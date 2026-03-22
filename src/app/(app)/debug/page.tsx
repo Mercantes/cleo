@@ -7,42 +7,49 @@ export default function DebugPage() {
   const [errors, setErrors] = useState<string[]>([]);
 
   useEffect(() => {
-    const lines: string[] = [];
-    lines.push(`userAgent: ${navigator.userAgent}`);
-    lines.push(`platform: ${navigator.platform}`);
-    lines.push(`online: ${navigator.onLine}`);
-    lines.push(`cookieEnabled: ${navigator.cookieEnabled}`);
-    lines.push(`url: ${window.location.href}`);
-    lines.push(`timestamp: ${new Date().toISOString()}`);
+    async function gather() {
+      const lines: string[] = [];
+      lines.push(`userAgent: ${navigator.userAgent}`);
+      lines.push(`platform: ${navigator.platform}`);
+      lines.push(`online: ${navigator.onLine}`);
+      lines.push(`cookieEnabled: ${navigator.cookieEnabled}`);
+      lines.push(`url: ${window.location.href}`);
+      lines.push(`timestamp: ${new Date().toISOString()}`);
 
-    // Test localStorage
-    try {
-      localStorage.setItem('__test__', '1');
-      localStorage.removeItem('__test__');
-      lines.push('localStorage: OK');
-    } catch (e) {
-      lines.push(`localStorage: FAIL - ${e}`);
+      // Test localStorage
+      try {
+        localStorage.setItem('__test__', '1');
+        localStorage.removeItem('__test__');
+        lines.push('localStorage: OK');
+      } catch (e) {
+        lines.push(`localStorage: FAIL - ${e}`);
+      }
+
+      // Test sessionStorage
+      try {
+        sessionStorage.setItem('__test__', '1');
+        sessionStorage.removeItem('__test__');
+        lines.push('sessionStorage: OK');
+      } catch (e) {
+        lines.push(`sessionStorage: FAIL - ${e}`);
+      }
+
+      // Test Service Worker
+      if ('serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          lines.push(`SW: ${reg ? `active (scope: ${reg.scope})` : 'not registered'}`);
+        } catch {
+          lines.push('SW: error checking');
+        }
+      } else {
+        lines.push('SW: not supported');
+      }
+
+      setInfo(lines);
     }
 
-    // Test sessionStorage
-    try {
-      sessionStorage.setItem('__test__', '1');
-      sessionStorage.removeItem('__test__');
-      lines.push('sessionStorage: OK');
-    } catch (e) {
-      lines.push(`sessionStorage: FAIL - ${e}`);
-    }
-
-    // Test Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistration().then((reg) => {
-        setInfo((prev) => [...prev, `SW: ${reg ? `active (scope: ${reg.scope})` : 'not registered'}`]);
-      });
-    } else {
-      lines.push('SW: not supported');
-    }
-
-    setInfo(lines);
+    gather();
 
     // Global error handler
     const handler = (e: ErrorEvent) => {

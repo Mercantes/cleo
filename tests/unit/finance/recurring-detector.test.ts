@@ -9,7 +9,6 @@ import {
   isKnownSubscription,
   isKnownIncomeSource,
   isExcludedMerchant,
-  isBillPayment,
   hasMultiplePerMonth,
 } from '@/lib/finance/recurring-detector';
 
