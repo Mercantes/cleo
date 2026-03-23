@@ -29,9 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, onboarding_completed')
+    .select('full_name, onboarding_completed, avatar_url')
     .eq('id', user.id)
-    .single() as { data: { full_name: string | null; onboarding_completed: boolean | null } | null };
+    .single() as { data: { full_name: string | null; onboarding_completed: boolean | null; avatar_url: string | null } | null };
 
   // Redirect to onboarding if not completed
   if (profile && !profile.onboarding_completed) {
@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </a>
       <AppSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <Header userName={displayName} />
+        <Header userName={displayName} avatarUrl={profile?.avatar_url} />
         <main id="main-content" className="flex-1 overflow-auto p-3 pb-20 sm:p-4 md:p-6 md:pb-6">
           <Suspense fallback={
             <div className="flex h-48 items-center justify-center">

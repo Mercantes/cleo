@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { CreditCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -32,6 +32,7 @@ import { SettingsDialog } from '@/components/settings/settings-dialog';
 
 interface HeaderProps {
   userName: string;
+  avatarUrl?: string | null;
 }
 
 const pageTitles: Record<string, string> = {
@@ -55,7 +56,7 @@ const pageTitles: Record<string, string> = {
   '/support': 'Suporte',
 };
 
-export function Header({ userName }: HeaderProps) {
+export function Header({ userName, avatarUrl }: HeaderProps) {
   const pathname = usePathname();
   const sidebarCollapsed = useSidebarCollapsed();
   const { isPro, isLoading: tierLoading } = useTier();
@@ -140,6 +141,7 @@ export function Header({ userName }: HeaderProps) {
           render={<Button variant="ghost" className="flex items-center gap-2" aria-label="Menu do usuário" />}
         >
           <Avatar className="h-8 w-8">
+            {avatarUrl && <AvatarImage src={avatarUrl} alt={userName} />}
             <AvatarFallback className="text-xs">{initials}</AvatarFallback>
           </Avatar>
           <span className="hidden text-sm md:inline-block">{userName}</span>

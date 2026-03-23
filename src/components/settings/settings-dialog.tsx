@@ -35,6 +35,7 @@ const sections: SectionDef[] = [
 interface ProfileData {
   full_name: string | null;
   email: string;
+  avatar_url: string | null;
 }
 
 interface SettingsDialogProps {
@@ -61,7 +62,7 @@ function AccountSection({ profile, loading }: { profile: ProfileData | null; loa
     <div className="space-y-6">
       {profile && (
         <div className="rounded-lg border p-5">
-          <ProfileForm initialName={profile.full_name || ''} email={profile.email} />
+          <ProfileForm initialName={profile.full_name || ''} email={profile.email} avatarUrl={profile.avatar_url} />
         </div>
       )}
       <div className="rounded-lg border p-5">
