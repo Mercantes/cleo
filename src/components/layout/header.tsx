@@ -24,7 +24,6 @@ import { cn } from '@/lib/utils';
 import { navSections } from '@/components/layout/nav-items';
 import { signOut } from '@/lib/actions/auth';
 import { useTier, clearTierCache } from '@/hooks/use-tier';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 import { PrivacyToggle } from '@/components/layout/privacy-toggle';
 import { toggleSidebar, useSidebarCollapsed } from '@/components/layout/app-sidebar';
@@ -135,7 +134,6 @@ export function Header({ userName, avatarUrl }: HeaderProps) {
 
       <div className="flex items-center gap-1">
       <PrivacyToggle />
-      <ThemeToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
           render={<Button variant="ghost" className="flex items-center gap-2" aria-label="Menu do usuário" />}
