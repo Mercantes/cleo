@@ -136,7 +136,7 @@ export function Header({ userName, avatarUrl }: HeaderProps) {
       <PrivacyToggle />
       <DropdownMenu>
         <DropdownMenuTrigger
-          render={<Button variant="ghost" className="flex items-center gap-2" aria-label="Menu do usuário" />}
+          render={<Button variant="ghost" className="flex cursor-pointer items-center gap-2" aria-label="Menu do usuário" />}
         >
           <Avatar className="h-8 w-8">
             {avatarUrl && <AvatarImage src={avatarUrl} alt={userName} />}

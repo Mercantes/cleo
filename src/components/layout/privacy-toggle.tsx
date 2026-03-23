@@ -8,7 +8,7 @@ export function PrivacyToggle() {
   const [hidden, toggle] = useHideValues();
 
   return (
-    <Button variant="ghost" size="icon" onClick={toggle} aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}>
+    <Button variant="ghost" size="icon" className="cursor-pointer" onClick={toggle} aria-label={hidden ? 'Mostrar valores' : 'Esconder valores'}>
       {hidden ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
     </Button>
   );
