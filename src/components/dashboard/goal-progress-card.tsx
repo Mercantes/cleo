@@ -38,7 +38,7 @@ export function GoalProgressCard() {
           Defina uma meta mensal de economia para acompanhar seu progresso.
         </p>
         <Link
-          href="/settings?tab=goals"
+          href="/goals"
           className="mt-3 inline-block text-sm font-medium text-primary hover:underline"
         >
           Definir meta

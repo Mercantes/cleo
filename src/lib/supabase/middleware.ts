@@ -39,7 +39,6 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/subscriptions') ||
     pathname.startsWith('/onboarding') ||
     pathname.startsWith('/upgrade') ||
-    pathname.startsWith('/settings') ||
     pathname.startsWith('/splits') ||
     pathname.startsWith('/import') ||
     pathname.startsWith('/reports');

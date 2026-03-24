@@ -69,11 +69,9 @@ export default function PrivacidadePage() {
             <li>Solicitar a portabilidade dos seus dados</li>
           </ul>
           <p className="mt-2">
-            Você pode exercer esses direitos diretamente nas{' '}
-            <a href="/settings" className="text-primary underline-offset-4 hover:underline">
-              Configurações da sua conta
-            </a>
-            , na aba &quot;Conta&quot;, onde é possível exportar seus dados ou excluir sua conta.
+            Você pode exercer esses direitos diretamente nas configurações da sua conta,
+            acessíveis pelo menu do usuário no canto superior direito,
+            onde é possível exportar seus dados ou excluir sua conta.
           </p>
         </section>
 

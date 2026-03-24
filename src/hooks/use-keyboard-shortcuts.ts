@@ -8,7 +8,6 @@ const shortcuts: Record<string, string> = {
   c: '/chat',
   t: '/transactions',
   p: '/projections',
-  s: '/settings',
 };
 
 export function useKeyboardShortcuts() {

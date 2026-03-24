@@ -21,7 +21,7 @@ export const GET = withAuth(async (_request, { user }) => {
 
   const session = await stripe.billingPortal.sessions.create({
     customer: profile.stripe_customer_id,
-    return_url: `${(process.env.NEXT_PUBLIC_APP_URL || '').trim()}/settings?tab=plan`,
+    return_url: `${(process.env.NEXT_PUBLIC_APP_URL || '').trim()}/upgrade`,
   });
 
   return NextResponse.json({ url: session.url });

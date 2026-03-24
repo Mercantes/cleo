@@ -231,7 +231,7 @@ export function DashboardContent() {
                 análises aqui.
               </p>
             </div>
-            <Link href="/settings?tab=banks" className={buttonVariants({ size: 'lg' })}>
+            <Link href="/accounts" className={buttonVariants({ size: 'lg' })}>
               <Landmark className="mr-2 h-4 w-4" />
               Conectar banco
             </Link>

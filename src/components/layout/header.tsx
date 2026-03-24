@@ -41,7 +41,6 @@ const pageTitles: Record<string, string> = {
   '/projections': 'Futuro',
   '/retirement': 'Patrimônio',
   '/subscriptions': 'Recorrentes',
-  '/settings': 'Configurações',
   '/onboarding': 'Configuração Inicial',
   '/upgrade': 'Plano',
   '/cashflow': 'Fluxo de Caixa',

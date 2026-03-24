@@ -110,7 +110,7 @@ export function KeyboardShortcuts() {
       { id: 'subscriptions', label: 'Ir para Recorrentes', section: 'Navegação', icon: Repeat, action: () => navigate('/subscriptions') },
       { id: 'projections', label: 'Ir para Projeções', section: 'Navegação', icon: TrendingUp, shortcut: ['⌘', 'P'], action: () => navigate('/projections') },
       { id: 'retirement', label: 'Ir para Patrimônio', section: 'Navegação', icon: Target, action: () => navigate('/retirement') },
-      { id: 'settings', label: 'Ir para Configurações', section: 'Navegação', icon: Settings, shortcut: ['⌘', 'S'], action: () => navigate('/settings') },
+      { id: 'accounts', label: 'Ir para Contas', section: 'Navegação', icon: Settings, shortcut: ['⌘', 'S'], action: () => navigate('/accounts') },
       // Actions
       {
         id: 'theme',
@@ -234,7 +234,7 @@ export function KeyboardShortcuts() {
         f: '/cashflow',
         p: '/projections',
         r: '/reports',
-        s: '/settings',
+        s: '/accounts',
       };
       if (shortcutMap[key] && !document.querySelector('[data-command-palette]')) {
         e.preventDefault();

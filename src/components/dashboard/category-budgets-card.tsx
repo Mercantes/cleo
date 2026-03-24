@@ -50,7 +50,7 @@ export function CategoryBudgetsCard() {
           <CardInfoTip text="Limites mensais de gastos por categoria. Alerta quando você se aproxima ou ultrapassa o limite definido." />
         </span>
           <Link
-            href="/settings?tab=goals"
+            href="/goals"
             className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
           >
             Configurar
@@ -74,7 +74,7 @@ export function CategoryBudgetsCard() {
           <CardInfoTip text="Limites mensais de gastos por categoria. Alerta quando você se aproxima ou ultrapassa o limite definido." />
         </span>
         <Link
-          href="/settings?tab=goals"
+          href="/goals"
           className="flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
           Editar

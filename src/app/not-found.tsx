@@ -34,8 +34,8 @@ export default function NotFound() {
         <Link href="/transactions" className="text-muted-foreground hover:text-primary hover:underline">
           Transações
         </Link>
-        <Link href="/settings" className="text-muted-foreground hover:text-primary hover:underline">
-          Configurações
+        <Link href="/accounts" className="text-muted-foreground hover:text-primary hover:underline">
+          Contas
         </Link>
       </div>
     </div>

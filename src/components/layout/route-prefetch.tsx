@@ -14,9 +14,6 @@ const PREFETCH_MAP: Record<string, string[]> = {
   '/transactions': [
     '/api/categories',
   ],
-  '/settings': [
-    '/api/goals',
-  ],
   '/splits': [
     '/api/splits',
   ],

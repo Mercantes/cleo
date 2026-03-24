@@ -11,7 +11,7 @@ const bottomNavItems = [
   { label: 'Chat', href: '/chat', icon: MessageSquare, badge: true },
   { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
   { label: 'Fluxo', href: '/cashflow', icon: CalendarDays },
-  { label: 'Mais', href: '/settings', icon: Settings },
+  { label: 'Contas', href: '/accounts', icon: Settings },
 ];
 
 function useHasUnread(pathname: string) {

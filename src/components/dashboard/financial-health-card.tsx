@@ -70,7 +70,7 @@ function calculateHealth(summary: {
   } else if (goalsProgress >= 40) {
     factors.push({ label: 'Progresso da meta', status: 'warning', detail: `${goalsProgress}% atingido`, tip: 'Progresso moderado. Tente reservar um valor fixo no início do mês.', actionLabel: 'Ver metas', actionHref: '/goals' });
   } else if (goalsProgress > 0) {
-    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido`, tip: 'Meta em risco. Configure uma transferência automática para sua poupança.', actionLabel: 'Ajustar meta', actionHref: '/settings?tab=goals' });
+    factors.push({ label: 'Progresso da meta', status: 'bad', detail: `${goalsProgress}% atingido`, tip: 'Meta em risco. Configure uma transferência automática para sua poupança.', actionLabel: 'Ajustar meta', actionHref: '/goals' });
   }
 
   return { score: Math.max(0, Math.min(100, score)), factors };
