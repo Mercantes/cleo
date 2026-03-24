@@ -24,6 +24,8 @@ describe('Navigation Items', () => {
     expect(hrefs).toContain('/dashboard');
     expect(hrefs).toContain('/transactions');
     expect(hrefs).toContain('/cashflow');
+    expect(hrefs).toContain('/accounts');
+    expect(hrefs).toContain('/categories');
     expect(hrefs).toContain('/goals');
     expect(hrefs).toContain('/projections');
     expect(hrefs).toContain('/reports');

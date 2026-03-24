@@ -5,6 +5,8 @@ import {
   BarChart3,
   Crosshair,
   CalendarDays,
+  Landmark,
+  Grid3X3,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -27,6 +29,8 @@ export const navSections: NavSection[] = [
       { label: 'Visão Geral', href: '/dashboard', icon: LayoutDashboard },
       { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
       { label: 'Fluxo de Caixa', href: '/cashflow', icon: CalendarDays },
+      { label: 'Contas', href: '/accounts', icon: Landmark },
+      { label: 'Categorias', href: '/categories', icon: Grid3X3 },
     ],
   },
   {
