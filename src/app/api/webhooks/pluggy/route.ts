@@ -5,7 +5,7 @@ import { verifyPluggySignature } from '@/lib/pluggy/verify-signature';
 export async function POST(request: Request) {
   const body = await request.text();
 
-  console.log('[pluggy-webhook] received:', body.substring(0, 500));
+  console.warn('[pluggy-webhook] received:', body.substring(0, 500));
 
   // Verify webhook signature when secret is configured
   const webhookSecret = process.env.PLUGGY_WEBHOOK_SECRET;
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing event field' }, { status: 400 });
   }
 
-  console.log('[pluggy-webhook] processing event:', event.event, 'itemId:', event.data?.itemId);
+  console.warn('[pluggy-webhook] processing event:', event.event, 'itemId:', event.data?.itemId);
 
   // Fire and forget — process in background
   handleWebhookEvent(event).catch((error) => {

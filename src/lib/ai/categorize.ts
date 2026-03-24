@@ -275,7 +275,7 @@ export async function categorizeTransactions(
       const results = parseAIResponse(text);
 
       const batchIndex = Math.floor(i / BATCH_SIZE);
-      console.log(`[categorize] batch=${batchIndex} needsAI=${batch.length} aiResults=${results.length}`);
+      console.warn(`[categorize] batch=${batchIndex} needsAI=${batch.length} aiResults=${results.length}`);
 
       // Update transactions with categories
       for (const result of results) {
@@ -295,8 +295,8 @@ export async function categorizeTransactions(
 
         if (!error) categorized++;
       }
-    } catch {
-      // Skip batch on error — leave uncategorized
+    } catch (error: unknown) {
+      console.error('[categorize] batch update failed:', error);
       continue;
     }
   }

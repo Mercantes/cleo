@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 export const GET = withAuth(async (request: NextRequest, { supabase, user }) => {
+  // Rate limit: 5 requests/min per user
+  const rl = rateLimit(`transactions-export:${user.id}`, RATE_LIMITS['transactions-export']);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
+
   const { searchParams } = request.nextUrl;
   const from = searchParams.get('from');
   const to = searchParams.get('to');

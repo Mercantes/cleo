@@ -28,10 +28,11 @@ export async function POST(request: NextRequest) {
 
     // In production, send via email service (e.g. Resend, SendGrid)
     // For now, log to server logs for monitoring
-    console.info('[contact-form]', { name, email, messageLength: message.length });
+    console.warn('[contact-form]', { name, email, messageLength: message.length });
 
     return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  } catch (error: unknown) {
+    console.error('[contact] submission failed:', error);
+    return NextResponse.json({ error: 'Failed to process contact submission' }, { status: 400 });
   }
 }

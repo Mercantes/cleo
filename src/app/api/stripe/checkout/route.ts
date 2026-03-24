@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { stripe } from '@/lib/stripe/client';
 import { getOrCreateCustomer } from '@/lib/stripe/subscription';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 const PRICE_IDS: Record<string, string | undefined> = {
   pro: process.env.STRIPE_PRO_PRICE_ID?.trim(),
@@ -10,6 +11,18 @@ const PRICE_IDS: Record<string, string | undefined> = {
 };
 
 export const POST = withAuth(async (request: NextRequest, { user }) => {
+  // Rate limit: 5 requests/min per user
+  const rl = rateLimit(`stripe-checkout:${user.id}`, RATE_LIMITS['stripe-checkout']);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
+
   // Validate origin to prevent CSRF
   const origin = request.headers.get('origin');
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').trim();

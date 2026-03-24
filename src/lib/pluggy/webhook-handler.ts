@@ -46,7 +46,7 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
     return;
   }
 
-  console.log('[pluggy-webhook] matched connection:', connection.id, 'event:', event.event);
+  console.warn('[pluggy-webhook] matched connection:', connection.id, 'event:', event.event);
 
   switch (event.event) {
     case 'item/updated': {
@@ -74,7 +74,7 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
           );
         }
         clearContextCache(connection.user_id);
-        console.log('[pluggy-webhook] item/updated: accounts synced for', connection.id);
+        console.warn('[pluggy-webhook] item/updated: accounts synced for', connection.id);
       }
       break;
     }
@@ -115,11 +115,11 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
         .update({ last_sync_at: new Date().toISOString() })
         .eq('id', connection.id);
 
-      console.log('[pluggy-webhook] transactions synced:', syncResult, 'for', connection.id);
+      console.warn('[pluggy-webhook] transactions synced:', syncResult, 'for', connection.id);
       break;
     }
 
     default:
-      console.log('[pluggy-webhook] unhandled event:', event.event);
+      console.warn('[pluggy-webhook] unhandled event:', event.event);
   }
 }

@@ -2,10 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 export const maxDuration = 60; // Sync + AI categorization needs time
 
 export const POST = withAuth(async (request: NextRequest, { supabase, user }) => {
+  // Rate limit: 3 requests/min per user
+  const rl = rateLimit(`pluggy-sync:${user.id}`, RATE_LIMITS['pluggy-sync']);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
+
   try {
     const body = (await request.json()) as { connectionId: string };
 
@@ -49,13 +62,13 @@ export const POST = withAuth(async (request: NextRequest, { supabase, user }) =>
       .is('category_id', null)
       .limit(200);
 
-    console.log(`[pluggy-sync] imported=${syncResult.imported} uncategorized=${uncategorized?.length || 0}`);
+    console.warn(`[pluggy-sync] imported=${syncResult.imported} uncategorized=${uncategorized?.length || 0}`);
 
     if (uncategorized && uncategorized.length > 0) {
       categorized = await categorizeTransactions(uncategorized);
     }
 
-    console.log(`[pluggy-sync] categorized=${categorized}`);
+    console.warn(`[pluggy-sync] categorized=${categorized}`);
 
     return NextResponse.json({
       success: true,

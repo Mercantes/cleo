@@ -82,4 +82,14 @@ export const RATE_LIMITS = {
   api: { maxRequests: 60, windowMs: 60 * 1000 },
   /** Auth: 10 attempts per 15 minutes per IP */
   auth: { maxRequests: 10, windowMs: 15 * 60 * 1000 },
+  /** Stripe checkout: 5 requests per minute per user */
+  'stripe-checkout': { maxRequests: 5, windowMs: 60 * 1000 },
+  /** Pluggy sync: 3 requests per minute per user */
+  'pluggy-sync': { maxRequests: 3, windowMs: 60 * 1000 },
+  /** Pluggy import: 3 requests per minute per user */
+  'pluggy-import': { maxRequests: 3, windowMs: 60 * 1000 },
+  /** Transaction export: 5 requests per minute per user */
+  'transactions-export': { maxRequests: 5, windowMs: 60 * 1000 },
+  /** Account data export: 3 requests per minute per user */
+  'account-export': { maxRequests: 3, windowMs: 60 * 1000 },
 } as const;

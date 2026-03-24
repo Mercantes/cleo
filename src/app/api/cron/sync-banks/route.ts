@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     .eq('status', 'active');
 
   if (error || !connections?.length) {
-    console.log('[cron/sync-banks] No active connections to sync');
+    console.warn('[cron/sync-banks] No active connections to sync');
     return NextResponse.json({ synced: 0 });
   }
 
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         categorized,
       });
 
-      console.log(`[cron/sync-banks] ${conn.connector_name}: ${syncResult.imported} imported, ${categorized} categorized`);
+      console.warn(`[cron/sync-banks] ${conn.connector_name}: ${syncResult.imported} imported, ${categorized} categorized`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       console.error(`[cron/sync-banks] ${conn.connector_name} failed:`, message);
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
   }
 
   const totalImported = results.reduce((sum, r) => sum + r.imported, 0);
-  console.log(`[cron/sync-banks] Done. ${connections.length} connections, ${totalImported} total imported`);
+  console.warn(`[cron/sync-banks] Done. ${connections.length} connections, ${totalImported} total imported`);
 
   return NextResponse.json({
     synced: connections.length,

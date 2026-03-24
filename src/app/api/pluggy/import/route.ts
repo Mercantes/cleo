@@ -6,10 +6,23 @@ import { mapPluggyAccountToDb } from '@/lib/pluggy/account-mapper';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { categorizeTransactions } from '@/lib/ai/categorize';
 import { checkTierLimit } from '@/lib/finance/tier-check';
+import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 export const maxDuration = 60; // Sync + AI categorization needs time
 
 export const POST = withAuth(async (request: NextRequest, { supabase, user }) => {
+  // Rate limit: 3 requests/min per user
+  const rl = rateLimit(`pluggy-import:${user.id}`, RATE_LIMITS['pluggy-import']);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Muitas requisições. Tente novamente em alguns segundos.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      },
+    );
+  }
+
   try {
     const body = (await request.json()) as { itemId: string };
 

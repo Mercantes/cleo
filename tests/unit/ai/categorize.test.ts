@@ -128,7 +128,7 @@ describe('AI Categorization', () => {
 
     it('should log token usage in development mode', async () => {
       vi.stubEnv('NODE_ENV', 'development');
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
 
       mockFetch.mockResolvedValueOnce({
         ok: true,

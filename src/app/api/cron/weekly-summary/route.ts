@@ -35,7 +35,7 @@ export async function GET(request: Request) {
   }
 
   if (!isWebPushConfigured()) {
-    console.log('[weekly-summary] VAPID keys not configured, skipping push delivery');
+    console.warn('[weekly-summary] VAPID keys not configured, skipping push delivery');
     return NextResponse.json({ message: 'Push not configured', sent: 0 });
   }
 
