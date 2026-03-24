@@ -63,31 +63,43 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     const pattern = parsed.data.merchant_pattern.toLowerCase();
     const matchType = parsed.data.match_type;
 
-    // Find matching transactions
-    const { data: transactions } = await serviceClient
-      .from('transactions')
-      .select('id, description, merchant_name')
-      .eq('user_id', user.id)
-      .neq('category_id', parsed.data.category_id);
+    // Use SQL to filter and update directly in the database
+    const likePattern = matchType === 'exact' ? pattern : `%${pattern}%`;
+    const { data: result } = await serviceClient.rpc('apply_category_rule_retroactively', {
+      p_user_id: user.id,
+      p_pattern: likePattern,
+      p_match_type: matchType,
+      p_category_id: parsed.data.category_id,
+    });
 
-    if (transactions) {
-      const matchingIds = transactions
-        .filter((tx) => {
-          const text = `${tx.description} ${tx.merchant_name || ''}`.toLowerCase();
-          return matchType === 'exact' ? text === pattern : text.includes(pattern);
-        })
-        .map((tx) => tx.id);
+    // Fallback: if RPC doesn't exist yet, use client-side filtering
+    if (result !== null && result !== undefined) {
+      updated_count = typeof result === 'number' ? result : 0;
+    } else {
+      const { data: transactions } = await serviceClient
+        .from('transactions')
+        .select('id, description, merchant_name')
+        .eq('user_id', user.id)
+        .or(`category_id.is.null,category_id.neq.${parsed.data.category_id}`);
 
-      if (matchingIds.length > 0) {
-        // Update in batches of 100 to avoid query limits
-        for (let i = 0; i < matchingIds.length; i += 100) {
-          const batch = matchingIds.slice(i, i + 100);
-          await serviceClient
-            .from('transactions')
-            .update({ category_id: parsed.data.category_id, category_confidence: 1.0 })
-            .in('id', batch);
+      if (transactions) {
+        const matchingIds = transactions
+          .filter((tx) => {
+            const text = `${tx.description} ${tx.merchant_name || ''}`.toLowerCase();
+            return matchType === 'exact' ? text === pattern : text.includes(pattern);
+          })
+          .map((tx) => tx.id);
+
+        if (matchingIds.length > 0) {
+          for (let i = 0; i < matchingIds.length; i += 100) {
+            const batch = matchingIds.slice(i, i + 100);
+            await serviceClient
+              .from('transactions')
+              .update({ category_id: parsed.data.category_id, category_confidence: 1.0 })
+              .in('id', batch);
+          }
+          updated_count = matchingIds.length;
         }
-        updated_count = matchingIds.length;
       }
     }
   }

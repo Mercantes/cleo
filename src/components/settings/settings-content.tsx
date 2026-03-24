@@ -2,18 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { User, Landmark, Target, Shield, Grid3X3 } from 'lucide-react';
+import { User, Landmark, Target, Shield } from 'lucide-react';
 import { ProfileForm } from './profile-form';
 import { BankList } from './bank-list';
 import { GoalsEditor } from './goals-editor';
 import { DangerZone } from './danger-zone';
 import { ChangePassword } from './change-password';
-import { AccountsContent } from '@/components/accounts/accounts-content';
-import { CategoriesPageContent } from '@/components/categories/categories-page-content';
 import { useApi } from '@/hooks/use-api';
 import { toast } from '@/components/ui/toast';
 
-type Tab = 'profile' | 'banks' | 'categories' | 'goals' | 'account';
+type Tab = 'profile' | 'banks' | 'goals' | 'account';
 
 interface ProfileData {
   full_name: string | null;
@@ -28,7 +26,7 @@ interface BankConnection {
   last_sync_at: string | null;
 }
 
-const VALID_TABS: Tab[] = ['profile', 'banks', 'categories', 'goals', 'account'];
+const VALID_TABS: Tab[] = ['profile', 'banks', 'goals', 'account'];
 
 function getInitialTab(searchParams: URLSearchParams): Tab {
   const param = searchParams.get('tab');
@@ -69,8 +67,7 @@ export function SettingsContent() {
 
   const tabs: { key: Tab; label: string; icon: typeof User }[] = [
     { key: 'profile', label: 'Perfil', icon: User },
-    { key: 'banks', label: 'Contas', icon: Landmark },
-    { key: 'categories', label: 'Categorias', icon: Grid3X3 },
+    { key: 'banks', label: 'Bancos', icon: Landmark },
     { key: 'goals', label: 'Metas', icon: Target },
     { key: 'account', label: 'Segurança', icon: Shield },
   ];
@@ -115,15 +112,8 @@ export function SettingsContent() {
         </div>
       )}
       {activeTab === 'banks' && (
-        <div className="space-y-8">
-          <BankList connections={banks} onDisconnect={handleDisconnect} onRefresh={refreshBanks} />
-          <div className="border-t pt-6">
-            <h3 className="mb-4 text-sm font-semibold text-muted-foreground">Contas financeiras</h3>
-            <AccountsContent />
-          </div>
-        </div>
+        <BankList connections={banks} onDisconnect={handleDisconnect} onRefresh={refreshBanks} />
       )}
-      {activeTab === 'categories' && <CategoriesPageContent />}
       {activeTab === 'goals' && <GoalsEditor />}
       {activeTab === 'account' && <DangerZone />}
     </div>

@@ -15,6 +15,8 @@ export interface NavItem {
   href: string;
   icon: LucideIcon;
   pro?: boolean;
+  /** Additional routes that should highlight this nav item as active */
+  activeAlso?: string[];
 }
 
 export interface NavSection {
@@ -36,8 +38,8 @@ export const navSections: NavSection[] = [
   {
     title: 'Planejamento',
     items: [
-      { label: 'Metas & Orçamentos', href: '/goals', icon: Crosshair, pro: true },
-      { label: 'Futuro', href: '/projections', icon: TrendingUp, pro: true },
+      { label: 'Metas & Orçamentos', href: '/goals', icon: Crosshair, pro: true, activeAlso: ['/budgets', '/challenges'] },
+      { label: 'Futuro', href: '/projections', icon: TrendingUp, pro: true, activeAlso: ['/retirement'] },
       { label: 'Relatórios', href: '/reports', icon: BarChart3, pro: true },
     ],
   },

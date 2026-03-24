@@ -38,7 +38,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard': 'Visão Geral',
   '/chat': 'Pergunte à Cleo',
   '/transactions': 'Transações',
-  '/projections': 'Projeções',
+  '/projections': 'Futuro',
   '/retirement': 'Patrimônio',
   '/subscriptions': 'Recorrentes',
   '/settings': 'Configurações',
@@ -92,7 +92,7 @@ export function Header({ userName, avatarUrl }: HeaderProps) {
                   </p>
                   <div className="space-y-0.5">
                     {section.items.map((item) => {
-                      const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                      const isActive = pathname === item.href || pathname.startsWith(item.href + '/') || (item.activeAlso?.some((r) => pathname === r || pathname.startsWith(r + '/')) ?? false);
                       return (
                         <Link
                           key={item.href}

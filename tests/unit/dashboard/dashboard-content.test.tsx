@@ -157,7 +157,7 @@ describe('DashboardContent', () => {
     render(<DashboardContent />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Economia de 30% este mês/)).toBeInTheDocument();
+      expect(screen.getAllByText(/Economia de 30% este mês/).length).toBeGreaterThan(0);
     });
   });
 

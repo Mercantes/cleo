@@ -40,10 +40,12 @@ describe('GET /api/dashboard/trends', () => {
 
   it('returns 6 months of trend data', async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     mockSelect.mockResolvedValue({
       data: [
-        { amount: 5000, type: 'credit' },
-        { amount: 3000, type: 'debit' },
+        { amount: 5000, type: 'credit', date: `${monthKey}-10` },
+        { amount: 3000, type: 'debit', date: `${monthKey}-15` },
       ],
     });
 

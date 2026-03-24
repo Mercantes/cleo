@@ -182,6 +182,9 @@ export async function categorizeTransactions(
       .eq('user_id', userId);
 
     if (userRules && userRules.length > 0) {
+      // Group matched transaction IDs by category for batch updates
+      const batchByCategoryId = new Map<string, string[]>();
+
       for (let i = 0; i < transactions.length; i++) {
         const tx = transactions[i];
         const text = `${tx.description} `.toLowerCase();
@@ -193,15 +196,22 @@ export async function categorizeTransactions(
             : text.includes(pattern);
 
           if (matched) {
-            const { error } = await supabase
-              .from('transactions')
-              .update({ category_id: rule.category_id, category_confidence: 1.0 })
-              .eq('id', tx.id);
-            if (!error) categorized++;
+            const ids = batchByCategoryId.get(rule.category_id) || [];
+            ids.push(tx.id);
+            batchByCategoryId.set(rule.category_id, ids);
             userRuleMatched.add(i);
             break;
           }
         }
+      }
+
+      // Execute batch updates per category
+      for (const [catId, ids] of batchByCategoryId) {
+        const { error } = await supabase
+          .from('transactions')
+          .update({ category_id: catId, category_confidence: 1.0 })
+          .in('id', ids);
+        if (!error) categorized += ids.length;
       }
     }
   }
@@ -209,6 +219,7 @@ export async function categorizeTransactions(
   // Phase 1: Rule-based pre-categorization (free, no API calls)
   const ruleMatches = preCategorize(transactions);
   const needsAI: TransactionToCategorize[] = [];
+  const ruleBatch = new Map<string, string[]>(); // categoryId -> txIds
 
   for (let i = 0; i < transactions.length; i++) {
     if (userRuleMatched.has(i)) continue; // Already handled by Phase 0
@@ -216,15 +227,22 @@ export async function categorizeTransactions(
     if (ruleCategoryName) {
       const categoryId = categoryMap.get(ruleCategoryName);
       if (categoryId) {
-        const { error } = await supabase
-          .from('transactions')
-          .update({ category_id: categoryId, category_confidence: 0.85 })
-          .eq('id', transactions[i].id);
-        if (!error) categorized++;
+        const ids = ruleBatch.get(categoryId) || [];
+        ids.push(transactions[i].id);
+        ruleBatch.set(categoryId, ids);
         continue;
       }
     }
     needsAI.push(transactions[i]);
+  }
+
+  // Batch update Phase 1 matches
+  for (const [catId, ids] of ruleBatch) {
+    const { error } = await supabase
+      .from('transactions')
+      .update({ category_id: catId, category_confidence: 0.85 })
+      .in('id', ids);
+    if (!error) categorized += ids.length;
   }
 
   // Phase 2: AI categorization for remaining transactions

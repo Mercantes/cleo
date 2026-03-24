@@ -23,7 +23,9 @@ vi.mock('@/lib/supabase/server', () => ({
                 return {
                   order: (col3: string, opts: Record<string, unknown>) => {
                     mockOrder(col3, opts);
-                    return { data: mockData, error: null };
+                    return {
+                      limit: () => ({ data: mockData, error: null }),
+                    };
                   },
                 };
               },
