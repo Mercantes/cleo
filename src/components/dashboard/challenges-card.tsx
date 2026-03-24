@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Zap, CheckCircle2, Plus, X } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
 import { useApi } from '@/hooks/use-api';
@@ -114,14 +115,22 @@ export function ChallengesCard() {
           Desafios
           <CardInfoTip text="Mini-desafios financeiros semanais para desenvolver hábitos saudáveis. Complete para ganhar XP." />
         </div>
-        <button
-          onClick={() => setShowPicker(!showPicker)}
-          aria-label={showPicker ? 'Fechar seleção de desafios' : 'Novo desafio'}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-        >
-          <Plus className="h-3 w-3" />
-          Novo
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/challenges"
+            className="text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            Ver todos
+          </Link>
+          <button
+            onClick={() => setShowPicker(!showPicker)}
+            aria-label={showPicker ? 'Fechar seleção de desafios' : 'Novo desafio'}
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+          >
+            <Plus className="h-3 w-3" />
+            Novo
+          </button>
+        </div>
       </div>
 
       {error && (
