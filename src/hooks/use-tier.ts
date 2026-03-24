@@ -9,6 +9,7 @@ interface UsageData {
   tier: 'free' | 'pro';
   transactions: { current: number; limit: number };
   chat: { current: number; limit: number };
+  gracePeriodUntil: string | null;
 }
 
 function getCachedTier(): 'free' | 'pro' {
@@ -45,10 +46,14 @@ export function useTier() {
   }, [data?.tier]);
 
   const tier = data?.tier ?? getCachedTier();
+  const gracePeriodUntil = data?.gracePeriodUntil ?? null;
+  const isInGracePeriod = gracePeriodUntil ? new Date(gracePeriodUntil) > new Date() : false;
 
   return {
     tier,
     isPro: tier === 'pro',
     isLoading,
+    gracePeriodUntil,
+    isInGracePeriod,
   };
 }

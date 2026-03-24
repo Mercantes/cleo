@@ -60,9 +60,10 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
       metadata: { userId: user.id, plan },
     };
 
-    // Only offer trial to new subscribers
+    // Only offer trial to new subscribers (no card required during trial)
     if (!hasActiveSubscription) {
       sessionParams.subscription_data = { trial_period_days: 7 };
+      sessionParams.payment_method_collection = 'if_required';
     }
 
     const session = await stripe.checkout.sessions.create(sessionParams);

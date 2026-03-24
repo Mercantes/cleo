@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { CreditCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
+import { AlertCircle, CreditCard, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -57,7 +57,7 @@ const pageTitles: Record<string, string> = {
 export function Header({ userName, avatarUrl }: HeaderProps) {
   const pathname = usePathname();
   const sidebarCollapsed = useSidebarCollapsed();
-  const { isPro, isLoading: tierLoading } = useTier();
+  const { isPro, isLoading: tierLoading, isInGracePeriod } = useTier();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const pageTitle = pageTitles[pathname] || 'Cleo';
   const initials = userName
@@ -68,6 +68,19 @@ export function Header({ userName, avatarUrl }: HeaderProps) {
     .slice(0, 2);
 
   return (
+    <>
+      {isInGracePeriod && (
+        <div className="flex items-center justify-center gap-2 bg-amber-50 px-4 py-2 text-sm text-amber-800 dark:bg-amber-950/50 dark:text-amber-200">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span>
+            Problema com seu pagamento.{' '}
+            <Link href="/upgrade" className="font-medium underline underline-offset-2 hover:text-amber-900 dark:hover:text-amber-100">
+              Atualize seu método de pagamento
+            </Link>{' '}
+            para manter o plano Pro.
+          </span>
+        </div>
+      )}
     <header className="flex h-14 items-center justify-between border-b px-3 sm:px-4 md:px-6">
       <div className="flex items-center gap-3">
         <Sheet>
@@ -162,5 +175,6 @@ export function Header({ userName, avatarUrl }: HeaderProps) {
       </div>
       <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
     </header>
+    </>
   );
 }

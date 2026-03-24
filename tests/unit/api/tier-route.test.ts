@@ -13,6 +13,22 @@ vi.mock('@/lib/finance/tier-check', () => ({
   checkTierLimit: (...args: unknown[]) => mockCheckTierLimit(...args),
 }));
 
+const chainable = (): Record<string, unknown> => {
+  const obj: Record<string, unknown> = {};
+  const handler: ProxyHandler<Record<string, unknown>> = {
+    get: (_target, prop) => {
+      if (prop === 'then') return undefined;
+      if (prop === 'single') return () => Promise.resolve({ data: { grace_period_until: null } });
+      return () => new Proxy({}, handler);
+    },
+  };
+  return new Proxy(obj, handler);
+};
+
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({ from: () => chainable() })),
+}));
+
 describe('GET /api/tier', () => {
   beforeEach(() => {
     vi.clearAllMocks();

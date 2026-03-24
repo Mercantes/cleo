@@ -235,6 +235,9 @@ export function DashboardContent() {
               <Landmark className="mr-2 h-4 w-4" />
               Conectar banco
             </Link>
+            <p className="max-w-sm text-xs text-muted-foreground">
+              <Link href="/upgrade" className="text-primary hover:underline">Plano Pro</Link>: bancos ilimitados, IA e projeções — 7 dias grátis
+            </p>
           </div>
         </AnimateIn>
       ) : (
