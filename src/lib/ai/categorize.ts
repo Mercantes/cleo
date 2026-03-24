@@ -146,6 +146,7 @@ function parseAIResponse(text: string): CategorizationResult[] {
 
 export async function categorizeTransactions(
   transactions: TransactionToCategorize[],
+  userId?: string,
 ): Promise<number> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -172,11 +173,45 @@ export async function categorizeTransactions(
   const categoryMap = new Map(dbCategories.map((c) => [c.name, c.id]));
   let categorized = 0;
 
+  // Phase 0: User-defined rules (highest priority, confidence 1.0)
+  const userRuleMatched = new Set<number>();
+  if (userId) {
+    const { data: userRules } = await supabase
+      .from('user_category_rules')
+      .select('merchant_pattern, category_id, match_type')
+      .eq('user_id', userId);
+
+    if (userRules && userRules.length > 0) {
+      for (let i = 0; i < transactions.length; i++) {
+        const tx = transactions[i];
+        const text = `${tx.description} `.toLowerCase();
+
+        for (const rule of userRules) {
+          const pattern = rule.merchant_pattern.toLowerCase();
+          const matched = rule.match_type === 'exact'
+            ? text.trim() === pattern
+            : text.includes(pattern);
+
+          if (matched) {
+            const { error } = await supabase
+              .from('transactions')
+              .update({ category_id: rule.category_id, category_confidence: 1.0 })
+              .eq('id', tx.id);
+            if (!error) categorized++;
+            userRuleMatched.add(i);
+            break;
+          }
+        }
+      }
+    }
+  }
+
   // Phase 1: Rule-based pre-categorization (free, no API calls)
   const ruleMatches = preCategorize(transactions);
   const needsAI: TransactionToCategorize[] = [];
 
   for (let i = 0; i < transactions.length; i++) {
+    if (userRuleMatched.has(i)) continue; // Already handled by Phase 0
     const ruleCategoryName = ruleMatches.get(i);
     if (ruleCategoryName) {
       const categoryId = categoryMap.get(ruleCategoryName);

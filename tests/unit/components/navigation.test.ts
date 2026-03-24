@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { navItems, navSections } from '@/components/layout/nav-items';
 
 describe('Navigation Items', () => {
-  it('should have 3 navigation sections', () => {
-    expect(navSections).toHaveLength(3);
+  it('should have 2 navigation sections', () => {
+    expect(navSections).toHaveLength(2);
   });
 
   it('navItems flat list should include all section items', () => {
@@ -19,15 +19,14 @@ describe('Navigation Items', () => {
     }
   });
 
-  it('should contain expected routes', () => {
+  it('should contain expected core routes', () => {
     const hrefs = navItems.map((item) => item.href);
     expect(hrefs).toContain('/dashboard');
     expect(hrefs).toContain('/transactions');
-    expect(hrefs).toContain('/subscriptions');
+    expect(hrefs).toContain('/cashflow');
+    expect(hrefs).toContain('/goals');
     expect(hrefs).toContain('/projections');
-    expect(hrefs).toContain('/retirement');
     expect(hrefs).toContain('/reports');
-    expect(hrefs).toContain('/accounts');
   });
 
   it('should mark pro items correctly', () => {

@@ -21,7 +21,7 @@ export const POST = withAuth(async (_request, { supabase, user }) => {
     return NextResponse.json({ categorized: 0, total: 0 });
   }
 
-  const categorized = await categorizeTransactions(uncategorized);
+  const categorized = await categorizeTransactions(uncategorized, user.id);
 
   return NextResponse.json({
     categorized,

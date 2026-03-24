@@ -1,16 +1,10 @@
 import {
   LayoutDashboard,
   ArrowLeftRight,
-  Repeat,
   TrendingUp,
-  Target,
   BarChart3,
-  Landmark,
-  Grid3X3,
   Crosshair,
   CalendarDays,
-  PieChart,
-  Trophy,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -28,29 +22,18 @@ export interface NavSection {
 
 export const navSections: NavSection[] = [
   {
-    title: 'Organização',
+    title: 'Dia a dia',
     items: [
       { label: 'Visão Geral', href: '/dashboard', icon: LayoutDashboard },
       { label: 'Transações', href: '/transactions', icon: ArrowLeftRight },
       { label: 'Fluxo de Caixa', href: '/cashflow', icon: CalendarDays },
-      { label: 'Recorrentes', href: '/subscriptions', icon: Repeat, pro: true },
     ],
   },
   {
-    title: 'Controle Financeiro',
+    title: 'Planejamento',
     items: [
-      { label: 'Contas', href: '/accounts', icon: Landmark },
-      { label: 'Categorias', href: '/categories', icon: Grid3X3 },
-      { label: 'Orçamentos', href: '/budgets', icon: PieChart, pro: true },
-      { label: 'Metas', href: '/goals', icon: Crosshair, pro: true },
-      { label: 'Desafios', href: '/challenges', icon: Trophy, pro: true },
-    ],
-  },
-  {
-    title: 'Visão Estratégica',
-    items: [
-      { label: 'Projeções', href: '/projections', icon: TrendingUp, pro: true },
-      { label: 'Patrimônio', href: '/retirement', icon: Target, pro: true },
+      { label: 'Metas & Orçamentos', href: '/goals', icon: Crosshair, pro: true },
+      { label: 'Futuro', href: '/projections', icon: TrendingUp, pro: true },
       { label: 'Relatórios', href: '/reports', icon: BarChart3, pro: true },
     ],
   },

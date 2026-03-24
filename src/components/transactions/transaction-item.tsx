@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Check, Loader2, MoreVertical, Tags, Users } from 'lucide-react';
+import { Check, Loader2, MoreVertical, Tags, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatCurrency, formatDateTime, formatRelativeDate, formatTransactionName } from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
@@ -113,6 +113,9 @@ export function TransactionRow({
   const [categories, setCategories] = useState<CategoryOption[]>(categoriesCache || []);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId || '');
+  const [rulePrompt, setRulePrompt] = useState<{ merchantPattern: string; categoryId: string; categoryName: string } | null>(null);
+  const [ruleStatus, setRuleStatus] = useState<'idle' | 'saving' | 'done'>('idle');
+  const [ruleUpdatedCount, setRuleUpdatedCount] = useState(0);
   const displayAmount = type === 'credit' ? amount : -amount;
   const isIncome = type === 'credit';
   const amountMatchesSearch = (() => {
@@ -161,13 +164,51 @@ export function TransactionRow({
           onCategoryChange(id, newCategoryId, { name: cat.name, icon: cat.icon });
         }
         setShowCategories(false);
+
+        // Show "apply always?" prompt if merchant/description is identifiable
+        const pattern = (merchant || description || '').trim();
+        if (pattern.length >= 3 && cat) {
+          setRulePrompt({ merchantPattern: pattern, categoryId: newCategoryId, categoryName: cat.name });
+          setRuleStatus('idle');
+        }
       }
     } catch {
       // silently fail
     } finally {
       setIsSaving(false);
     }
-  }, [id, selectedCategoryId, isSaving, categories, onCategoryChange]);
+  }, [id, selectedCategoryId, isSaving, categories, onCategoryChange, merchant, description]);
+
+  const handleCreateRule = useCallback(async () => {
+    if (!rulePrompt || ruleStatus !== 'idle') return;
+    setRuleStatus('saving');
+    try {
+      const res = await fetch('/api/settings/category-rules', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchant_pattern: rulePrompt.merchantPattern,
+          category_id: rulePrompt.categoryId,
+          match_type: 'contains',
+          apply_retroactively: true,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRuleUpdatedCount(data.updated_count || 0);
+        setRuleStatus('done');
+        setTimeout(() => setRulePrompt(null), 2500);
+      } else {
+        setRulePrompt(null);
+      }
+    } catch {
+      setRulePrompt(null);
+    }
+  }, [rulePrompt, ruleStatus]);
+
+  const handleDismissRule = useCallback(() => {
+    setRulePrompt(null);
+  }, []);
 
   // Mobile card layout
   if (mobile) {
@@ -233,6 +274,37 @@ export function TransactionRow({
                 })
               )}
             </div>
+          </div>
+        )}
+
+        {rulePrompt && (
+          <div className="border-t bg-blue-50 px-3 py-2 dark:bg-blue-950/30">
+            {ruleStatus === 'done' ? (
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                <Sparkles className="mr-1 inline h-3 w-3" />
+                Regra criada! {ruleUpdatedCount > 0 && `${ruleUpdatedCount} transações atualizadas.`}
+              </p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <p className="flex-1 text-xs text-blue-700 dark:text-blue-300">
+                  <Sparkles className="mr-1 inline h-3 w-3" />
+                  Aplicar sempre para <strong>{rulePrompt.merchantPattern}</strong>?
+                </p>
+                <button
+                  onClick={handleCreateRule}
+                  disabled={ruleStatus === 'saving'}
+                  className="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {ruleStatus === 'saving' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Sim'}
+                </button>
+                <button
+                  onClick={handleDismissRule}
+                  className="rounded-md px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                >
+                  Não
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -358,6 +430,38 @@ export function TransactionRow({
               })
             )}
           </div>
+        </div>
+      )}
+
+      {/* Rule prompt (after category change) */}
+      {rulePrompt && (
+        <div className="border-b bg-blue-50 px-4 py-2.5 dark:bg-blue-950/30">
+          {ruleStatus === 'done' ? (
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              <Sparkles className="mr-1 inline h-3 w-3" />
+              Regra criada! {ruleUpdatedCount > 0 && `${ruleUpdatedCount} transações atualizadas.`}
+            </p>
+          ) : (
+            <div className="flex items-center gap-2">
+              <p className="flex-1 text-xs text-blue-700 dark:text-blue-300">
+                <Sparkles className="mr-1 inline h-3 w-3" />
+                Aplicar sempre para <strong>{rulePrompt.merchantPattern}</strong>?
+              </p>
+              <button
+                onClick={handleCreateRule}
+                disabled={ruleStatus === 'saving'}
+                className="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                {ruleStatus === 'saving' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Sim'}
+              </button>
+              <button
+                onClick={handleDismissRule}
+                className="rounded-md px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50"
+              >
+                Não
+              </button>
+            </div>
+          )}
         </div>
       )}
     </>

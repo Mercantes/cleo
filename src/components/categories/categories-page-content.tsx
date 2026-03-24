@@ -1,8 +1,8 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Grid3X3, TrendingDown, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Grid3X3, Loader2, TrendingDown, TrendingUp, AlertTriangle, Sparkles, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useApi } from '@/hooks/use-api';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -29,6 +29,19 @@ interface CategoriesListData {
 
 interface CategoriesSpendingData {
   categories: CategorySpending[];
+}
+
+interface CategoryRule {
+  id: string;
+  merchant_pattern: string;
+  match_type: string;
+  created_at: string;
+  category_id: string;
+  categories: { id: string; name: string; icon: string } | null;
+}
+
+interface CategoryRulesData {
+  rules: CategoryRule[];
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -74,7 +87,27 @@ export function CategoriesPageContent() {
     `/api/dashboard/categories?month=${month}`,
   );
 
-  const isLoading = listLoading || spendingLoading;
+  const { data: rulesData, isLoading: rulesLoading, mutate: mutateRules } = useApi<CategoryRulesData>(
+    '/api/settings/category-rules',
+  );
+  const rules = useMemo(() => rulesData?.rules || [], [rulesData]);
+  const [deletingRuleId, setDeletingRuleId] = useState<string | null>(null);
+
+  const handleDeleteRule = useCallback(async (ruleId: string) => {
+    setDeletingRuleId(ruleId);
+    try {
+      const res = await fetch(`/api/settings/category-rules/${ruleId}`, { method: 'DELETE' });
+      if (res.ok) {
+        mutateRules();
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setDeletingRuleId(null);
+    }
+  }, [mutateRules]);
+
+  const isLoading = listLoading || spendingLoading || rulesLoading;
   const allCategories = useMemo(() => listData?.categories || [], [listData]);
   const spending = useMemo(() => spendingData?.categories || [], [spendingData]);
   const totalSpending = spending.reduce((sum, c) => sum + c.amount, 0);
@@ -234,6 +267,53 @@ export function CategoriesPageContent() {
           </div>
         </div>
       )}
+
+      {/* User rules section */}
+      <div className="rounded-lg border bg-card">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-blue-500" />
+            <h2 className="text-sm font-semibold">Minhas Regras</h2>
+            {rules.length > 0 && (
+              <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+                {rules.length}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {rules.length === 0 ? (
+          <p className="px-4 py-4 text-center text-xs text-muted-foreground">
+            Ao recategorizar uma transação, você pode criar uma regra automática.
+          </p>
+        ) : (
+          <div className="divide-y">
+            {rules.map((rule) => (
+              <div key={rule.id} className="flex items-center gap-3 px-4 py-2.5">
+                <span className="text-lg">{rule.categories?.icon || '📦'}</span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{rule.merchant_pattern}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {rule.categories?.name || 'Categoria removida'} · {rule.match_type === 'exact' ? 'Exato' : 'Contém'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDeleteRule(rule.id)}
+                  disabled={deletingRuleId === rule.id}
+                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                  aria-label="Remover regra"
+                >
+                  {deletingRuleId === rule.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Categories list */}
       <div className="rounded-lg border bg-card">

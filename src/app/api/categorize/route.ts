@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     // Mode 1: Direct transactions array
     if (body.transactions?.length) {
-      const categorized = await categorizeTransactions(body.transactions);
+      const categorized = await categorizeTransactions(body.transactions, user.id);
       return NextResponse.json({ categorized });
     }
 
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ categorized: 0, message: 'No transactions to categorize' });
     }
 
-    const categorized = await categorizeTransactions(txs);
+    const categorized = await categorizeTransactions(txs, user.id);
     return NextResponse.json({ categorized, total: txs.length });
   } catch (error) {
     console.error('[categorize] categorization failed:', error);

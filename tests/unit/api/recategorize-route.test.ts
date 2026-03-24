@@ -80,7 +80,7 @@ describe('POST /api/transactions/recategorize', () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(mockCategorize).toHaveBeenCalledWith(transactions);
+    expect(mockCategorize).toHaveBeenCalledWith(transactions, 'user-1');
     expect(data).toEqual({ categorized: 2, total: 2 });
   });
 
