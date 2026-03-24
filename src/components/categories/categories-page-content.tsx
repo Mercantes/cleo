@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Grid3X3, Loader2, TrendingDown, TrendingUp, AlertTriangle, Sparkles, Trash2 } from 'lucide-react';
+import { Grid3X3, Loader2, Pencil, TrendingDown, TrendingUp, AlertTriangle, Sparkles, Trash2, Check, X } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils/format';
 import { useApi } from '@/hooks/use-api';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -92,6 +92,28 @@ export function CategoriesPageContent() {
   );
   const rules = useMemo(() => rulesData?.rules || [], [rulesData]);
   const [deletingRuleId, setDeletingRuleId] = useState<string | null>(null);
+  const [editingRule, setEditingRule] = useState<{ id: string; categoryId: string } | null>(null);
+  const [editSaving, setEditSaving] = useState(false);
+
+  const handleEditRule = useCallback(async () => {
+    if (!editingRule || editSaving) return;
+    setEditSaving(true);
+    try {
+      const res = await fetch(`/api/settings/category-rules/${editingRule.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category_id: editingRule.categoryId }),
+      });
+      if (res.ok) {
+        mutateRules();
+        setEditingRule(null);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setEditSaving(false);
+    }
+  }, [editingRule, editSaving, mutateRules]);
 
   const handleDeleteRule = useCallback(async (ruleId: string) => {
     setDeletingRuleId(ruleId);
@@ -288,29 +310,73 @@ export function CategoriesPageContent() {
           </p>
         ) : (
           <div className="divide-y">
-            {rules.map((rule) => (
-              <div key={rule.id} className="flex items-center gap-3 px-4 py-2.5">
-                <span className="text-lg">{rule.categories?.icon || '📦'}</span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{rule.merchant_pattern}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {rule.categories?.name || 'Categoria removida'} · {rule.match_type === 'exact' ? 'Exato' : 'Contém'}
-                  </p>
-                </div>
-                <button
-                  onClick={() => handleDeleteRule(rule.id)}
-                  disabled={deletingRuleId === rule.id}
-                  className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
-                  aria-label="Remover regra"
-                >
-                  {deletingRuleId === rule.id ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            {rules.map((rule) => {
+              const isEditing = editingRule?.id === rule.id;
+              return (
+                <div key={rule.id} className="flex items-center gap-3 px-4 py-2.5">
+                  <span className="text-lg">{rule.categories?.icon || '📦'}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{rule.merchant_pattern}</p>
+                    {isEditing ? (
+                      <select
+                        value={editingRule.categoryId}
+                        onChange={(e) => setEditingRule({ ...editingRule, categoryId: e.target.value })}
+                        className="mt-1 w-full rounded-md border bg-background px-2 py-1 text-xs"
+                      >
+                        {allCategories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">
+                        {rule.categories?.name || 'Categoria removida'} · {rule.match_type === 'exact' ? 'Exato' : 'Contém'}
+                      </p>
+                    )}
+                  </div>
+                  {isEditing ? (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={handleEditRule}
+                        disabled={editSaving}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-green-600 hover:bg-green-50 dark:hover:bg-green-950/30"
+                        aria-label="Salvar"
+                      >
+                        {editSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                      </button>
+                      <button
+                        onClick={() => setEditingRule(null)}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+                        aria-label="Cancelar"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   ) : (
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditingRule({ id: rule.id, categoryId: rule.category_id })}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        aria-label="Editar regra"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteRule(rule.id)}
+                        disabled={deletingRuleId === rule.id}
+                        className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/30"
+                        aria-label="Remover regra"
+                      >
+                        {deletingRuleId === rule.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-3.5 w-3.5" />
+                        )}
+                      </button>
+                    </div>
                   )}
-                </button>
-              </div>
-            ))}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

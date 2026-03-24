@@ -250,15 +250,21 @@ export default function LandingPage() {
                           >
                             {/* Gradient fade on edges */}
                             <div className="pointer-events-none absolute inset-0 z-10 rounded-xl ring-1 ring-inset ring-white/10" />
-                            <Image
-                              src={step.screenshot}
-                              alt={step.title}
-                              width={1660}
-                              height={780}
-                              quality={90}
-                              sizes="(max-width: 1024px) 100vw, 50vw"
-                              className="w-full"
-                            />
+                            {step.screenshot ? (
+                              <Image
+                                src={step.screenshot}
+                                alt={step.title}
+                                width={1660}
+                                height={780}
+                                quality={90}
+                                sizes="(max-width: 1024px) 100vw, 50vw"
+                                className="w-full"
+                              />
+                            ) : (
+                              <div className="flex aspect-[16/9] w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
+                                <step.icon className="h-16 w-16 text-primary/30" />
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -386,25 +392,22 @@ const FEATURES = [
   },
 ];
 
-const STEPS = [
+const STEPS: Array<{ title: string; description: string; detail?: string; icon: typeof Smartphone; screenshot?: string }> = [
   {
     title: 'Conecte suas contas',
     description: 'Integração segura via Open Finance com todos os principais bancos do Brasil. Leva menos de 2 minutos.',
     detail: 'Nubank, Itaú, Bradesco, Santander, BTG, Inter e mais.',
     icon: Smartphone,
-    screenshot: '/screenshots/contas.png',
   },
   {
     title: 'Tenha clareza instantânea',
     description: 'Categorização automática, análise de recorrentes e organização total — sem trabalho manual nenhum.',
     icon: PieChart,
-    screenshot: '/screenshots/dashboard.png',
   },
   {
     title: 'Tome decisões com confiança',
     description: 'Projeções inteligentes, metas e o assistente Cleo IA para responder qualquer dúvida sobre suas finanças.',
     icon: MessageSquare,
-    screenshot: '/screenshots/chat.png',
   },
 ];
 
