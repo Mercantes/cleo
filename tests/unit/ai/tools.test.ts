@@ -86,9 +86,9 @@ describe('AI Tools', () => {
    * Registry tests
    * ================================================================ */
   describe('Registry (index.ts)', () => {
-    it('getAnthropicTools() should return correct format for all 5 tools', () => {
+    it('getAnthropicTools() should return correct format for all 6 tools', () => {
       const tools = getAnthropicTools();
-      expect(tools).toHaveLength(5);
+      expect(tools).toHaveLength(6);
       for (const tool of tools) {
         expect(tool).toHaveProperty('name');
         expect(tool).toHaveProperty('description');

@@ -5,8 +5,10 @@ import { categorizeTransactionTool } from './categorize-transaction';
 import { createChallengeTool } from './create-challenge';
 import { createBudgetTool } from './create-budget';
 import { manageRecurringTool } from './manage-recurring';
+import { queryTransactionsTool } from './query-transactions';
 
 const CLEO_TOOLS: ToolDefinition[] = [
+  queryTransactionsTool,
   createGoalTool,
   categorizeTransactionTool,
   createChallengeTool,
