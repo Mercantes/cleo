@@ -1,11 +1,16 @@
 {
   "name": "Cleo - Assistente Financeiro com IA",
   "short_name": "Cleo",
-  "description": "Conecte seu banco e use IA para entender suas finanças.",
-  "start_url": "/",
+  "description": "Conecte seu banco e use IA para entender suas finanças. Categorização automática, projeções e planejamento financeiro.",
+  "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#2563EB",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "id": "/",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -25,6 +30,7 @@
     }
   ],
   "categories": ["finance", "productivity"],
+  "prefer_related_applications": false,
   "shortcuts": [
     {
       "name": "Chat com Cleo",
@@ -36,6 +42,12 @@
       "name": "Transações",
       "short_name": "Transações",
       "url": "/transactions",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Orçamentos",
+      "short_name": "Orçamentos",
+      "url": "/budgets",
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {

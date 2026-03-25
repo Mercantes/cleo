@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-const CACHE_NAME = 'cleo-v5';
+const CACHE_NAME = 'cleo-v6';
 const API_CACHE_NAME = 'cleo-api-v3';
 const API_CACHE_URLS = [
   '/api/dashboard/summary',
@@ -16,10 +16,11 @@ const API_CACHE_URLS = [
 const API_CACHE_MAX_AGE = 5 * 60 * 1000; // 5 minutes
 
 self.addEventListener('install', (event) => {
-  // Skip waiting immediately — do NOT pre-cache HTML pages.
-  // Pre-caching HTML causes stale JS chunk references after deploys,
-  // which crashes the app (especially on Safari iOS).
-  event.waitUntil(Promise.resolve());
+  // Pre-cache only the offline fallback page (lightweight, static HTML).
+  // Do NOT pre-cache app HTML — it causes stale JS chunk references after deploys.
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.add('/offline.html')),
+  );
   self.skipWaiting();
 });
 
@@ -44,9 +45,13 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   if (url.origin !== self.location.origin) return;
 
-  // Navigation requests: ALWAYS go to network, no cache fallback.
-  // This prevents stale HTML with old JS chunk hashes from being served.
-  if (event.request.mode === 'navigate') return;
+  // Navigation requests: network-first with offline fallback.
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('/offline.html')),
+    );
+    return;
+  }
 
   // Skip non-API requests (let browser handle static assets normally)
   const isApiRequest = API_CACHE_URLS.some((path) => url.pathname.startsWith(path));

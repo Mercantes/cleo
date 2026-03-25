@@ -1,18 +1,19 @@
-import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import "./globals.css";
+import type { Metadata, Viewport } from 'next';
+import { Inter } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import './globals.css';
 
 const inter = Inter({
-  variable: "--font-sans",
-  subsets: ["latin"],
+  variable: '--font-sans',
+  subsets: ['latin'],
 });
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  viewportFit: 'cover',
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     { media: '(prefers-color-scheme: dark)', color: '#09090b' },
@@ -43,13 +44,19 @@ export const metadata: Metadata = {
     title: 'Cleo - Sua Assistente Financeira com IA',
     description:
       'Conecte seu banco, converse com IA sobre suas finanças e tome decisões mais inteligentes.',
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Cleo - Assistente Financeiro com IA' }],
+    images: [
+      {
+        url: '/opengraph-image',
+        width: 1200,
+        height: 630,
+        alt: 'Cleo - Assistente Financeiro com IA',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Cleo - Assistente Financeiro com IA',
-    description:
-      'Conecte seu banco e use IA para entender suas finanças.',
+    description: 'Conecte seu banco e use IA para entender suas finanças.',
   },
   robots: {
     index: true,
@@ -86,9 +93,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body
-        className={`${inter.variable} antialiased`}
-      >
+      <body className={`${inter.variable} antialiased`}>
         {children}
         <Analytics />
         <SpeedInsights />
