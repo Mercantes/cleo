@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="-m-4 flex h-[calc(100dvh-3.5rem-4.5rem)] flex-col md:-m-6 md:h-[calc(100dvh-3.5rem)]">
+    <div className="-mx-3 -mt-3 -mb-24 flex h-[calc(100dvh-3.5rem)] flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:-mx-4 sm:-mt-4 md:-mx-6 md:-mt-6 md:-mb-6 md:pb-0">
       <Suspense
         fallback={
           <div className="flex flex-1 items-center justify-center">
