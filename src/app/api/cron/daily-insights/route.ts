@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPushNotification, isWebPushConfigured } from '@/lib/push/send';
+import { detectAnomalies } from '@/lib/finance/anomaly-detector';
+import { predictNextMonth } from '@/lib/finance/prediction-engine';
 
 export const maxDuration = 60;
 
@@ -22,6 +24,12 @@ function generateInsights(
   goals: { monthly_savings_target?: number; streak_months?: number } | null,
   budgets: Array<{ category_id: string; monthly_limit: number; category_name?: string }>,
   now: Date,
+  anomalyCount: number = 0,
+  prediction: {
+    overspend_risk: boolean;
+    savings_opportunity: number;
+    has_enough_data: boolean;
+  } | null = null,
 ): Insight[] {
   const currentIncome = currentTx
     .filter((t) => t.type === 'credit')
@@ -159,6 +167,36 @@ function generateInsights(
     }
   }
 
+  // Prediction-based insights
+  if (prediction?.has_enough_data) {
+    if (prediction.overspend_risk) {
+      insights.push({
+        title: '⚠️ Risco de gastar mais que ganha',
+        body: 'Previsão indica que os gastos podem superar a receita no próximo mês.',
+        tag: 'prediction-overspend',
+        priority: 85,
+      });
+    }
+    if (prediction.savings_opportunity > 100) {
+      insights.push({
+        title: '💰 Oportunidade de economia',
+        body: `Você pode economizar até ${formatBRL(prediction.savings_opportunity)} ajustando gastos ao padrão dos últimos meses.`,
+        tag: 'prediction-savings-opportunity',
+        priority: 72,
+      });
+    }
+  }
+
+  // Anomaly detection
+  if (anomalyCount > 0) {
+    insights.push({
+      title: '🔍 Transações incomuns detectadas',
+      body: `${anomalyCount} transação(ões) fora do padrão nos últimos dias. Confira no app.`,
+      tag: 'anomaly-detected',
+      priority: 88,
+    });
+  }
+
   insights.sort((a, b) => b.priority - a.priority);
   return insights;
 }
@@ -257,7 +295,40 @@ export async function GET(request: Request) {
         category_name: (b.categories as { name: string } | null)?.name,
       }));
 
-      const insights = generateInsights(currentTx, lastTx, recurring, goalsRes.data, budgets, now);
+      // Detect anomalies and predictions for this user (optional, non-blocking)
+      let anomalyCount = 0;
+      let predictionData: {
+        overspend_risk: boolean;
+        savings_opportunity: number;
+        has_enough_data: boolean;
+      } | null = null;
+      try {
+        const anomalies = await detectAnomalies(userId, 7);
+        anomalyCount = anomalies.length;
+      } catch {
+        // Anomaly detection is optional
+      }
+      try {
+        const pred = await predictNextMonth(userId);
+        predictionData = {
+          overspend_risk: pred.overspend_risk,
+          savings_opportunity: pred.savings_opportunity,
+          has_enough_data: pred.has_enough_data,
+        };
+      } catch {
+        // Prediction is optional
+      }
+
+      const insights = generateInsights(
+        currentTx,
+        lastTx,
+        recurring,
+        goalsRes.data,
+        budgets,
+        now,
+        anomalyCount,
+        predictionData,
+      );
 
       // Send only the top insight per user (avoid notification spam)
       const topInsight = insights[0];

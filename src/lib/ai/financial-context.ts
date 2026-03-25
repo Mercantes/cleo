@@ -1,5 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency } from '@/lib/utils/format';
+import { detectAnomalies } from '@/lib/finance/anomaly-detector';
+import { predictNextMonth } from '@/lib/finance/prediction-engine';
 
 const contextCache = new Map<string, { data: string; expiresAt: number }>();
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -201,6 +203,50 @@ export async function buildFinancialContext(userId: string): Promise<string> {
       );
       lines.push(`- ${sanitize(c.title)} (${daysLeft} dias restantes)`);
     }
+  }
+
+  // Anomalies (recent unusual transactions)
+  try {
+    const anomalies = await detectAnomalies(userId, 7);
+    if (anomalies.length > 0) {
+      lines.push('', '--- Anomalias Recentes ---');
+      for (const a of anomalies.slice(0, 5)) {
+        const merchant = sanitize(a.merchant || a.description);
+        lines.push(
+          `- ${merchant}: ${formatCurrency(a.amount)} (esperado ~${formatCurrency(a.expected_mean)}, z-score: ${a.z_score})`,
+        );
+      }
+    }
+  } catch {
+    // Anomaly detection is optional — don't break context
+  }
+
+  // Predictions
+  try {
+    const prediction = await predictNextMonth(userId);
+    if (prediction.has_enough_data) {
+      lines.push('', '--- Previsões para o Próximo Mês ---');
+      lines.push(`Receita prevista: ${formatCurrency(prediction.next_month.predicted_income)}`);
+      lines.push(`Despesas previstas: ${formatCurrency(prediction.next_month.predicted_expenses)}`);
+      lines.push(`Confiança: ${prediction.next_month.confidence}`);
+      if (prediction.overspend_risk) {
+        lines.push('⚠️ RISCO: gastos previstos próximos/acima da receita');
+      }
+      if (prediction.savings_opportunity > 0) {
+        lines.push(`Oportunidade de economia: ${formatCurrency(prediction.savings_opportunity)}`);
+      }
+      if (prediction.category_predictions.length > 0) {
+        const top3 = prediction.category_predictions.slice(0, 3);
+        for (const cp of top3) {
+          const trendLabel = cp.trend === 'rising' ? '↑' : cp.trend === 'falling' ? '↓' : '→';
+          lines.push(
+            `- ${cp.category_name}: ~${formatCurrency(cp.predicted_amount)} ${trendLabel}`,
+          );
+        }
+      }
+    }
+  } catch {
+    // Prediction is optional
   }
 
   // Financial health score (simplified calculation matching dashboard)

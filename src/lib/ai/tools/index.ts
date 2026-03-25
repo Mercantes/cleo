@@ -6,6 +6,7 @@ import { createChallengeTool } from './create-challenge';
 import { createBudgetTool } from './create-budget';
 import { manageRecurringTool } from './manage-recurring';
 import { queryTransactionsTool } from './query-transactions';
+import { managePreferencesTool } from './manage-preferences';
 
 const CLEO_TOOLS: ToolDefinition[] = [
   queryTransactionsTool,
@@ -14,6 +15,7 @@ const CLEO_TOOLS: ToolDefinition[] = [
   createChallengeTool,
   createBudgetTool,
   manageRecurringTool,
+  managePreferencesTool,
 ];
 
 /** Convert to Anthropic API tools format */

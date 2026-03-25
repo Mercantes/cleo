@@ -147,7 +147,7 @@ function formatPrice(price: number) {
 interface PlanComparisonProps {
   onSelectPlan: (plan: 'pro' | 'premium') => void;
   loading?: string | null;
-  currentTier?: 'free' | 'pro';
+  currentTier?: 'free' | 'pro' | 'premium';
 }
 
 export function PlanComparison({
@@ -316,21 +316,44 @@ export function PlanComparison({
               <span className="text-sm font-normal text-muted-foreground">/mês</span>
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.premium.description}</p>
-            <Button
-              onClick={() => onSelectPlan('premium')}
-              disabled={loading === 'premium'}
-              className="mt-4 w-full"
-            >
-              {loading === 'premium'
-                ? 'Redirecionando...'
-                : currentTier === 'pro'
-                  ? 'Upgrade para Premium'
-                  : PLANS.premium.cta}
-            </Button>
-            {currentTier !== 'pro' && (
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">
-                {PLANS.premium.ctaNote}
-              </p>
+            {currentTier === 'premium' ? (
+              <>
+                <Button variant="outline" disabled className="mt-4 w-full">
+                  Plano Atual
+                </Button>
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  <button
+                    type="button"
+                    className="text-primary hover:underline"
+                    onClick={async () => {
+                      const res = await fetch('/api/stripe/portal');
+                      const data = await res.json();
+                      if (data.url) window.location.href = data.url;
+                    }}
+                  >
+                    Gerenciar assinatura
+                  </button>
+                </p>
+              </>
+            ) : (
+              <>
+                <Button
+                  onClick={() => onSelectPlan('premium')}
+                  disabled={loading === 'premium'}
+                  className="mt-4 w-full"
+                >
+                  {loading === 'premium'
+                    ? 'Redirecionando...'
+                    : currentTier === 'pro'
+                      ? 'Upgrade para Premium'
+                      : PLANS.premium.cta}
+                </Button>
+                {currentTier !== 'pro' && (
+                  <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                    {PLANS.premium.ctaNote}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>

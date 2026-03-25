@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 import { CATEGORIES } from '@/lib/ai/categorize';
+import { recordCategoryCorrection } from '@/lib/ai/learning-engine';
 
 export const categorizeTransactionTool: ToolDefinition = {
   name: 'categorize_transaction',
@@ -64,6 +65,18 @@ export const categorizeTransactionTool: ToolDefinition = {
         return { success: false, message: `Erro ao atualizar: ${error.message}` };
       }
 
+      // Record learning events for each transaction (fire-and-forget)
+      for (const tx of transactions) {
+        recordCategoryCorrection(
+          userId,
+          tx.id,
+          tx.description || '',
+          tx.merchant || null,
+          null,
+          categories.id,
+        ).catch(() => {});
+      }
+
       return {
         success: true,
         message: `${transactions.length} transações com "${description}" recategorizadas para ${categoryName}.`,
@@ -80,6 +93,17 @@ export const categorizeTransactionTool: ToolDefinition = {
     if (error) {
       return { success: false, message: `Erro ao atualizar: ${error.message}` };
     }
+
+    // Record learning event (fire-and-forget)
+    const tx0 = transactions[0];
+    recordCategoryCorrection(
+      userId,
+      tx0.id,
+      tx0.description || '',
+      tx0.merchant || null,
+      null,
+      categories.id,
+    ).catch(() => {});
 
     return {
       success: true,

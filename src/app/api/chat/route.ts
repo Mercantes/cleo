@@ -3,6 +3,11 @@ import Anthropic from '@anthropic-ai/sdk';
 import { createClient } from '@/lib/supabase/server';
 import { buildFinancialContext } from '@/lib/ai/financial-context';
 import { buildSystemPrompt } from '@/lib/ai/system-prompt';
+import {
+  getPersonalizationContext,
+  extractPreferences,
+  savePreferences,
+} from '@/lib/ai/preference-engine';
 import { checkTierLimit, incrementUsage } from '@/lib/finance/tier-check';
 import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 import { getAnthropicTools, executeTool } from '@/lib/ai/tools';
@@ -100,7 +105,10 @@ export async function POST(request: NextRequest) {
   const messageText = typeof message === 'string' ? message : '';
 
   if (messageText.length > 4000) {
-    return NextResponse.json({ error: 'Mensagem muito longa (máximo 4000 caracteres)' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Mensagem muito longa (máximo 4000 caracteres)' },
+      { status: 400 },
+    );
   }
 
   // Check tier limit
@@ -120,9 +128,10 @@ export async function POST(request: NextRequest) {
   }
 
   // Build attachment metadata for DB storage
-  const attachmentMeta = validatedAttachments.length > 0
-    ? validatedAttachments.map(a => ({ name: a.name, type: a.type, size: a.size }))
-    : null;
+  const attachmentMeta =
+    validatedAttachments.length > 0
+      ? validatedAttachments.map((a) => ({ name: a.name, type: a.type, size: a.size }))
+      : null;
 
   // Save user message with attachment metadata
   const { data: userMessage } = await supabase
@@ -136,9 +145,20 @@ export async function POST(request: NextRequest) {
     .select('id, role, content, created_at, metadata')
     .single();
 
-  // Build context and system prompt
-  const financialContext = await buildFinancialContext(user.id);
-  const systemPrompt = buildSystemPrompt(financialContext);
+  // Extract and save any explicit preferences from the message (fire-and-forget)
+  if (messageText) {
+    const extracted = extractPreferences(messageText);
+    if (extracted.length > 0) {
+      savePreferences(user.id, extracted, 'explicit').catch(() => {});
+    }
+  }
+
+  // Build context and system prompt with personalization
+  const [financialContext, preferencesContext] = await Promise.all([
+    buildFinancialContext(user.id),
+    getPersonalizationContext(user.id),
+  ]);
+  const systemPrompt = buildSystemPrompt(financialContext, preferencesContext);
 
   // Get recent conversation history (last 10 messages for context)
   const { data: history } = await supabase
@@ -306,8 +326,13 @@ export async function POST(request: NextRequest) {
           sendSSE({ done: true, userMessage, assistantMessage });
           controller.close();
         } catch (error) {
-          const errDetail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
-          console.error('[chat] streaming error:', errDetail, error instanceof Anthropic.APIError ? `status=${error.status}` : '');
+          const errDetail =
+            error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+          console.error(
+            '[chat] streaming error:',
+            errDetail,
+            error instanceof Anthropic.APIError ? `status=${error.status}` : '',
+          );
 
           let errorMessage = 'Erro ao processar resposta. Tente novamente.';
           if (error instanceof Anthropic.APIError) {
