@@ -9,10 +9,13 @@ import { toast } from '@/components/ui/toast';
 import dynamic from 'next/dynamic';
 import { MonthSelector } from './month-selector';
 import { SubscriptionsCard } from './subscriptions-card';
-const GoalProgressCard = dynamic(() => import('./goal-progress-card').then((m) => m.GoalProgressCard), {
-  ssr: false,
-  loading: () => <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />,
-});
+const GoalProgressCard = dynamic(
+  () => import('./goal-progress-card').then((m) => m.GoalProgressCard),
+  {
+    ssr: false,
+    loading: () => <div className="h-[180px] animate-pulse rounded-lg border bg-muted" />,
+  },
+);
 import { ChallengesCard } from './challenges-card';
 import { SpendingForecast } from './spending-forecast';
 import { FinancialHealthCard } from './financial-health-card';
@@ -33,10 +36,13 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import type { SummaryData, CategoryData } from '@/types/dashboard';
 
-const SpendingPaceCard = dynamic(() => import('./spending-pace-card').then((m) => m.SpendingPaceCard), {
-  ssr: false,
-  loading: () => <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />,
-});
+const SpendingPaceCard = dynamic(
+  () => import('./spending-pace-card').then((m) => m.SpendingPaceCard),
+  {
+    ssr: false,
+    loading: () => <div className="h-[380px] animate-pulse rounded-lg border bg-muted" />,
+  },
+);
 
 const NetWorthCard = dynamic(() => import('./net-worth-card').then((m) => m.NetWorthCard), {
   ssr: false,
@@ -175,7 +181,7 @@ export function DashboardContent() {
   const hasData = summary && (summary.income > 0 || summary.expenses > 0);
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
       {/* Pull-to-refresh indicator (mobile) */}
       <div
         ref={indicatorRef}
@@ -236,7 +242,10 @@ export function DashboardContent() {
               Conectar banco
             </Link>
             <p className="max-w-sm text-xs text-muted-foreground">
-              <Link href="/upgrade" className="text-primary hover:underline">Plano Pro</Link>: bancos ilimitados, IA e projeções — 7 dias grátis
+              <Link href="/upgrade" className="text-primary hover:underline">
+                Plano Pro
+              </Link>
+              : bancos ilimitados, IA e projeções — 7 dias grátis
             </p>
           </div>
         </AnimateIn>
@@ -245,9 +254,7 @@ export function DashboardContent() {
           {/* Row 1: Spending Pace + Net Worth */}
           <AnimateIn delay={100}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <ErrorBoundary>
-                {summary && <SpendingPaceCard data={summary} />}
-              </ErrorBoundary>
+              <ErrorBoundary>{summary && <SpendingPaceCard data={summary} />}</ErrorBoundary>
               <ErrorBoundary>
                 <NetWorthCard />
               </ErrorBoundary>
@@ -257,9 +264,7 @@ export function DashboardContent() {
           {/* Row 2: Partial Result + Categories Table */}
           <AnimateIn delay={150}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <ErrorBoundary>
-                {summary && <PartialResultCard data={summary} />}
-              </ErrorBoundary>
+              <ErrorBoundary>{summary && <PartialResultCard data={summary} />}</ErrorBoundary>
               <ErrorBoundary>
                 <CategoriesTableCard data={categories} month={month} />
               </ErrorBoundary>
@@ -268,45 +273,67 @@ export function DashboardContent() {
 
           {/* Row 3: Accounts (full-width) */}
           <AnimateIn delay={200}>
-            <ErrorBoundary><AccountsCard /></ErrorBoundary>
+            <ErrorBoundary>
+              <AccountsCard />
+            </ErrorBoundary>
           </AnimateIn>
 
           {/* Row 4: Recent Transactions + Upcoming Expenses */}
           <AnimateIn delay={225}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <ErrorBoundary><RecentTransactionsCard /></ErrorBoundary>
-              <ErrorBoundary><UpcomingExpensesCard /></ErrorBoundary>
+              <ErrorBoundary>
+                <RecentTransactionsCard />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <UpcomingExpensesCard />
+              </ErrorBoundary>
             </div>
           </AnimateIn>
 
           {/* Row 5: Category Budgets + Subscriptions */}
           <AnimateIn delay={250}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
-              <ErrorBoundary><CategoryBudgetsCard /></ErrorBoundary>
-              <ErrorBoundary><SubscriptionsCard /></ErrorBoundary>
+              <ErrorBoundary>
+                <CategoryBudgetsCard />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <SubscriptionsCard />
+              </ErrorBoundary>
             </div>
           </AnimateIn>
 
           {/* Row 6: Goals, Challenges, Health */}
           <AnimateIn delay={275}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-3">
-              <ErrorBoundary><GoalProgressCard /></ErrorBoundary>
-              <ErrorBoundary><ChallengesCard /></ErrorBoundary>
-              <ErrorBoundary><FinancialHealthCard /></ErrorBoundary>
+              <ErrorBoundary>
+                <GoalProgressCard />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <ChallengesCard />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <FinancialHealthCard />
+              </ErrorBoundary>
             </div>
           </AnimateIn>
 
           {/* Row 7: Emergency Fund + Spending Forecast */}
           <AnimateIn delay={300}>
             <div className="grid gap-3 sm:gap-4 lg:grid-cols-2 [&>:only-child]:col-span-full">
-              <ErrorBoundary><EmergencyFundCard /></ErrorBoundary>
-              <ErrorBoundary><SpendingForecast /></ErrorBoundary>
+              <ErrorBoundary>
+                <EmergencyFundCard />
+              </ErrorBoundary>
+              <ErrorBoundary>
+                <SpendingForecast />
+              </ErrorBoundary>
             </div>
           </AnimateIn>
 
           {/* Row 8: Streak */}
           <AnimateIn delay={325}>
-            <ErrorBoundary><StreakCard /></ErrorBoundary>
+            <ErrorBoundary>
+              <StreakCard />
+            </ErrorBoundary>
           </AnimateIn>
         </>
       )}
