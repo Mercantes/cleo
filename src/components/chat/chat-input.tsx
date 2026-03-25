@@ -34,7 +34,14 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function ChatInput({ value, onChange, onSend, disabled, attachments, onAttachmentsChange }: ChatInputProps) {
+export function ChatInput({
+  value,
+  onChange,
+  onSend,
+  disabled,
+  attachments,
+  onAttachmentsChange,
+}: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isOverLimit = value.length > MAX_LENGTH;
@@ -59,7 +66,7 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
 
   function handlePaste(e: ClipboardEvent<HTMLTextAreaElement>) {
     const items = Array.from(e.clipboardData.items);
-    const imageItems = items.filter(item => item.type.startsWith('image/'));
+    const imageItems = items.filter((item) => item.type.startsWith('image/'));
     if (imageItems.length === 0) return;
 
     e.preventDefault();
@@ -164,11 +171,7 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
             >
               {att.previewUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={att.previewUrl}
-                  alt={att.name}
-                  className="h-8 w-8 rounded object-cover"
-                />
+                <img src={att.previewUrl} alt={att.name} className="h-8 w-8 rounded object-cover" />
               ) : (
                 <FileText className="h-5 w-5 text-muted-foreground" />
               )}
@@ -223,7 +226,7 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
           aria-label="Mensagem para a Cleo"
           disabled={disabled}
           rows={1}
-          className="flex-1 resize-none rounded-lg border bg-muted/50 px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+          className="flex-1 resize-none rounded-lg border bg-muted/50 px-3 py-2 text-base md:text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
         />
         <Button
           size="icon"
@@ -235,7 +238,9 @@ export function ChatInput({ value, onChange, onSend, disabled, attachments, onAt
         </Button>
       </div>
       {showCounter && (
-        <p className={`mt-1 text-right text-xs ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+        <p
+          className={`mt-1 text-right text-xs ${isOverLimit ? 'text-destructive' : 'text-muted-foreground'}`}
+        >
           {value.length.toLocaleString('pt-BR')}/{MAX_LENGTH.toLocaleString('pt-BR')}
         </p>
       )}
