@@ -62,7 +62,7 @@ export function PwaInstallPrompt() {
   }
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 z-40 mx-auto max-w-sm rounded-xl border bg-background p-4 shadow-lg md:bottom-4 md:left-auto md:right-4">
+    <div className="fixed left-4 right-4 z-40 mx-auto max-w-sm rounded-xl border bg-background p-4 shadow-lg bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-4 md:left-auto md:right-4">
       <button
         onClick={handleDismiss}
         aria-label="Fechar"

@@ -51,79 +51,79 @@ export function QuickChatFab() {
     }
   }, [open]);
 
-  const sendMessage = useCallback(async (text?: string) => {
-    const messageText = text || input.trim();
-    if (!messageText || isLoading) return;
+  const sendMessage = useCallback(
+    async (text?: string) => {
+      const messageText = text || input.trim();
+      if (!messageText || isLoading) return;
 
-    const userMsg: QuickMessage = { role: 'user', content: messageText };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput('');
-    setIsLoading(true);
+      const userMsg: QuickMessage = { role: 'user', content: messageText };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput('');
+      setIsLoading(true);
 
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: messageText }),
-      });
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: messageText }),
+        });
 
-      if (!res.ok) {
-        const err = new Error('Failed');
-        (err as Error & { status: number }).status = res.status;
-        throw err;
-      }
+        if (!res.ok) {
+          const err = new Error('Failed');
+          (err as Error & { status: number }).status = res.status;
+          throw err;
+        }
 
-      const reader = res.body?.getReader();
-      if (!reader) throw new Error('No reader');
+        const reader = res.body?.getReader();
+        if (!reader) throw new Error('No reader');
 
-      const decoder = new TextDecoder();
-      let assistantContent = '';
-      setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
+        const decoder = new TextDecoder();
+        let assistantContent = '';
+        setMessages((prev) => [...prev, { role: 'assistant', content: '' }]);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
 
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
-            if (data === '[DONE]') continue;
-            try {
-              const parsed = JSON.parse(data);
-              if (parsed.content) {
-                assistantContent += parsed.content;
-                const content = assistantContent;
-                setMessages((prev) => {
-                  const updated = [...prev];
-                  updated[updated.length - 1] = { role: 'assistant', content };
-                  return updated;
-                });
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
+              if (data === '[DONE]') continue;
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  assistantContent += parsed.content;
+                  const content = assistantContent;
+                  setMessages((prev) => {
+                    const updated = [...prev];
+                    updated[updated.length - 1] = { role: 'assistant', content };
+                    return updated;
+                  });
+                }
+              } catch {
+                // skip parse errors
               }
-            } catch {
-              // skip parse errors
             }
           }
         }
+      } catch (err) {
+        let errorMsg = 'Desculpe, não consegui responder. Tente novamente.';
+        const status = (err as Error & { status?: number })?.status;
+        if (status === 429) {
+          errorMsg = 'Muitas requisições. Aguarde um momento.';
+        } else if (err instanceof TypeError) {
+          errorMsg = 'Sem conexão. Verifique sua internet.';
+        }
+        setMessages((prev) => [...prev, { role: 'assistant', content: errorMsg }]);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (err) {
-      let errorMsg = 'Desculpe, não consegui responder. Tente novamente.';
-      const status = (err as Error & { status?: number })?.status;
-      if (status === 429) {
-        errorMsg = 'Muitas requisições. Aguarde um momento.';
-      } else if (err instanceof TypeError) {
-        errorMsg = 'Sem conexão. Verifique sua internet.';
-      }
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: errorMsg },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [input, isLoading]);
+    },
+    [input, isLoading],
+  );
 
   // Don't render on chat page
   if (pathname === '/chat') return null;
@@ -134,7 +134,7 @@ export function QuickChatFab() {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-20 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 md:bottom-6 md:right-6 md:h-14 md:w-14"
+          className="fixed right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95 bottom-[calc(5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 md:right-6 md:h-14 md:w-14"
           aria-label="Perguntar à Cleo"
         >
           <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
@@ -184,7 +184,9 @@ export function QuickChatFab() {
             <div className="flex-1 overflow-y-auto px-4 py-3 sm:max-h-[320px] sm:min-h-[200px]">
               {messages.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center gap-3 py-4">
-                  <p className="text-sm text-muted-foreground">Pergunte qualquer coisa sobre suas finanças</p>
+                  <p className="text-sm text-muted-foreground">
+                    Pergunte qualquer coisa sobre suas finanças
+                  </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {quickPrompts.map((prompt) => (
                       <button

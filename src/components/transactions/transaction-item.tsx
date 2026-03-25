@@ -4,7 +4,12 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Check, Loader2, MoreVertical, Tags, Users, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { formatCurrency, formatDateTime, formatRelativeDate, formatTransactionName } from '@/lib/utils/format';
+import {
+  formatCurrency,
+  formatDateTime,
+  formatRelativeDate,
+  formatTransactionName,
+} from '@/lib/utils/format';
 import { useHideValues, HIDDEN_VALUE } from '@/hooks/use-hide-values';
 import { HighlightText } from '@/components/ui/highlight-text';
 
@@ -40,7 +45,11 @@ interface TransactionRowProps {
   account?: AccountInfo | null;
   searchQuery?: string;
   mobile?: boolean;
-  onCategoryChange?: (id: string, categoryId: string, category: { name: string; icon: string }) => void;
+  onCategoryChange?: (
+    id: string,
+    categoryId: string,
+    category: { name: string; icon: string },
+  ) => void;
 }
 
 let categoriesCache: CategoryOption[] | null = null;
@@ -56,7 +65,11 @@ function loadCategories(): Promise<CategoryOption[]> {
     });
 }
 
-function CategoryBadge({ category }: { category: { name: string; icon: string } | null | undefined }) {
+function CategoryBadge({
+  category,
+}: {
+  category: { name: string; icon: string } | null | undefined;
+}) {
   if (!category) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
@@ -74,14 +87,21 @@ function CategoryBadge({ category }: { category: { name: string; icon: string } 
 function AccountBadge({ account }: { account: AccountInfo | null | undefined }) {
   if (!account) return <span className="text-xs text-muted-foreground">—</span>;
 
-  const conn = account.bank_connections as { connector_name: string; connector_logo_url: string | null } | null;
+  const conn = account.bank_connections as {
+    connector_name: string;
+    connector_logo_url: string | null;
+  } | null;
   const logoUrl = conn?.connector_logo_url;
 
   return (
     <div className="flex items-center justify-center gap-1.5">
       {logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={logoUrl} alt={conn?.connector_name || ''} className="h-7 w-7 rounded-full bg-white object-contain p-0.5" />
+        <img
+          src={logoUrl}
+          alt={conn?.connector_name || ''}
+          className="h-7 w-7 rounded-full bg-background object-contain p-0.5"
+        />
       ) : (
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
           {(conn?.connector_name || account.name || '?').charAt(0).toUpperCase()}
@@ -113,7 +133,11 @@ export function TransactionRow({
   const [categories, setCategories] = useState<CategoryOption[]>(categoriesCache || []);
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState(categoryId || '');
-  const [rulePrompt, setRulePrompt] = useState<{ merchantPattern: string; categoryId: string; categoryName: string } | null>(null);
+  const [rulePrompt, setRulePrompt] = useState<{
+    merchantPattern: string;
+    categoryId: string;
+    categoryName: string;
+  } | null>(null);
   const [ruleStatus, setRuleStatus] = useState<'idle' | 'saving' | 'done'>('idle');
   const [ruleUpdatedCount, setRuleUpdatedCount] = useState(0);
   const displayAmount = type === 'credit' ? amount : -amount;
@@ -132,7 +156,9 @@ export function TransactionRow({
 
   useEffect(() => {
     if (showCategories && categories.length === 0) {
-      loadCategories().then(setCategories).catch(() => {});
+      loadCategories()
+        .then(setCategories)
+        .catch(() => {});
     }
   }, [showCategories, categories.length]);
 
@@ -148,36 +174,43 @@ export function TransactionRow({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [menuOpen]);
 
-  const handleCategoryChange = useCallback(async (newCategoryId: string) => {
-    if (newCategoryId === selectedCategoryId || isSaving) return;
-    setIsSaving(true);
-    try {
-      const res = await fetch(`/api/transactions/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category_id: newCategoryId }),
-      });
-      if (res.ok) {
-        setSelectedCategoryId(newCategoryId);
-        const cat = categories.find((c) => c.id === newCategoryId);
-        if (cat && onCategoryChange) {
-          onCategoryChange(id, newCategoryId, { name: cat.name, icon: cat.icon });
-        }
-        setShowCategories(false);
+  const handleCategoryChange = useCallback(
+    async (newCategoryId: string) => {
+      if (newCategoryId === selectedCategoryId || isSaving) return;
+      setIsSaving(true);
+      try {
+        const res = await fetch(`/api/transactions/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ category_id: newCategoryId }),
+        });
+        if (res.ok) {
+          setSelectedCategoryId(newCategoryId);
+          const cat = categories.find((c) => c.id === newCategoryId);
+          if (cat && onCategoryChange) {
+            onCategoryChange(id, newCategoryId, { name: cat.name, icon: cat.icon });
+          }
+          setShowCategories(false);
 
-        // Show "apply always?" prompt if merchant/description is identifiable
-        const pattern = (merchant || description || '').trim();
-        if (pattern.length >= 3 && cat) {
-          setRulePrompt({ merchantPattern: pattern, categoryId: newCategoryId, categoryName: cat.name });
-          setRuleStatus('idle');
+          // Show "apply always?" prompt if merchant/description is identifiable
+          const pattern = (merchant || description || '').trim();
+          if (pattern.length >= 3 && cat) {
+            setRulePrompt({
+              merchantPattern: pattern,
+              categoryId: newCategoryId,
+              categoryName: cat.name,
+            });
+            setRuleStatus('idle');
+          }
         }
+      } catch {
+        // silently fail
+      } finally {
+        setIsSaving(false);
       }
-    } catch {
-      // silently fail
-    } finally {
-      setIsSaving(false);
-    }
-  }, [id, selectedCategoryId, isSaving, categories, onCategoryChange, merchant, description]);
+    },
+    [id, selectedCategoryId, isSaving, categories, onCategoryChange, merchant, description],
+  );
 
   const handleCreateRule = useCallback(async () => {
     if (!rulePrompt || ruleStatus !== 'idle') return;
@@ -218,13 +251,18 @@ export function TransactionRow({
           <span className="w-6 text-center text-xs text-muted-foreground">{index}</span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium">
-              <HighlightText text={formatTransactionName(description, merchant)} query={searchQuery || ''} />
+              <HighlightText
+                text={formatTransactionName(description, merchant)}
+                query={searchQuery || ''}
+              />
             </p>
             <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
               <CategoryBadge category={category} />
               <span className="text-xs text-muted-foreground">{formatRelativeDate(date)}</span>
               {account?.bank_connections?.connector_name && (
-                <span className="text-[10px] text-muted-foreground">· {account.bank_connections.connector_name}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  · {account.bank_connections.connector_name}
+                </span>
               )}
             </div>
           </div>
@@ -282,7 +320,8 @@ export function TransactionRow({
             {ruleStatus === 'done' ? (
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 <Sparkles className="mr-1 inline h-3 w-3" />
-                Regra criada! {ruleUpdatedCount > 0 && `${ruleUpdatedCount} transações atualizadas.`}
+                Regra criada!{' '}
+                {ruleUpdatedCount > 0 && `${ruleUpdatedCount} transações atualizadas.`}
               </p>
             ) : (
               <div className="flex items-center gap-2">
@@ -293,13 +332,13 @@ export function TransactionRow({
                 <button
                   onClick={handleCreateRule}
                   disabled={ruleStatus === 'saving'}
-                  className="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {ruleStatus === 'saving' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Sim'}
                 </button>
                 <button
                   onClick={handleDismissRule}
-                  className="rounded-md px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                  className="rounded-md px-2.5 py-1 text-xs text-primary hover:bg-primary/10"
                 >
                   Não
                 </button>
@@ -314,14 +353,22 @@ export function TransactionRow({
   // Desktop table row
   return (
     <>
-      <div role="row" className="group grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-sm transition-colors last:border-0 hover:bg-accent/30">
+      <div
+        role="row"
+        className="group grid grid-cols-[2.5rem_1fr_10rem_8rem_10rem_7rem_2.5rem] items-center gap-2 border-b px-4 py-2.5 text-sm transition-colors last:border-0 hover:bg-accent/30"
+      >
         {/* Number */}
-        <span role="cell" className="text-center text-xs text-muted-foreground">{index}</span>
+        <span role="cell" className="text-center text-xs text-muted-foreground">
+          {index}
+        </span>
 
         {/* Description */}
         <div role="cell" className="min-w-0">
           <p className="truncate font-medium">
-            <HighlightText text={formatTransactionName(description, merchant)} query={searchQuery || ''} />
+            <HighlightText
+              text={formatTransactionName(description, merchant)}
+              query={searchQuery || ''}
+            />
           </p>
           {merchant && merchant !== description && (
             <p className="truncate text-xs text-muted-foreground">{description}</p>
@@ -339,7 +386,9 @@ export function TransactionRow({
         </div>
 
         {/* Date */}
-        <span role="cell" className="text-xs text-muted-foreground">{formatDateTime(date)}</span>
+        <span role="cell" className="text-xs text-muted-foreground">
+          {formatDateTime(date)}
+        </span>
 
         {/* Amount */}
         <span
@@ -450,13 +499,13 @@ export function TransactionRow({
               <button
                 onClick={handleCreateRule}
                 disabled={ruleStatus === 'saving'}
-                className="rounded-md bg-blue-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-md bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {ruleStatus === 'saving' ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Sim'}
               </button>
               <button
                 onClick={handleDismissRule}
-                className="rounded-md px-2.5 py-1 text-xs text-blue-600 hover:bg-blue-100 dark:text-blue-400 dark:hover:bg-blue-900/50"
+                className="rounded-md px-2.5 py-1 text-xs text-primary hover:bg-primary/10"
               >
                 Não
               </button>

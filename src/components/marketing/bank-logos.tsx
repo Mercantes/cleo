@@ -27,28 +27,12 @@ export function BankLogos() {
           Integrado com os principais bancos
         </p>
 
-        {/* Mobile: static grid — no animation, no iOS Safari issues */}
-        <div className="grid grid-cols-5 items-center gap-x-4 gap-y-6 md:hidden">
-          {BANKS.map((bank) => (
-            <div key={bank.name} className="flex items-center justify-center">
-              <Image
-                src={bank.logo}
-                alt={bank.name}
-                width={bank.width}
-                height={bank.height}
-                unoptimized
-                className="max-h-6 w-auto object-contain"
-              />
-            </div>
-          ))}
-        </div>
+        {/* Animated marquee — mobile (compact) + desktop (3x duplication for seamless loop) */}
+        <div className="relative overflow-hidden">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent md:w-24" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent md:w-24" />
 
-        {/* Desktop: animated marquee (3x duplication for seamless loop) */}
-        <div className="relative hidden overflow-hidden md:block">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-muted/30 via-muted/20 to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-muted/30 via-muted/20 to-transparent" />
-
-          <div className="flex w-max animate-scroll items-center gap-20">
+          <div className="flex w-max animate-scroll items-center gap-10 md:gap-20">
             {[...BANKS, ...BANKS, ...BANKS].map((bank, i) => (
               <Image
                 key={i}
@@ -57,7 +41,7 @@ export function BankLogos() {
                 width={bank.width}
                 height={bank.height}
                 unoptimized
-                className="max-h-8 w-auto shrink-0 object-contain"
+                className="max-h-6 w-auto shrink-0 object-contain md:max-h-8"
               />
             ))}
           </div>
