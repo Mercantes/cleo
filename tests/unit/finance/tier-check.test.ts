@@ -36,7 +36,7 @@ describe('tier-config', () => {
   it('defines correct free tier limits', () => {
     expect(TIER_LIMITS.free.transactions).toBe(100);
     expect(TIER_LIMITS.free.chat).toBe(30);
-    expect(TIER_LIMITS.free.bank_connections).toBe(3);
+    expect(TIER_LIMITS.free.bank_connections).toBe(1);
   });
 
   it('defines pro tier as unlimited', () => {

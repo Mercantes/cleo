@@ -15,7 +15,7 @@ describe('PlanComparison', () => {
   it('displays feature rows', () => {
     render(<PlanComparison onSelectPlan={vi.fn()} />);
 
-    expect(screen.getAllByText('Categorização automática de transações').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Categorização automática').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('Assistente de IA').length).toBeGreaterThanOrEqual(1);
   });
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Check, Minus, Crown } from 'lucide-react';
+import { Check, AlertCircle, X, Crown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -20,45 +20,99 @@ const PLANS = {
   pro: {
     name: 'Pro',
     subtitle: 'Até 3 Conexões bancárias',
-    monthly: 19.90,
+    monthly: 19.9,
     annual: 16.58,
-    description: 'Suas finanças no piloto automático. Conexão, categorização e controle total.',
+    description: 'Suas finanças no piloto automático.',
     cta: 'Teste grátis',
     ctaNote: '7 dias grátis — sem cartão de crédito',
   },
   premium: {
     name: 'Premium',
     subtitle: 'Conexões ilimitadas',
-    monthly: 39.90,
+    monthly: 39.9,
     annual: 33.25,
-    description: 'Todas as suas contas em um só lugar. Conecte suas contas PJ e tenha uma visão completa.',
+    description: 'Todas as suas contas em um só lugar.',
     cta: 'Teste grátis',
     ctaNote: '7 dias grátis — sem cartão de crédito',
   },
 };
 
-interface Feature {
-  name: string;
-  free: boolean | string;
-  pro: boolean | string;
-  premium: boolean | string;
+type FeatureStatus = 'included' | 'limited' | 'excluded';
+
+interface PlanFeature {
+  label: string;
+  detail?: string;
+  status: FeatureStatus;
 }
 
-const PLAN_FEATURES: Feature[] = [
-  { name: 'Categorização automática de transações', free: true, pro: true, premium: true },
-  { name: 'Transações e contas manuais', free: true, pro: true, premium: true },
-  { name: 'Suporte via e-mail', free: true, pro: false, premium: false },
-  { name: 'Suporte via e-mail e chat', free: false, pro: true, premium: true },
-  { name: 'Acesso completo à plataforma', free: false, pro: true, premium: true },
-  { name: 'Sincronizações via Open Finance', free: '1x/dia', pro: 'Todas', premium: 'Todas' },
-  { name: 'Histórico completo', free: false, pro: true, premium: true },
-  { name: 'Detecção de parcelas e assinaturas', free: false, pro: true, premium: true },
-  { name: 'Regras customizadas', free: false, pro: true, premium: true },
-  { name: 'Tags', free: false, pro: true, premium: true },
-  { name: 'Projeção de saldo (12 meses)', free: false, pro: true, premium: true },
-  { name: 'Conecte suas contas PJs', free: false, pro: false, premium: true },
-  { name: 'Assistente de IA', free: false, pro: true, premium: true },
+const FREE_FEATURES: PlanFeature[] = [
+  { label: '1 Conexão', status: 'included' },
+  { label: 'Categorização automática', status: 'included' },
+  { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Acesso limitado à dashboard', status: 'limited' },
+  { label: 'Atualização a cada 24h', status: 'limited' },
+  { label: 'Histórico dos últimos 30D', status: 'limited' },
+  { label: '3 próximas parcelas e assinaturas', status: 'limited' },
+  { label: 'Suporte prioritário', status: 'excluded' },
+  { label: 'Regras customizadas', status: 'excluded' },
+  { label: 'Tags', status: 'excluded' },
+  { label: 'Projeção de saldo', status: 'excluded' },
+  { label: 'Conecte suas contas PJs', status: 'excluded' },
+  { label: 'Assistente de IA', status: 'excluded' },
 ];
+
+const PRO_FEATURES: PlanFeature[] = [
+  { label: 'Até 3 Conexões', status: 'included' },
+  { label: 'Categorização automática', status: 'included' },
+  { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Acesso completo à plataforma', status: 'included' },
+  { label: 'Sincronização em tempo real', status: 'included' },
+  { label: 'Histórico completo', status: 'included' },
+  { label: 'Detecção de parcelas e assinaturas', status: 'included' },
+  { label: 'Suporte via e-mail e chat', status: 'included' },
+  { label: 'Regras customizadas', status: 'included' },
+  { label: 'Tags', status: 'included' },
+  { label: 'Projeção de saldo (12 meses)', status: 'included' },
+  { label: 'Assistente de IA', status: 'included' },
+  { label: 'Conecte suas contas PJs', status: 'excluded' },
+];
+
+const PREMIUM_FEATURES: PlanFeature[] = [
+  { label: 'Conexões ilimitadas', status: 'included' },
+  { label: 'Categorização automática', status: 'included' },
+  { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Acesso completo à plataforma', status: 'included' },
+  { label: 'Sincronização em tempo real', status: 'included' },
+  { label: 'Histórico completo', status: 'included' },
+  { label: 'Detecção de parcelas e assinaturas', status: 'included' },
+  { label: 'Suporte via e-mail e chat', status: 'included' },
+  { label: 'Regras customizadas', status: 'included' },
+  { label: 'Tags', status: 'included' },
+  { label: 'Projeção de saldo (12 meses)', status: 'included' },
+  { label: 'Assistente de IA', status: 'included' },
+  { label: 'Conecte suas contas PJs', status: 'included' },
+];
+
+function FeatureRow({ feature }: { feature: PlanFeature }) {
+  return (
+    <div className="flex items-start gap-2.5 text-sm">
+      {feature.status === 'included' && (
+        <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
+      )}
+      {feature.status === 'limited' && (
+        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+      )}
+      {feature.status === 'excluded' && (
+        <X className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/30" />
+      )}
+      <span
+        className={cn(feature.status === 'excluded' && 'text-muted-foreground/40 line-through')}
+      >
+        {feature.label}
+      </span>
+    </div>
+  );
+}
 
 interface ComparisonRow {
   name: string;
@@ -69,19 +123,19 @@ interface ComparisonRow {
 
 const COMPARISON_TABLE: ComparisonRow[] = [
   { name: 'Contas conectadas', free: '1', pro: '3', premium: 'Ilimitado' },
-  { name: 'Conexões PJ (empresas)', free: false, pro: false, premium: true },
-  { name: 'Sincronização automática', free: false, pro: true, premium: true },
-  { name: 'Categorização automática', free: false, pro: true, premium: true },
-  { name: 'Insights de gastos', free: false, pro: true, premium: true },
-  { name: 'Detecção de recorrentes', free: false, pro: true, premium: true },
-  { name: 'Regras de automação', free: false, pro: true, premium: true },
-  { name: 'Tags', free: false, pro: true, premium: true },
+  { name: 'Histórico', free: '30 dias', pro: 'Completo', premium: 'Completo' },
+  { name: 'Sincronização', free: '1x/dia', pro: 'Tempo real', premium: 'Tempo real' },
+  { name: 'Categorização automática', free: true, pro: true, premium: true },
+  { name: 'Detecção de recorrentes', free: '3 próximas', pro: true, premium: true },
+  { name: 'Regras e tags', free: false, pro: true, premium: true },
   { name: 'Projeção de saldo', free: false, pro: true, premium: true },
+  { name: 'Assistente de IA', free: false, pro: true, premium: true },
+  { name: 'Contas PJ', free: false, pro: false, premium: true },
   { name: 'Suporte prioritário', free: false, pro: true, premium: true },
 ];
 
-function FeatureIcon({ value }: { value: boolean | string }) {
-  if (value === false) return <Minus className="h-4 w-4 text-muted-foreground/40" />;
+function ComparisonCell({ value }: { value: boolean | string }) {
+  if (value === false) return <X className="h-4 w-4 text-muted-foreground/30" />;
   if (value === true) return <Check className="h-4 w-4 text-green-500" />;
   return <span className="text-xs text-muted-foreground">{value}</span>;
 }
@@ -96,7 +150,11 @@ interface PlanComparisonProps {
   currentTier?: 'free' | 'pro';
 }
 
-export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: PlanComparisonProps) {
+export function PlanComparison({
+  onSelectPlan,
+  loading,
+  currentTier = 'free',
+}: PlanComparisonProps) {
   const [billing, setBilling] = useState<BillingCycle>('monthly');
   const isAnnual = billing === 'annual';
 
@@ -114,7 +172,9 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
             onClick={() => setBilling('monthly')}
             className={cn(
               'rounded-md px-4 py-2 text-sm font-medium transition-colors',
-              !isAnnual ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+              !isAnnual
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             Mensal
@@ -123,14 +183,20 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
             onClick={() => setBilling('annual')}
             className={cn(
               'flex items-center gap-1.5 rounded-md px-4 py-2 text-sm font-medium transition-colors',
-              isAnnual ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+              isAnnual
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground',
             )}
           >
             Anual
-            <span className={cn(
-              'rounded px-1.5 py-0.5 text-[10px] font-bold',
-              isAnnual ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-green-500/15 text-green-500',
-            )}>
+            <span
+              className={cn(
+                'rounded px-1.5 py-0.5 text-[10px] font-bold',
+                isAnnual
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-green-500/15 text-green-500',
+              )}
+            >
               17% OFF
             </span>
           </button>
@@ -142,27 +208,21 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
         {/* Free */}
         <div className="flex flex-col rounded-xl border p-6">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Plano</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Plano
+            </p>
             <h3 className="text-2xl font-bold">{PLANS.free.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{PLANS.free.subtitle}</p>
           </div>
 
           <div className="mt-5 space-y-2.5">
-            {PLAN_FEATURES.map((f) => (
-              <div key={f.name} className="flex items-start gap-2 text-sm">
-                <FeatureIcon value={f.free} />
-                <span className={f.free === false ? 'text-muted-foreground/50 line-through' : ''}>
-                  {f.name}
-                  {typeof f.free === 'string' && <span className="ml-1 text-xs text-muted-foreground">({f.free})</span>}
-                </span>
-              </div>
+            {FREE_FEATURES.map((f) => (
+              <FeatureRow key={f.label} feature={f} />
             ))}
           </div>
 
           <div className="mt-auto pt-6">
-            <p className="text-3xl font-bold">
-              R$ 0,00
-            </p>
+            <p className="text-3xl font-bold">R$ 0,00</p>
             <p className="mt-1 text-xs text-muted-foreground">{PLANS.free.description}</p>
             <Button variant="outline" disabled className="mt-4 w-full">
               {currentTier === 'free' ? 'Plano Atual' : 'Plano Grátis'}
@@ -173,20 +233,16 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
         {/* Pro */}
         <div className="flex flex-col rounded-xl border-2 border-primary/50 p-6">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Plano</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Plano
+            </p>
             <h3 className="text-2xl font-bold">{PLANS.pro.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{PLANS.pro.subtitle}</p>
           </div>
 
           <div className="mt-5 space-y-2.5">
-            {PLAN_FEATURES.map((f) => (
-              <div key={f.name} className="flex items-start gap-2 text-sm">
-                <FeatureIcon value={f.pro} />
-                <span className={f.pro === false ? 'text-muted-foreground/50 line-through' : ''}>
-                  {f.name}
-                  {typeof f.pro === 'string' && <span className="ml-1 text-xs text-muted-foreground">({f.pro})</span>}
-                </span>
-              </div>
+            {PRO_FEATURES.map((f) => (
+              <FeatureRow key={f.label} feature={f} />
             ))}
           </div>
 
@@ -224,7 +280,9 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
                 >
                   {loading === 'pro' ? 'Redirecionando...' : PLANS.pro.cta}
                 </Button>
-                <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.pro.ctaNote}</p>
+                <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                  {PLANS.pro.ctaNote}
+                </p>
               </>
             )}
           </div>
@@ -236,7 +294,9 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
             MELHOR OFERTA
           </span>
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Plano</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Plano
+            </p>
             <h3 className="flex items-center gap-2 text-2xl font-bold">
               {PLANS.premium.name}
               <Crown className="h-5 w-5 text-primary" />
@@ -245,14 +305,8 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
           </div>
 
           <div className="mt-5 space-y-2.5">
-            {PLAN_FEATURES.map((f) => (
-              <div key={f.name} className="flex items-start gap-2 text-sm">
-                <FeatureIcon value={f.premium} />
-                <span className={f.premium === false ? 'text-muted-foreground/50 line-through' : ''}>
-                  {f.name}
-                  {typeof f.premium === 'string' && <span className="ml-1 text-xs text-muted-foreground">({f.premium})</span>}
-                </span>
-              </div>
+            {PREMIUM_FEATURES.map((f) => (
+              <FeatureRow key={f.label} feature={f} />
             ))}
           </div>
 
@@ -267,10 +321,16 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
               disabled={loading === 'premium'}
               className="mt-4 w-full"
             >
-              {loading === 'premium' ? 'Redirecionando...' : currentTier === 'pro' ? 'Upgrade para Premium' : PLANS.premium.cta}
+              {loading === 'premium'
+                ? 'Redirecionando...'
+                : currentTier === 'pro'
+                  ? 'Upgrade para Premium'
+                  : PLANS.premium.cta}
             </Button>
             {currentTier !== 'pro' && (
-              <p className="mt-2 text-center text-[11px] text-muted-foreground">{PLANS.premium.ctaNote}</p>
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">
+                {PLANS.premium.ctaNote}
+              </p>
             )}
           </div>
         </div>
@@ -300,31 +360,13 @@ export function PlanComparison({ onSelectPlan, loading, currentTier = 'free' }: 
             >
               <span>{row.name}</span>
               <span className="flex justify-center">
-                {typeof row.free === 'string' ? (
-                  <span className="text-xs text-muted-foreground">{row.free}</span>
-                ) : row.free ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Minus className="h-4 w-4 text-muted-foreground/40" />
-                )}
+                <ComparisonCell value={row.free} />
               </span>
               <span className="flex justify-center">
-                {typeof row.pro === 'string' ? (
-                  <span className="text-xs font-medium text-primary">{row.pro}</span>
-                ) : row.pro ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Minus className="h-4 w-4 text-muted-foreground/40" />
-                )}
+                <ComparisonCell value={row.pro} />
               </span>
               <span className="flex justify-center">
-                {typeof row.premium === 'string' ? (
-                  <span className="text-xs font-medium text-primary">{row.premium}</span>
-                ) : row.premium ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Minus className="h-4 w-4 text-muted-foreground/40" />
-                )}
+                <ComparisonCell value={row.premium} />
               </span>
             </div>
           ))}

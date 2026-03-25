@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Landmark, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/toast';
+import { PaywallModal } from '@/components/paywall/paywall-modal';
 
 // PluggyConnect uses zoid (iframe-based) which requires browser APIs.
 // Must be loaded client-side only to avoid SSR issues in Next.js.
@@ -23,6 +24,11 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
   const [connectToken, setConnectToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [paywallData, setPaywallData] = useState<{
+    feature: string;
+    current: number;
+    limit: number;
+  } | null>(null);
 
   async function handleConnect() {
     setIsLoading(true);
@@ -38,7 +44,11 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
         const body = await response.json().catch(() => ({}));
 
         if (body.error === 'TIER_LIMIT_REACHED') {
-          setError(`Você atingiu o limite de ${body.limit} conexão(ões) bancária(s) no plano gratuito.`);
+          setPaywallData({
+            feature: body.feature || 'bank_connections',
+            current: body.current ?? 1,
+            limit: body.limit ?? 1,
+          });
           setIsLoading(false);
           return;
         }
@@ -80,7 +90,11 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
         if (body.error === 'TIER_LIMIT_REACHED') {
-          setError(`Limite de conexões atingido no plano gratuito.`);
+          setPaywallData({
+            feature: body.feature || 'bank_connections',
+            current: body.current ?? 1,
+            limit: body.limit ?? 1,
+          });
         } else {
           setError('Banco conectado, mas houve um erro ao importar. Tente novamente.');
         }
@@ -89,7 +103,9 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
       }
 
       const result = await response.json();
-      toast(`Banco conectado! ${result.accountCount} conta(s), ${result.transactionCount} transações importadas.`);
+      toast(
+        `Banco conectado! ${result.accountCount} conta(s), ${result.transactionCount} transações importadas.`,
+      );
       router.refresh();
       onConnectionComplete?.();
     } catch {
@@ -126,6 +142,15 @@ export function ConnectBankButton({ onConnectionComplete }: ConnectBankButtonPro
       </Button>
 
       {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+
+      {paywallData && (
+        <PaywallModal
+          feature={paywallData.feature}
+          current={paywallData.current}
+          limit={paywallData.limit}
+          onClose={() => setPaywallData(null)}
+        />
+      )}
 
       {connectToken && (
         <PluggyConnect
