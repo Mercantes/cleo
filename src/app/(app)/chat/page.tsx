@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <div className="-mx-3 -mt-3 -mb-[calc(5rem+env(safe-area-inset-bottom,0px))] flex h-[calc(100dvh-3.5rem)] flex-col pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] sm:-mx-4 sm:-mt-4 md:-mx-6 md:-mt-6 md:-mb-6 md:pb-0">
+    <div className="-m-3 -mb-32 flex h-[calc(100dvh-3.5rem)] flex-col sm:-m-4 sm:-mb-32 md:-m-6 md:-mb-6">
       <Suspense
         fallback={
           <div className="flex flex-1 items-center justify-center">
@@ -18,6 +18,8 @@ export default function ChatPage() {
       >
         <ChatInterface />
       </Suspense>
+      {/* Spacer for fixed bottom nav + safe area on mobile */}
+      <div className="shrink-0 pt-[4.5rem] pb-safe md:hidden" aria-hidden="true" />
     </div>
   );
 }
