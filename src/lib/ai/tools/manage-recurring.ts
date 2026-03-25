@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 
 export const manageRecurringTool: ToolDefinition = {
@@ -29,10 +29,7 @@ export const manageRecurringTool: ToolDefinition = {
     const merchantName = input.merchant_name as string;
     const action = input.action as string;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     // Find recurring transaction by merchant name (fuzzy)
     const { data: items } = await supabase
@@ -40,7 +37,7 @@ export const manageRecurringTool: ToolDefinition = {
       .select('id, merchant, amount, type')
       .eq('user_id', userId)
       .eq('status', 'active')
-      .ilike('merchant', `%${merchantName}%`)
+      .ilike('merchant', `%${merchantName.replace(/%/g, '\\%').replace(/_/g, '\\_')}%`)
       .limit(3);
 
     if (!items || items.length === 0) {
@@ -70,7 +67,10 @@ export const manageRecurringTool: ToolDefinition = {
     if (action === 'reclassify') {
       const newType = input.new_type as string | undefined;
       if (!newType || !['subscription', 'installment', 'income'].includes(newType)) {
-        return { success: false, message: 'Tipo inválido. Use: subscription, installment ou income.' };
+        return {
+          success: false,
+          message: 'Tipo inválido. Use: subscription, installment ou income.',
+        };
       }
 
       const { error } = await supabase

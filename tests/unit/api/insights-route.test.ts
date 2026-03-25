@@ -9,8 +9,8 @@ vi.mock('@/lib/supabase/server', () => ({
 }));
 
 const mockFrom = vi.fn();
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
     from: (table: string) => mockFrom(table),
   }),
 }));

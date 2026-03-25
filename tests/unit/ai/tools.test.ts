@@ -40,8 +40,8 @@ function chainable(terminal?: MockResult): Record<string, unknown> {
 
 let fromHandler: (table: string) => Record<string, unknown>;
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
     from: (table: string) => fromHandler(table),
   }),
 }));
@@ -112,11 +112,7 @@ describe('AI Tools', () => {
         return chainable({ data: null, error: null });
       };
 
-      const result = await executeTool(
-        'create_goal',
-        { monthly_savings_target: 500 },
-        USER_ID,
-      );
+      const result = await executeTool('create_goal', { monthly_savings_target: 500 }, USER_ID);
       expect(result.success).toBe(true);
     });
 
@@ -132,11 +128,7 @@ describe('AI Tools', () => {
         throw new Error('DB exploded');
       };
 
-      const result = await executeTool(
-        'create_goal',
-        { monthly_savings_target: 100 },
-        USER_ID,
-      );
+      const result = await executeTool('create_goal', { monthly_savings_target: 100 }, USER_ID);
       expect(result.success).toBe(false);
       expect(result.message).toContain('DB exploded');
     });
@@ -167,10 +159,7 @@ describe('AI Tools', () => {
     });
 
     it('should validate negative target', async () => {
-      const result = await createGoalTool.execute(
-        { monthly_savings_target: -100 },
-        USER_ID,
-      );
+      const result = await createGoalTool.execute({ monthly_savings_target: -100 }, USER_ID);
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('positivo');
@@ -184,10 +173,7 @@ describe('AI Tools', () => {
         return chainable({ data: null, error: null });
       };
 
-      const result = await createGoalTool.execute(
-        { monthly_savings_target: 500 },
-        USER_ID,
-      );
+      const result = await createGoalTool.execute({ monthly_savings_target: 500 }, USER_ID);
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('unique violation');
@@ -200,7 +186,13 @@ describe('AI Tools', () => {
   describe('categorize_transaction', () => {
     it('should find and update a single transaction', async () => {
       const mockCategory = { id: 'cat-1', name: 'Alimentacao' };
-      const mockTx = { id: 'tx-1', description: 'IFOOD', merchant: 'iFood', amount: 30, date: '2026-03-01' };
+      const mockTx = {
+        id: 'tx-1',
+        description: 'IFOOD',
+        merchant: 'iFood',
+        amount: 30,
+        date: '2026-03-01',
+      };
 
       fromHandler = (table: string) => {
         if (table === 'categories') {
@@ -218,9 +210,7 @@ describe('AI Tools', () => {
                 const orChain: Record<string, unknown> = {};
                 orChain.order = vi.fn(() => {
                   const orderChain: Record<string, unknown> = {};
-                  orderChain.limit = vi.fn(() =>
-                    Promise.resolve({ data: [mockTx], error: null }),
-                  );
+                  orderChain.limit = vi.fn(() => Promise.resolve({ data: [mockTx], error: null }));
                   return orderChain;
                 });
                 return orChain;
@@ -267,9 +257,7 @@ describe('AI Tools', () => {
                 const orChain: Record<string, unknown> = {};
                 orChain.order = vi.fn(() => {
                   const orderChain: Record<string, unknown> = {};
-                  orderChain.limit = vi.fn(() =>
-                    Promise.resolve({ data: [], error: null }),
-                  );
+                  orderChain.limit = vi.fn(() => Promise.resolve({ data: [], error: null }));
                   return orderChain;
                 });
                 return orChain;
@@ -326,9 +314,7 @@ describe('AI Tools', () => {
             const sel: Record<string, unknown> = {};
             sel.eq = vi.fn(() => {
               const eq2: Record<string, unknown> = {};
-              eq2.eq = vi.fn(() =>
-                Promise.resolve({ data: [], error: null }),
-              );
+              eq2.eq = vi.fn(() => Promise.resolve({ data: [], error: null }));
               return eq2;
             });
             return sel;
@@ -407,9 +393,7 @@ describe('AI Tools', () => {
             const sel: Record<string, unknown> = {};
             sel.eq = vi.fn(() => {
               const eq2: Record<string, unknown> = {};
-              eq2.eq = vi.fn(() =>
-                Promise.resolve({ data: [], error: null }),
-              );
+              eq2.eq = vi.fn(() => Promise.resolve({ data: [], error: null }));
               return eq2;
             });
             return sel;
@@ -436,9 +420,7 @@ describe('AI Tools', () => {
             const sel: Record<string, unknown> = {};
             sel.eq = vi.fn(() => {
               const eq2: Record<string, unknown> = {};
-              eq2.eq = vi.fn(() =>
-                Promise.resolve({ data: [], error: null }),
-              );
+              eq2.eq = vi.fn(() => Promise.resolve({ data: [], error: null }));
               return eq2;
             });
             return sel;
@@ -448,10 +430,7 @@ describe('AI Tools', () => {
         return chainable({ data: null, error: null });
       };
 
-      const result = await createChallengeTool.execute(
-        { title: 'My challenge' },
-        USER_ID,
-      );
+      const result = await createChallengeTool.execute({ title: 'My challenge' }, USER_ID);
 
       expect(result.success).toBe(false);
       expect(result.message).toContain('duration_days');
@@ -550,9 +529,7 @@ describe('AI Tools', () => {
                 const eq2: Record<string, unknown> = {};
                 eq2.ilike = vi.fn(() => {
                   const il: Record<string, unknown> = {};
-                  il.limit = vi.fn(() =>
-                    Promise.resolve({ data: items, error: null }),
-                  );
+                  il.limit = vi.fn(() => Promise.resolve({ data: items, error: null }));
                   return il;
                 });
                 return eq2;

@@ -25,8 +25,8 @@ const chainable = (): Record<string, unknown> => {
   return new Proxy(obj, handler);
 };
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({ from: () => chainable() })),
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({ from: () => chainable() })),
 }));
 
 describe('GET /api/tier', () => {

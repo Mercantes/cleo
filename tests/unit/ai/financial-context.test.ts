@@ -3,8 +3,8 @@ import { clearContextCache } from '@/lib/ai/financial-context';
 
 const mockFrom = vi.fn();
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: (table: string) => mockFrom(table),
   })),
 }));
@@ -34,16 +34,17 @@ describe('buildFinancialContext', () => {
   it('builds context with user financial data', async () => {
     mockFrom.mockImplementation((table: string) => {
       if (table === 'profiles') return mockTable({ full_name: 'João' });
-      if (table === 'transactions') return mockTable([
-        { amount: 5000, type: 'credit', categories: { name: 'Receita' } },
-        { amount: 1200, type: 'debit', categories: { name: 'Alimentação' } },
-      ]);
-      if (table === 'recurring_transactions') return mockTable([
-        { merchant: 'Netflix', amount: 39.9, type: 'subscription', frequency: 'monthly' },
-      ]);
-      if (table === 'accounts') return mockTable([
-        { name: 'Nubank', balance: 3000, type: 'checking' },
-      ]);
+      if (table === 'transactions')
+        return mockTable([
+          { amount: 5000, type: 'credit', categories: { name: 'Receita' } },
+          { amount: 1200, type: 'debit', categories: { name: 'Alimentação' } },
+        ]);
+      if (table === 'recurring_transactions')
+        return mockTable([
+          { merchant: 'Netflix', amount: 39.9, type: 'subscription', frequency: 'monthly' },
+        ]);
+      if (table === 'accounts')
+        return mockTable([{ name: 'Nubank', balance: 3000, type: 'checking' }]);
       return mockTable(null);
     });
 

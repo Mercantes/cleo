@@ -29,8 +29,8 @@ function chainable(): Record<string, unknown> {
   return obj;
 }
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: () => chainable(),
   })),
 }));

@@ -30,8 +30,8 @@ function chainable(): Record<string, unknown> {
   return obj;
 }
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: () => chainable(),
   })),
 }));
@@ -46,7 +46,12 @@ describe('Onboarding API', () => {
 
   it('GET returns onboarding state with userName', async () => {
     mockSingle.mockResolvedValue({
-      data: { onboarding_step: 1, onboarding_completed: false, onboarding_skipped_steps: ['connect-bank'], full_name: 'Maria Silva' },
+      data: {
+        onboarding_step: 1,
+        onboarding_completed: false,
+        onboarding_skipped_steps: ['connect-bank'],
+        full_name: 'Maria Silva',
+      },
     });
 
     const { GET } = await import('@/app/api/onboarding/route');

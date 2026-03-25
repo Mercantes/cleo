@@ -11,6 +11,7 @@ const compactFormatter = new Intl.NumberFormat('pt-BR', {
 });
 
 export function formatCurrency(amount: number): string {
+  if (!Number.isFinite(amount)) return currencyFormatter.format(0);
   return currencyFormatter.format(amount);
 }
 
@@ -73,14 +74,23 @@ export function formatTransactionName(description: string, merchant?: string | n
 
   let cleaned = raw
     // Remove acquirer/gateway prefixes
-    .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet|sumup|ton)\s*[*\-/]?\s*/i, '')
+    .replace(
+      /^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet|sumup|ton)\s*[*\-/]?\s*/i,
+      '',
+    )
     // Remove transaction type prefixes
-    .replace(/^(Compra no débito|Compra no debito|Compra no crédito|Compra no credito|Pagamento recebido|Transferência Recebida|Transferencia Recebida|Transferência Enviada|Transferencia Enviada|Pagamento efetuado|Pagamento de boleto|Débito automático|Debito automatico)\s*[-|:.]?\s*/i, '')
+    .replace(
+      /^(Compra no débito|Compra no debito|Compra no crédito|Compra no credito|Pagamento recebido|Transferência Recebida|Transferencia Recebida|Transferência Enviada|Transferencia Enviada|Pagamento efetuado|Pagamento de boleto|Débito automático|Debito automatico)\s*[-|:.]?\s*/i,
+      '',
+    )
     // Remove asterisks used as separators
     .replace(/\*+/g, ' ')
     // Remove trailing location suffixes (BR, BRA, SAO PAULO, SP, etc.)
     .replace(/\s+(br|bra|brasil)\s*$/i, '')
-    .replace(/\s+(sao paulo|s[aã]o paulo|sp|rj|mg|pr|rs|sc|ba|pe|ce|df|go|mt|ms|pa|am|ma|pi|pb|rn|se|al|es|to|ro|ac|ap|rr)\s*$/i, '')
+    .replace(
+      /\s+(sao paulo|s[aã]o paulo|sp|rj|mg|pr|rs|sc|ba|pe|ce|df|go|mt|ms|pa|am|ma|pi|pb|rn|se|al|es|to|ro|ac|ap|rr)\s*$/i,
+      '',
+    )
     // Remove date patterns (01/06, 03/2026)
     .replace(/\s+\d{2}\/\d{2}(\/\d{2,4})?\s*/g, ' ')
     // Remove trailing numbers that look like codes
@@ -101,6 +111,17 @@ export function formatTransactionName(description: string, merchant?: string | n
     .replace(/^./, (c) => c.toUpperCase());
 
   return cleaned;
+}
+
+/**
+ * Get current date parts in Brazil timezone (America/Sao_Paulo).
+ * Use on server-side code to avoid UTC shift near midnight.
+ */
+export function getBrazilNow(): { year: number; month: number; day: number; dateStr: string } {
+  const now = new Date();
+  const brDate = now.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const [year, month, day] = brDate.split('-').map(Number);
+  return { year, month, day, dateStr: brDate };
 }
 
 export function formatDateGroupLabel(date: string): string {

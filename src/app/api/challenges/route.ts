@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
-import { createClient } from '@supabase/supabase-js';
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const CHALLENGE_TEMPLATES = [
   {
@@ -58,7 +51,7 @@ const CHALLENGE_TEMPLATES = [
 ];
 
 export const GET = withAuth(async (_request, { user }) => {
-  const db = getServiceClient();
+  const db = createAdminClient();
   const { data: challenges } = await db
     .from('challenges')
     .select('*')
@@ -82,9 +75,13 @@ export const POST = withAuth(async (request, { user }) => {
   const { templateIndex, title, description, type, targetAmount, durationDays } = body;
 
   let challengeData;
-  const db = getServiceClient();
+  const db = createAdminClient();
 
-  if (templateIndex !== undefined && templateIndex >= 0 && templateIndex < CHALLENGE_TEMPLATES.length) {
+  if (
+    templateIndex !== undefined &&
+    templateIndex >= 0 &&
+    templateIndex < CHALLENGE_TEMPLATES.length
+  ) {
     const template = CHALLENGE_TEMPLATES[templateIndex];
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + template.durationDays);
@@ -111,11 +108,7 @@ export const POST = withAuth(async (request, { user }) => {
     return NextResponse.json({ error: 'Invalid challenge data' }, { status: 400 });
   }
 
-  const { data, error } = await db
-    .from('challenges')
-    .insert(challengeData)
-    .select()
-    .single();
+  const { data, error } = await db.from('challenges').insert(challengeData).select().single();
 
   if (error) {
     console.error('[challenges] Create error:', error);
@@ -133,7 +126,7 @@ export const PATCH = withAuth(async (request, { user }) => {
     return NextResponse.json({ error: 'Invalid update' }, { status: 400 });
   }
 
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   const updates: Record<string, unknown> = {
     status,

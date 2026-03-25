@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { syncTransactions } from '@/lib/pluggy/sync';
 import { getAccounts, updateItem, getItem } from '@/lib/pluggy/client';
 import { mapPluggyAccountToDb } from '@/lib/pluggy/account-mapper';
@@ -14,10 +14,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   // Get all active bank connections
   const { data: connections, error } = await supabase
@@ -30,7 +27,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ synced: 0 });
   }
 
-  const results: { connection: string; imported: number; categorized: number; error?: string }[] = [];
+  const results: { connection: string; imported: number; categorized: number; error?: string }[] =
+    [];
 
   for (const conn of connections) {
     try {
@@ -50,16 +48,19 @@ export async function GET(request: NextRequest) {
       }
 
       if (!itemReady) {
-        console.warn(`[cron/sync-banks] ${conn.connector_name}: item still updating, syncing with available data`);
+        console.warn(
+          `[cron/sync-banks] ${conn.connector_name}: item still updating, syncing with available data`,
+        );
       }
 
       // Upsert accounts (create new + update existing balances)
       const pluggyAccounts = await getAccounts(conn.pluggy_item_id);
       for (const acc of pluggyAccounts) {
-        await supabase.from('accounts').upsert(
-          mapPluggyAccountToDb(acc, conn.user_id, conn.id),
-          { onConflict: 'pluggy_account_id' },
-        );
+        await supabase
+          .from('accounts')
+          .upsert(mapPluggyAccountToDb(acc, conn.user_id, conn.id), {
+            onConflict: 'pluggy_account_id',
+          });
       }
 
       // Sync transactions (last 90 days by default)
@@ -92,16 +93,15 @@ export async function GET(request: NextRequest) {
         categorized,
       });
 
-      console.warn(`[cron/sync-banks] ${conn.connector_name}: ${syncResult.imported} imported, ${categorized} categorized`);
+      console.warn(
+        `[cron/sync-banks] ${conn.connector_name}: ${syncResult.imported} imported, ${categorized} categorized`,
+      );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       console.error(`[cron/sync-banks] ${conn.connector_name} failed:`, message);
 
       // Mark connection as error
-      await supabase
-        .from('bank_connections')
-        .update({ status: 'error' })
-        .eq('id', conn.id);
+      await supabase.from('bank_connections').update({ status: 'error' }).eq('id', conn.id);
 
       results.push({
         connection: conn.connector_name,
@@ -113,7 +113,9 @@ export async function GET(request: NextRequest) {
   }
 
   const totalImported = results.reduce((sum, r) => sum + r.imported, 0);
-  console.warn(`[cron/sync-banks] Done. ${connections.length} connections, ${totalImported} total imported`);
+  console.warn(
+    `[cron/sync-banks] Done. ${connections.length} connections, ${totalImported} total imported`,
+  );
 
   return NextResponse.json({
     synced: connections.length,

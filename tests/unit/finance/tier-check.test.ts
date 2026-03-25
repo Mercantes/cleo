@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockFrom = vi.fn();
 const mockSingle = vi.fn();
+const mockRpc = vi.fn();
 
 function chainable(): Record<string, unknown> {
   const obj: Record<string, unknown> = {
@@ -18,12 +19,13 @@ function chainable(): Record<string, unknown> {
   return obj;
 }
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: (...args: unknown[]) => {
       mockFrom(...args);
       return chainable();
     },
+    rpc: (...args: unknown[]) => mockRpc(...args),
   })),
 }));
 
@@ -116,9 +118,15 @@ describe('incrementUsage', () => {
     expect(mockFrom).not.toHaveBeenCalled();
   });
 
-  it('calls supabase for chat usage', async () => {
-    mockSingle.mockResolvedValue({ data: { id: 'u1', count: 5 }, error: null });
+  it('calls atomic rpc for chat usage', async () => {
+    mockRpc.mockResolvedValue({ data: 6, error: null });
     await incrementUsage('user-1', 'chat');
-    expect(mockFrom).toHaveBeenCalledWith('usage_tracking');
+    expect(mockRpc).toHaveBeenCalledWith(
+      'increment_usage',
+      expect.objectContaining({
+        p_user_id: 'user-1',
+        p_feature: 'chat',
+      }),
+    );
   });
 });

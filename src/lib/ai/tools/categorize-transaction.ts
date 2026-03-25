@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 import { CATEGORIES } from '@/lib/ai/categorize';
 
@@ -25,10 +25,7 @@ export const categorizeTransactionTool: ToolDefinition = {
     const description = input.transaction_description as string;
     const categoryName = input.category_name as string;
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     // Find the category ID
     const { data: categories } = await supabase

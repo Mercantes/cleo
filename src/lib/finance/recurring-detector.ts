@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export interface RecurringResult {
   merchant: string;
@@ -24,75 +24,162 @@ interface Transaction {
 
 // Known income sources in Brazil — fast-path classification
 const KNOWN_INCOME_SOURCES: string[] = [
-  'salario', 'salary', 'folha', 'holerite',
-  'freelance', 'freela', 'pj', 'nota fiscal',
-  'aluguel', 'aluguer', 'rent',
-  'dividendo', 'rendimento', 'juros', 'yield',
-  'pensao', 'aposentadoria', 'inss', 'beneficio',
-  'reembolso', 'cashback',
+  'salario',
+  'salary',
+  'folha',
+  'holerite',
+  'freelance',
+  'freela',
+  'pj',
+  'nota fiscal',
+  'aluguel',
+  'aluguer',
+  'rent',
+  'dividendo',
+  'rendimento',
+  'juros',
+  'yield',
+  'pensao',
+  'aposentadoria',
+  'inss',
+  'beneficio',
+  'reembolso',
+  'cashback',
 ];
 
 function isKnownIncomeSource(normalizedMerchant: string): boolean {
-  return KNOWN_INCOME_SOURCES.some(known => normalizedMerchant.includes(known));
+  return KNOWN_INCOME_SOURCES.some((known) => normalizedMerchant.includes(known));
 }
 
 // Bank/credit card bill merchants — force-classify as installment (credit card bills)
 const KNOWN_BILL_PAYERS: string[] = [
-  'banco', 'bank', 'fatura', 'cartao', 'cartão',
-  'pagamento fatura', 'pgto fatura', 'pgto cartao',
+  'banco',
+  'bank',
+  'fatura',
+  'cartao',
+  'cartão',
+  'pagamento fatura',
+  'pgto fatura',
+  'pgto cartao',
 ];
 
 function isBillPayment(normalizedMerchant: string): boolean {
-  return KNOWN_BILL_PAYERS.some(known => normalizedMerchant.includes(known));
+  return KNOWN_BILL_PAYERS.some((known) => normalizedMerchant.includes(known));
 }
 
 // Excluded from recurring detection — ad-hoc transfers, not recurring patterns
 const EXCLUDED_MERCHANTS: string[] = [
-  'transferencia', 'transferência', 'ted', 'doc', 'pix',
-  'saldo', 'aplicacao', 'aplicação', 'resgate',
-  'investimento', 'cdb', 'lci', 'lca', 'tesouro',
-  'darf', 'gps', 'imposto',
-  'compra no débito', 'compra no debito', // Generic debit purchases (not recurring)
+  'transferencia',
+  'transferência',
+  'ted',
+  'doc',
+  'pix',
+  'saldo',
+  'aplicacao',
+  'aplicação',
+  'resgate',
+  'investimento',
+  'cdb',
+  'lci',
+  'lca',
+  'tesouro',
+  'darf',
+  'gps',
+  'imposto',
+  'compra no débito',
+  'compra no debito', // Generic debit purchases (not recurring)
 ];
 
 function isExcludedMerchant(normalizedMerchant: string): boolean {
-  return EXCLUDED_MERCHANTS.some(excluded => normalizedMerchant.includes(excluded));
+  return EXCLUDED_MERCHANTS.some((excluded) => normalizedMerchant.includes(excluded));
 }
 
 // Known subscription services in Brazil — fast-path classification
 const KNOWN_SUBSCRIPTIONS: string[] = [
-  'netflix', 'spotify', 'disney', 'hbo', 'max', 'amazon prime',
-  'apple', 'icloud', 'google one', 'google storage', 'youtube premium',
-  'youtube music', 'globoplay', 'paramount', 'star+', 'crunchyroll',
-  'deezer', 'tidal', 'audible',
-  'ifood', 'rappi', 'uber eats', 'uber one', 'uber pass',
-  'gympass', 'totalpass', 'smartfit', 'bluefit',
-  'adobe', 'microsoft 365', 'office 365', 'dropbox', 'notion',
-  'chatgpt', 'openai', 'claude', 'midjourney', 'canva',
-  'playstation', 'xbox', 'nintendo', 'steam', 'ea play',
-  'duolingo', 'coursera', 'alura', 'rocketseat',
-  'nu seguro', 'nubank vida', 'porto seguro', 'sulamerica',
-  'claro', 'vivo', 'tim', 'oi',
+  'netflix',
+  'spotify',
+  'disney',
+  'hbo',
+  'max',
+  'amazon prime',
+  'apple',
+  'icloud',
+  'google one',
+  'google storage',
+  'youtube premium',
+  'youtube music',
+  'globoplay',
+  'paramount',
+  'star+',
+  'crunchyroll',
+  'deezer',
+  'tidal',
+  'audible',
+  'ifood',
+  'rappi',
+  'uber eats',
+  'uber one',
+  'uber pass',
+  'gympass',
+  'totalpass',
+  'smartfit',
+  'bluefit',
+  'adobe',
+  'microsoft 365',
+  'office 365',
+  'dropbox',
+  'notion',
+  'chatgpt',
+  'openai',
+  'claude',
+  'midjourney',
+  'canva',
+  'playstation',
+  'xbox',
+  'nintendo',
+  'steam',
+  'ea play',
+  'duolingo',
+  'coursera',
+  'alura',
+  'rocketseat',
+  'nu seguro',
+  'nubank vida',
+  'porto seguro',
+  'sulamerica',
+  'claro',
+  'vivo',
+  'tim',
+  'oi',
 ];
 
 function isKnownSubscription(normalizedMerchant: string): boolean {
-  return KNOWN_SUBSCRIPTIONS.some(known => normalizedMerchant.includes(known));
+  return KNOWN_SUBSCRIPTIONS.some((known) => normalizedMerchant.includes(known));
 }
 
 // Clean merchant name for DB storage — remove transaction type prefixes
 function cleanMerchantName(merchant: string): string {
-  return merchant
-    .replace(/^(Transferência Recebida|Transferencia Recebida|Pagamento recebido|Compra no débito|Compra no debito)\|?/i, '')
-    .replace(/^\|/, '')
-    .trim() || merchant;
+  return (
+    merchant
+      .replace(
+        /^(Transferência Recebida|Transferencia Recebida|Pagamento recebido|Compra no débito|Compra no debito)\|?/i,
+        '',
+      )
+      .replace(/^\|/, '')
+      .trim() || merchant
+  );
 }
 
-function normalizeMerchant(description: string, merchant: string | null, txType?: 'debit' | 'credit'): string {
+function normalizeMerchant(
+  description: string,
+  merchant: string | null,
+  txType?: 'debit' | 'credit',
+): string {
   const name = merchant || description;
   let normalized = name
     .replace(/\s+/g, ' ')
     .replace(/\d{2}\/\d{2}/g, '') // Remove date patterns like 01/06
-    .replace(/\*+/g, ' ')         // Replace asterisks with space
+    .replace(/\*+/g, ' ') // Replace asterisks with space
     .replace(/\b(br|brasil|sao paulo|sp|rj|rio|nova odessa|bra)\b/gi, '') // Remove location suffixes
     // Remove acquirer prefixes (Dm*, Ifd*, Pag*, Mp*, Pagseguro*, etc.)
     .replace(/^(dm|ifd|pag|mp|pagseguro|mercpago|pic|int|ame|stone|cielo|rede|getnet)\s+/i, '');
@@ -100,14 +187,14 @@ function normalizeMerchant(description: string, merchant: string | null, txType?
   // For credit transactions, strip transfer/payment received prefixes for better grouping
   if (txType === 'credit') {
     normalized = normalized
-      .replace(/^(transferencia recebida|transferência recebida|pagamento recebido|pix recebido|ted recebida?|doc recebida?|credito em conta|crédito em conta)\s*[-|:.]?\s*/i, '')
+      .replace(
+        /^(transferencia recebida|transferência recebida|pagamento recebido|pix recebido|ted recebida?|doc recebida?|credito em conta|crédito em conta)\s*[-|:.]?\s*/i,
+        '',
+      )
       .replace(/^\|+\s*/, '');
   }
 
-  return normalized
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+  return normalized.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
 function isAmountSimilar(a: number, b: number, tolerance = 0.05): boolean {
@@ -116,7 +203,10 @@ function isAmountSimilar(a: number, b: number, tolerance = 0.05): boolean {
 }
 
 function daysBetween(a: string, b: string): number {
-  return Math.abs(new Date(a + 'T12:00:00').getTime() - new Date(b + 'T12:00:00').getTime()) / (1000 * 60 * 60 * 24);
+  return (
+    Math.abs(new Date(a + 'T12:00:00').getTime() - new Date(b + 'T12:00:00').getTime()) /
+    (1000 * 60 * 60 * 24)
+  );
 }
 
 function coefficientOfVariation(values: number[]): number {
@@ -137,8 +227,9 @@ function standardDeviation(values: number[]): number {
 function detectInstallmentPattern(description: string): { current: number; total: number } | null {
   // Require installment prefixes (parcela, parc, parc.) or pattern at end of string
   // to avoid false positives like "Compra 2/5 itens" or "Sala 101/302"
-  const match = description.match(/(?:parcelas?\s*|parc\.?\s*)(\d+)\s*(?:\/|de)\s*(\d+)/i)
-    || description.match(/(\d+)\s*(?:\/|de)\s*(\d+)\s*$/i);
+  const match =
+    description.match(/(?:parcelas?\s*|parc\.?\s*)(\d+)\s*(?:\/|de)\s*(\d+)/i) ||
+    description.match(/(\d+)\s*(?:\/|de)\s*(\d+)\s*$/i);
   if (match) {
     const current = parseInt(match[1]);
     const total = parseInt(match[2]);
@@ -167,7 +258,10 @@ function hasMultiplePerMonth(transactions: Transaction[]): boolean {
   return avgPerMonth > 1.5;
 }
 
-function mapStatus(isActive: boolean, type: 'subscription' | 'installment'): 'active' | 'cancelled' | 'completed' {
+function mapStatus(
+  isActive: boolean,
+  type: 'subscription' | 'installment',
+): 'active' | 'cancelled' | 'completed' {
   if (isActive) return 'active';
   return type === 'installment' ? 'completed' : 'cancelled';
 }
@@ -186,7 +280,13 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
 
   for (const [merchantKey, txs] of grouped) {
     // Skip generic entries without sender info (after prefix stripping, empty or generic)
-    if (!merchantKey || merchantKey === 'pagamento recebido' || merchantKey === 'pagamento recebido -' || merchantKey === '-') continue;
+    if (
+      !merchantKey ||
+      merchantKey === 'pagamento recebido' ||
+      merchantKey === 'pagamento recebido -' ||
+      merchantKey === '-'
+    )
+      continue;
 
     const sorted = [...txs].sort((a, b) => a.date.localeCompare(b.date));
     const latest = sorted[sorted.length - 1];
@@ -200,7 +300,7 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     }
 
     const months = [...monthlyTotals.keys()].sort();
-    const monthlyAmounts = months.map(m => monthlyTotals.get(m)!);
+    const monthlyAmounts = months.map((m) => monthlyTotals.get(m)!);
 
     // Need sender to appear in at least 2 different months
     if (months.length < 2) {
@@ -238,7 +338,7 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     // Check amount variation on monthly totals
     const monthlyCV = coefficientOfVariation(monthlyAmounts);
     // Very lenient for income: employer may send varying amounts (bonuses, splits)
-    const maxCV = isKnown ? 0.80 : 0.60;
+    const maxCV = isKnown ? 0.8 : 0.6;
     if (monthlyCV > maxCV) continue;
 
     const avgMonthlyAmount = monthlyAmounts.reduce((a, b) => a + b, 0) / monthlyAmounts.length;
@@ -246,7 +346,7 @@ function detectRecurringIncomeFromTransactions(transactions: Transaction[]): Rec
     const isActive = daysSinceLast <= 65;
 
     let confidence: 'high' | 'medium' | 'low';
-    if (months.length >= 3 && monthlyCV <= 0.30) confidence = 'high';
+    if (months.length >= 3 && monthlyCV <= 0.3) confidence = 'high';
     else if (months.length >= 3) confidence = 'medium';
     else if (months.length >= 2 && isKnown) confidence = 'medium';
     else confidence = 'low';
@@ -325,9 +425,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
         status: isActive ? 'active' : 'completed',
         confidence: 'high',
         installments_remaining: installment.total - installment.current,
-        next_expected_date: isActive
-          ? addMonths(latest.date, 1)
-          : latest.date,
+        next_expected_date: isActive ? addMonths(latest.date, 1) : latest.date,
         occurrences: sorted.length,
         transaction_pattern: `${installment.current}/${installment.total}`,
       });
@@ -358,7 +456,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
 
     // STEP 3: Calculate intervals and amount statistics
     const intervals: number[] = [];
-    const amounts: number[] = sorted.map(tx => tx.amount);
+    const amounts: number[] = sorted.map((tx) => tx.amount);
 
     for (let i = 1; i < sorted.length; i++) {
       intervals.push(daysBetween(sorted[i].date, sorted[i - 1].date));
@@ -461,7 +559,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
         occurrences: sorted.length,
         transaction_pattern: merchantKey,
       });
-    } else if (amountCV <= 0.30 && intervalStdDev <= 5) {
+    } else if (amountCV <= 0.3 && intervalStdDev <= 5) {
       // High variation but very regular interval → variable subscription (phone bill, etc.)
       results.push({
         merchant: latest.merchant || latest.description,
@@ -485,10 +583,7 @@ export function detectRecurringFromTransactions(transactions: Transaction[]): Re
 }
 
 export async function detectAndSaveRecurring(userId: string): Promise<RecurringResult[]> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   // Fetch user's transactions from last 12 months for better pattern detection
   const twelveMonthsAgo = new Date();
@@ -512,7 +607,7 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
     .eq('user_id', userId)
     .eq('user_override', 'dismissed');
 
-  const dismissedPatterns = new Set((dismissedRows || []).map(r => r.transaction_pattern));
+  const dismissedPatterns = new Set((dismissedRows || []).map((r) => r.transaction_pattern));
 
   // Delete old auto-detected records (preserve user overrides including dismissed)
   await supabase
@@ -522,10 +617,10 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
     .is('user_override', null);
 
   // Filter out dismissed patterns and insert fresh results
-  const filteredResults = results.filter(r => !dismissedPatterns.has(r.transaction_pattern));
+  const filteredResults = results.filter((r) => !dismissedPatterns.has(r.transaction_pattern));
 
   if (filteredResults.length > 0) {
-    const rows = filteredResults.map(result => ({
+    const rows = filteredResults.map((result) => ({
       user_id: userId,
       transaction_pattern: result.transaction_pattern,
       merchant: cleanMerchantName(result.merchant),
@@ -551,4 +646,20 @@ export async function detectAndSaveRecurring(userId: string): Promise<RecurringR
   return results;
 }
 
-export { normalizeMerchant, cleanMerchantName, isAmountSimilar, detectInstallmentPattern, coefficientOfVariation, standardDeviation, isKnownSubscription, isKnownIncomeSource, isExcludedMerchant, isBillPayment, hasMultiplePerMonth, KNOWN_SUBSCRIPTIONS, KNOWN_INCOME_SOURCES, EXCLUDED_MERCHANTS, KNOWN_BILL_PAYERS };
+export {
+  normalizeMerchant,
+  cleanMerchantName,
+  isAmountSimilar,
+  detectInstallmentPattern,
+  coefficientOfVariation,
+  standardDeviation,
+  isKnownSubscription,
+  isKnownIncomeSource,
+  isExcludedMerchant,
+  isBillPayment,
+  hasMultiplePerMonth,
+  KNOWN_SUBSCRIPTIONS,
+  KNOWN_INCOME_SOURCES,
+  EXCLUDED_MERCHANTS,
+  KNOWN_BILL_PAYERS,
+};

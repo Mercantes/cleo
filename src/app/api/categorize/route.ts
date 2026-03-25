@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { categorizeTransactions } from '@/lib/ai/categorize';
-import { createClient as createServiceClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { rateLimit, RATE_LIMITS } from '@/lib/utils/rate-limit';
 
 export async function POST(request: Request) {
@@ -40,10 +40,7 @@ export async function POST(request: Request) {
     }
 
     // Mode 2: Re-categorize by IDs or all uncategorized
-    const serviceClient = createServiceClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const serviceClient = createAdminClient();
 
     let query = serviceClient
       .from('transactions')
@@ -58,7 +55,10 @@ export async function POST(request: Request) {
     } else if (body.all) {
       query = query.or('category_id.is.null,category_confidence.lt.0.70');
     } else {
-      return NextResponse.json({ error: 'Provide transactions, transactionIds, or all flag' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Provide transactions, transactionIds, or all flag' },
+        { status: 400 },
+      );
     }
 
     const { data: txs, error } = await query.limit(500);

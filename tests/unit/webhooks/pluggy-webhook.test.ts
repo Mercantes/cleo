@@ -6,12 +6,20 @@ vi.mock('@/lib/pluggy/webhook-handler', () => ({
   handleWebhookEvent: (...args: unknown[]) => mockHandleEvent(...args),
 }));
 
+// Mock signature verification to always pass in tests
+vi.mock('@/lib/pluggy/verify-signature', () => ({
+  verifyPluggySignature: vi.fn().mockReturnValue(true),
+}));
+
 import { POST } from '@/app/api/webhooks/pluggy/route';
 
 function createWebhookRequest(body: string | object) {
   return new Request('http://localhost:3000/api/webhooks/pluggy', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-pluggy-signature': 'valid-test-signature',
+    },
     body: typeof body === 'string' ? body : JSON.stringify(body),
   });
 }
@@ -19,6 +27,7 @@ function createWebhookRequest(body: string | object) {
 describe('POST /api/webhooks/pluggy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.PLUGGY_WEBHOOK_SECRET = 'test-webhook-secret';
   });
 
   it('should return 400 for invalid JSON', async () => {

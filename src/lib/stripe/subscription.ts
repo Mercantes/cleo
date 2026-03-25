@@ -1,18 +1,8 @@
 import { stripe } from './client';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
-
-export async function getOrCreateCustomer(
-  userId: string,
-  email: string,
-): Promise<string> {
-  const supabase = getServiceClient();
+export async function getOrCreateCustomer(userId: string, email: string): Promise<string> {
+  const supabase = createAdminClient();
 
   // Check if user already has a Stripe customer ID
   const { data: profile } = await supabase
@@ -32,10 +22,7 @@ export async function getOrCreateCustomer(
   });
 
   // Store customer ID
-  await supabase
-    .from('profiles')
-    .update({ stripe_customer_id: customer.id })
-    .eq('id', userId);
+  await supabase.from('profiles').update({ stripe_customer_id: customer.id }).eq('id', userId);
 
   return customer.id;
 }
@@ -46,7 +33,7 @@ export async function updateUserTier(
   subscriptionId?: string,
   subscriptionStatus?: string,
 ): Promise<void> {
-  const supabase = getServiceClient();
+  const supabase = createAdminClient();
 
   const update: Record<string, unknown> = {
     tier,
@@ -57,17 +44,11 @@ export async function updateUserTier(
     update.stripe_subscription_id = subscriptionId;
   }
 
-  await supabase
-    .from('profiles')
-    .update(update)
-    .eq('stripe_customer_id', stripeCustomerId);
+  await supabase.from('profiles').update(update).eq('stripe_customer_id', stripeCustomerId);
 }
 
-export async function setGracePeriod(
-  stripeCustomerId: string,
-  days: number = 7,
-): Promise<void> {
-  const supabase = getServiceClient();
+export async function setGracePeriod(stripeCustomerId: string, days: number = 7): Promise<void> {
+  const supabase = createAdminClient();
   const until = new Date();
   until.setDate(until.getDate() + days);
 
@@ -78,7 +59,7 @@ export async function setGracePeriod(
 }
 
 export async function isInGracePeriod(userId: string): Promise<boolean> {
-  const supabase = getServiceClient();
+  const supabase = createAdminClient();
   const { data } = await supabase
     .from('profiles')
     .select('grace_period_until')

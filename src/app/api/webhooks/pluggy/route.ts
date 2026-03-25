@@ -7,14 +7,16 @@ export async function POST(request: Request) {
 
   console.warn('[pluggy-webhook] received:', body.substring(0, 500));
 
-  // Verify webhook signature when secret is configured
+  // Verify webhook signature
   const webhookSecret = process.env.PLUGGY_WEBHOOK_SECRET;
-  if (webhookSecret) {
-    const signature = request.headers.get('x-pluggy-signature') || '';
-    if (!verifyPluggySignature(body, signature, webhookSecret)) {
-      console.warn('[pluggy-webhook] invalid signature');
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
-    }
+  if (!webhookSecret) {
+    console.error('[pluggy-webhook] PLUGGY_WEBHOOK_SECRET not configured');
+    return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 });
+  }
+  const signature = request.headers.get('x-pluggy-signature') || '';
+  if (!verifyPluggySignature(body, signature, webhookSecret)) {
+    console.warn('[pluggy-webhook] invalid signature');
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
   }
 
   let event: PluggyWebhookEvent;

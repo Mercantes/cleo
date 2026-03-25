@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
-import { createClient } from '@supabase/supabase-js';
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const POST = withAuth(async (request, { user }) => {
   const body = await request.json();
@@ -17,7 +10,7 @@ export const POST = withAuth(async (request, { user }) => {
     return NextResponse.json({ error: 'Invalid subscription' }, { status: 400 });
   }
 
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   const { error } = await (db as unknown as { from: (t: string) => ReturnType<typeof db.from> })
     .from('push_subscriptions')
@@ -48,7 +41,7 @@ export const DELETE = withAuth(async (request, { user }) => {
     return NextResponse.json({ error: 'Missing endpoint' }, { status: 400 });
   }
 
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   await (db as unknown as { from: (t: string) => ReturnType<typeof db.from> })
     .from('push_subscriptions')

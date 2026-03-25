@@ -1,30 +1,17 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { goalSchema, parseBody } from '@/lib/validations/api';
 
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
-
 export const GET = withAuth(async (_request, { user }) => {
-  const db = getServiceClient();
+  const db = createAdminClient();
 
-  const { data: goals } = await db
-    .from('goals')
-    .select('*')
-    .eq('user_id', user.id)
-    .single();
+  const { data: goals } = await db.from('goals').select('*').eq('user_id', user.id).single();
 
   // Calculate current month savings
   const now = new Date();
   const monthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-    .toISOString()
-    .split('T')[0];
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
   const { data: transactions } = await db
     .from('transactions')
@@ -70,9 +57,11 @@ export const GET = withAuth(async (_request, { user }) => {
 export const PUT = withAuth(async (request, { user }) => {
   const body = await request.json();
   const parsed = parseBody(goalSchema, {
-    monthlySavingsTarget: body.monthlySavingsTarget != null ? Number(body.monthlySavingsTarget) : undefined,
+    monthlySavingsTarget:
+      body.monthlySavingsTarget != null ? Number(body.monthlySavingsTarget) : undefined,
     retirementAge: body.retirementAgeTarget != null ? Number(body.retirementAgeTarget) : undefined,
-    emergencyFundBalance: body.emergencyFundBalance != null ? Number(body.emergencyFundBalance) : undefined,
+    emergencyFundBalance:
+      body.emergencyFundBalance != null ? Number(body.emergencyFundBalance) : undefined,
   });
   if (parsed.error || !parsed.data) {
     return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
@@ -81,7 +70,7 @@ export const PUT = withAuth(async (request, { user }) => {
   const retAge = parsed.data.retirementAge ?? null;
   const emergencyFund = parsed.data.emergencyFundBalance ?? undefined;
 
-  const db = getServiceClient();
+  const db = createAdminClient();
   const { error } = await db.from('goals').upsert(
     {
       user_id: user.id,

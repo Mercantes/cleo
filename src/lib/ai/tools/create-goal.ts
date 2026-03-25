@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 
 export const createGoalTool: ToolDefinition = {
@@ -27,10 +27,7 @@ export const createGoalTool: ToolDefinition = {
       return { success: false, message: 'O valor da meta deve ser positivo.' };
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     const updateData: Record<string, unknown> = {
       user_id: userId,
@@ -42,9 +39,7 @@ export const createGoalTool: ToolDefinition = {
       updateData.retirement_age_target = retirementAgeTarget;
     }
 
-    const { error } = await supabase
-      .from('goals')
-      .upsert(updateData, { onConflict: 'user_id' });
+    const { error } = await supabase.from('goals').upsert(updateData, { onConflict: 'user_id' });
 
     if (error) {
       return { success: false, message: `Erro ao salvar meta: ${error.message}` };
@@ -58,7 +53,10 @@ export const createGoalTool: ToolDefinition = {
     return {
       success: true,
       message: parts.join('. '),
-      data: { monthly_savings_target: monthlySavingsTarget, retirement_age_target: retirementAgeTarget },
+      data: {
+        monthly_savings_target: monthlySavingsTarget,
+        retirement_age_target: retirementAgeTarget,
+      },
     };
   },
 };

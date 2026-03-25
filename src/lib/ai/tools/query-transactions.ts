@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency } from '@/lib/utils/format';
 import type { ToolDefinition, ToolResult } from './types';
 
@@ -11,19 +11,23 @@ export const queryTransactionsTool: ToolDefinition = {
     properties: {
       date_from: {
         type: 'string',
-        description: 'Data inicial no formato YYYY-MM-DD. Se o usuário disser "ontem", calcule a data.',
+        description:
+          'Data inicial no formato YYYY-MM-DD. Se o usuário disser "ontem", calcule a data.',
       },
       date_to: {
         type: 'string',
-        description: 'Data final no formato YYYY-MM-DD. Se não informado, usa a mesma data de date_from para buscar um dia específico.',
+        description:
+          'Data final no formato YYYY-MM-DD. Se não informado, usa a mesma data de date_from para buscar um dia específico.',
       },
       category: {
         type: 'string',
-        description: 'Filtrar por nome da categoria (ex: "Alimentação", "Transporte"). Busca parcial case-insensitive.',
+        description:
+          'Filtrar por nome da categoria (ex: "Alimentação", "Transporte"). Busca parcial case-insensitive.',
       },
       merchant: {
         type: 'string',
-        description: 'Filtrar por nome do merchant/estabelecimento. Busca parcial case-insensitive.',
+        description:
+          'Filtrar por nome do merchant/estabelecimento. Busca parcial case-insensitive.',
       },
       type: {
         type: 'string',
@@ -46,10 +50,7 @@ export const queryTransactionsTool: ToolDefinition = {
     required: [],
   },
   execute: async (input: Record<string, unknown>, userId: string): Promise<ToolResult> => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     let query = supabase
       .from('transactions')
@@ -84,7 +85,31 @@ export const queryTransactionsTool: ToolDefinition = {
     }
 
     if (input.merchant) {
-      query = query.ilike('merchant', `%${input.merchant as string}%`);
+      // Escape LIKE wildcards to prevent pattern injection
+      const safeMerchant = (input.merchant as string).replace(/%/g, '\\%').replace(/_/g, '\\_');
+      query = query.ilike('merchant', `%${safeMerchant}%`);
+    }
+
+    // If category filter is provided, look up category ID first for DB-level filtering
+    if (input.category) {
+      const safeCat = (input.category as string).replace(/%/g, '\\%').replace(/_/g, '\\_');
+      const { data: matchedCat } = await supabase
+        .from('categories')
+        .select('id')
+        .ilike('name', `%${safeCat}%`)
+        .limit(1)
+        .single();
+
+      if (matchedCat?.id) {
+        query = query.eq('category_id', matchedCat.id);
+      } else {
+        // No matching category — return empty
+        return {
+          success: true,
+          message: `Nenhuma transação encontrada (categoria: ${input.category}).`,
+          data: { transactions: [], count: 0 },
+        };
+      }
     }
 
     const limit = Math.min(Number(input.limit) || 30, 50);
@@ -109,15 +134,7 @@ export const queryTransactionsTool: ToolDefinition = {
       };
     }
 
-    // Filter by category name (done post-query since it's a joined table)
-    let filtered = transactions;
-    if (input.category) {
-      const catFilter = (input.category as string).toLowerCase();
-      filtered = transactions.filter((t) => {
-        const catObj = t.categories as unknown as { name: string } | null;
-        return catObj?.name?.toLowerCase().includes(catFilter);
-      });
-    }
+    const filtered = transactions;
 
     // Format for AI readability
     const formatted = filtered.map((t) => {
@@ -140,9 +157,7 @@ export const queryTransactionsTool: ToolDefinition = {
       .filter((t) => t.type === 'credit')
       .reduce((s, t) => s + Math.abs(Number(t.amount)), 0);
 
-    const summary = [
-      `${filtered.length} transação(ões) encontrada(s).`,
-    ];
+    const summary = [`${filtered.length} transação(ões) encontrada(s).`];
     if (totalDebit > 0) summary.push(`Total despesas: ${formatCurrency(totalDebit)}`);
     if (totalCredit > 0) summary.push(`Total receitas: ${formatCurrency(totalCredit)}`);
 

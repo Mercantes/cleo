@@ -24,5 +24,7 @@ export const TIER_LIMITS: Record<Tier, Record<TierFeature, number>> = {
 
 export function getCurrentPeriod(): string {
   const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const brDate = now.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const [year, month] = brDate.split('-');
+  return `${year}-${month}`;
 }

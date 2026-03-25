@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { formatCurrency } from '@/lib/utils/format';
 
 export const maxDuration = 15;
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 interface Insight {
   id: string;
@@ -22,21 +15,44 @@ interface Insight {
 }
 
 export const GET = withAuth(async (_request, { user }) => {
-  const db = getServiceClient();
+  const db = createAdminClient();
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split('T')[0];
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    .toISOString()
+    .split('T')[0];
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
   const [currentTxRes, lastTxRes, recurringRes, goalsRes, budgetsRes] = await Promise.all([
-    db.from('transactions').select('amount, type, category_id, categories(name)').eq('user_id', user.id)
-      .gte('date', currentMonth).lte('date', currentMonthEnd),
-    db.from('transactions').select('amount, type, categories(name)').eq('user_id', user.id)
-      .gte('date', lastMonthStart).lte('date', lastMonthEnd),
-    db.from('recurring_transactions').select('merchant, amount, type').eq('user_id', user.id).eq('status', 'active'),
-    db.from('goals').select('monthly_savings_target, streak_months, level').eq('user_id', user.id).single(),
-    db.from('category_budgets').select('category_id, monthly_limit, categories(name)').eq('user_id', user.id),
+    db
+      .from('transactions')
+      .select('amount, type, category_id, categories(name)')
+      .eq('user_id', user.id)
+      .gte('date', currentMonth)
+      .lte('date', currentMonthEnd),
+    db
+      .from('transactions')
+      .select('amount, type, categories(name)')
+      .eq('user_id', user.id)
+      .gte('date', lastMonthStart)
+      .lte('date', lastMonthEnd),
+    db
+      .from('recurring_transactions')
+      .select('merchant, amount, type')
+      .eq('user_id', user.id)
+      .eq('status', 'active'),
+    db
+      .from('goals')
+      .select('monthly_savings_target, streak_months, level')
+      .eq('user_id', user.id)
+      .single(),
+    db
+      .from('category_budgets')
+      .select('category_id, monthly_limit, categories(name)')
+      .eq('user_id', user.id),
   ]);
 
   const currentTx = currentTxRes.data || [];
@@ -44,9 +60,15 @@ export const GET = withAuth(async (_request, { user }) => {
   const recurring = recurringRes.data || [];
   const goals = goalsRes.data;
 
-  const currentIncome = currentTx.filter((t: { type: string }) => t.type === 'credit').reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-  const currentExpenses = currentTx.filter((t: { type: string }) => t.type === 'debit').reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-  const lastExpenses = lastTx.filter((t: { type: string }) => t.type === 'debit').reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
+  const currentIncome = currentTx
+    .filter((t: { type: string }) => t.type === 'credit')
+    .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
+  const currentExpenses = currentTx
+    .filter((t: { type: string }) => t.type === 'debit')
+    .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
+  const lastExpenses = lastTx
+    .filter((t: { type: string }) => t.type === 'debit')
+    .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
 
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -113,7 +135,10 @@ export const GET = withAuth(async (_request, { user }) => {
 
   // 3. Subscription cost awareness
   if (recurring.length > 0) {
-    const totalRecurring = recurring.reduce((s: number, r: { amount: number }) => s + Number(r.amount), 0);
+    const totalRecurring = recurring.reduce(
+      (s: number, r: { amount: number }) => s + Number(r.amount),
+      0,
+    );
     if (totalRecurring > 0 && currentIncome > 0) {
       const recurringPercent = Math.round((totalRecurring / currentIncome) * 100);
       if (recurringPercent > 30) {
@@ -180,7 +205,9 @@ export const GET = withAuth(async (_request, { user }) => {
       const bCatId = (budget as unknown as { category_id: string }).category_id;
       const limit = Number((budget as unknown as { monthly_limit: number }).monthly_limit);
       const spent = spendingByCategory.get(bCatId) || 0;
-      const catName = ((budget as unknown as { categories: { name: string } | null }).categories)?.name || 'Categoria';
+      const catName =
+        (budget as unknown as { categories: { name: string } | null }).categories?.name ||
+        'Categoria';
       const pct = limit > 0 ? (spent / limit) * 100 : 0;
 
       if (pct >= 100) {

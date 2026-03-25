@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/client';
 import { updateUserTier, setGracePeriod } from '@/lib/stripe/subscription';
+import { createAdminClient } from '@/lib/supabase/admin';
+
+// In-memory set for idempotency (short-lived — serverless functions restart often)
+const processedEvents = new Set<string>();
+const MAX_PROCESSED_EVENTS = 500;
 
 export async function POST(request: NextRequest) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -19,14 +24,15 @@ export async function POST(request: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      webhookSecret,
-    );
+    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
   } catch (error) {
     console.error('[stripe/webhook] invalid signature:', error);
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
+  }
+
+  // Idempotency check — skip already-processed events
+  if (processedEvents.has(event.id)) {
+    return NextResponse.json({ received: true, duplicate: true });
   }
 
   try {
@@ -52,19 +58,19 @@ export async function POST(request: NextRequest) {
         } else if (status === 'past_due') {
           await setGracePeriod(subscription.customer as string, 7);
         } else if (status === 'canceled' || status === 'unpaid') {
-          await updateUserTier(subscription.customer as string, 'free', null as unknown as string, status);
+          await updateUserTier(
+            subscription.customer as string,
+            'free',
+            null as unknown as string,
+            status,
+          );
         }
         break;
       }
 
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        await updateUserTier(
-          subscription.customer as string,
-          'free',
-          undefined,
-          'canceled',
-        );
+        await updateUserTier(subscription.customer as string, 'free', undefined, 'canceled');
         break;
       }
 
@@ -81,6 +87,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Webhook processing failed' }, { status: 500 });
   }
 
-  console.warn(`[stripe/webhook] processed ${event.type} successfully`);
+  // Mark event as processed
+  processedEvents.add(event.id);
+  if (processedEvents.size > MAX_PROCESSED_EVENTS) {
+    const first = processedEvents.values().next().value;
+    if (first) processedEvents.delete(first);
+  }
+
+  console.warn(`[stripe/webhook] processed ${event.type} (${event.id}) successfully`);
   return NextResponse.json({ received: true });
 }

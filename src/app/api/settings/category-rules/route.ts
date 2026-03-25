@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { parseBody } from '@/lib/validations/api';
 import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const createRuleSchema = z.object({
   merchant_pattern: z.string().trim().min(3, 'Padrão deve ter pelo menos 3 caracteres').max(200),
@@ -33,10 +33,7 @@ export const POST = withAuth(async (request: NextRequest, { user }) => {
     return NextResponse.json({ error: parsed.error || 'Dados inválidos' }, { status: 400 });
   }
 
-  const serviceClient = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const serviceClient = createAdminClient();
 
   const { data: rule, error } = await serviceClient
     .from('user_category_rules')

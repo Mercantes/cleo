@@ -14,8 +14,8 @@ const mockUpdate = vi.fn();
 const mockGoalsSelect = vi.fn();
 const mockGoalsUpdate = vi.fn();
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
     from: (table: string) => {
       if (table === 'challenges') {
         return {
@@ -90,10 +90,12 @@ describe('POST /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new NextRequest('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({ templateIndex: 0 }),
-    }));
+    const response = await POST(
+      new NextRequest('http://localhost', {
+        method: 'POST',
+        body: JSON.stringify({ templateIndex: 0 }),
+      }),
+    );
 
     expect(response.status).toBe(401);
   });
@@ -102,18 +104,21 @@ describe('POST /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
     mockInsert.mockReturnValue({
       select: () => ({
-        single: () => Promise.resolve({
-          data: { id: 'new-1', title: 'Semana sem delivery', status: 'active' },
-          error: null,
-        }),
+        single: () =>
+          Promise.resolve({
+            data: { id: 'new-1', title: 'Semana sem delivery', status: 'active' },
+            error: null,
+          }),
       }),
     });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new NextRequest('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({ templateIndex: 0 }),
-    }));
+    const response = await POST(
+      new NextRequest('http://localhost', {
+        method: 'POST',
+        body: JSON.stringify({ templateIndex: 0 }),
+      }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(201);
@@ -124,10 +129,12 @@ describe('POST /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
 
     const { POST } = await import('@/app/api/challenges/route');
-    const response = await POST(new NextRequest('http://localhost', {
-      method: 'POST',
-      body: JSON.stringify({}),
-    }));
+    const response = await POST(
+      new NextRequest('http://localhost', {
+        method: 'POST',
+        body: JSON.stringify({}),
+      }),
+    );
 
     expect(response.status).toBe(400);
   });
@@ -142,10 +149,12 @@ describe('PATCH /api/challenges', () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: 'user-1' } } });
 
     const { PATCH } = await import('@/app/api/challenges/route');
-    const response = await PATCH(new NextRequest('http://localhost', {
-      method: 'PATCH',
-      body: JSON.stringify({ challengeId: '1', status: 'invalid' }),
-    }));
+    const response = await PATCH(
+      new NextRequest('http://localhost', {
+        method: 'PATCH',
+        body: JSON.stringify({ challengeId: '1', status: 'invalid' }),
+      }),
+    );
 
     expect(response.status).toBe(400);
   });

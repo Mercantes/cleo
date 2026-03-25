@@ -2,17 +2,10 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
 import { getUserTier } from '@/lib/finance/tier-check';
 import { TIER_LIMITS, getCurrentPeriod } from '@/lib/finance/tier-config';
-import { createClient } from '@supabase/supabase-js';
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export const GET = withAuth(async (_request, { user }) => {
-  const db = getServiceClient();
+  const db = createAdminClient();
   const tier = await getUserTier(user.id);
 
   // Fetch grace period in parallel with usage data
@@ -26,7 +19,12 @@ export const GET = withAuth(async (_request, { user }) => {
   if (tier === 'pro') {
     const gracePeriodUntil = await gracePeriodPromise;
     return NextResponse.json(
-      { tier, transactions: { current: 0, limit: Infinity }, chat: { current: 0, limit: Infinity }, gracePeriodUntil },
+      {
+        tier,
+        transactions: { current: 0, limit: Infinity },
+        chat: { current: 0, limit: Infinity },
+        gracePeriodUntil,
+      },
       { headers: { 'Cache-Control': 'private, max-age=300, stale-while-revalidate=60' } },
     );
   }

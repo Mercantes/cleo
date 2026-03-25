@@ -1,68 +1,197 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const BATCH_SIZE = 50;
 
 // Rule-based pre-categorization: substring match (case-insensitive) → category name
 const MERCHANT_CATEGORY_RULES: Record<string, string[]> = {
-  'Alimentação': [
-    'ifood', 'ifd*', 'uber eats', 'rappi', 'zé delivery', 'ze delivery',
-    '99food', '99 food',
-    'mcdonalds', 'mcdonald', 'burger king', 'subway', 'starbucks',
-    'restaurante', 'rest ', 'lanchonete', 'padaria', 'pizzaria', 'açougue',
-    'esfiha', 'churrascaria', 'cafeteria', 'cafe ',
-    'supermercado', 'mercado', 'hortifruti', 'pao de acucar', 'carrefour',
-    'assai', 'atacadao', 'extra', 'dia supermercado', 'sams club',
-    'bebidas e alimento', 'meat', 'frango',
+  Alimentação: [
+    'ifood',
+    'ifd*',
+    'uber eats',
+    'rappi',
+    'zé delivery',
+    'ze delivery',
+    '99food',
+    '99 food',
+    'mcdonalds',
+    'mcdonald',
+    'burger king',
+    'subway',
+    'starbucks',
+    'restaurante',
+    'rest ',
+    'lanchonete',
+    'padaria',
+    'pizzaria',
+    'açougue',
+    'esfiha',
+    'churrascaria',
+    'cafeteria',
+    'cafe ',
+    'supermercado',
+    'mercado',
+    'hortifruti',
+    'pao de acucar',
+    'carrefour',
+    'assai',
+    'atacadao',
+    'extra',
+    'dia supermercado',
+    'sams club',
+    'bebidas e alimento',
+    'meat',
+    'frango',
   ],
-  'Transporte': [
-    'uber ', 'uber trip', '99 ', '99app', 'cabify', 'lyft',
-    'posto', 'combustivel', 'combustível', 'shell', 'ipiranga', 'br distribuidora',
-    'estacionamento', 'parking', 'multipark', 'park ', 'pedagio', 'pedágio', 'sem parar',
-    'recarga bilhete', 'metro ', 'metrô',
-    'porto seguro auto', 'seguro auto',
+  Transporte: [
+    'uber ',
+    'uber trip',
+    '99 ',
+    '99app',
+    'cabify',
+    'lyft',
+    'posto',
+    'combustivel',
+    'combustível',
+    'shell',
+    'ipiranga',
+    'br distribuidora',
+    'estacionamento',
+    'parking',
+    'multipark',
+    'park ',
+    'pedagio',
+    'pedágio',
+    'sem parar',
+    'recarga bilhete',
+    'metro ',
+    'metrô',
+    'porto seguro auto',
+    'seguro auto',
   ],
-  'Assinaturas': [
-    'netflix', 'spotify', 'amazon prime', 'amazon ad free', 'disney', 'hbo', 'star+',
-    'youtube premium', 'apple.com', 'applecombill', 'google storage', 'icloud',
-    'deezer', 'globoplay', 'paramount', 'crunchyroll',
-    'wellhub', 'gympass',
+  Assinaturas: [
+    'netflix',
+    'spotify',
+    'amazon prime',
+    'amazon ad free',
+    'disney',
+    'hbo',
+    'star+',
+    'youtube premium',
+    'apple.com',
+    'applecombill',
+    'google storage',
+    'icloud',
+    'deezer',
+    'globoplay',
+    'paramount',
+    'crunchyroll',
+    'wellhub',
+    'gympass',
   ],
-  'Saúde': [
-    'farmacia', 'farmácia', 'drogaria', 'drogasil', 'droga raia', 'drogal',
-    'raia drogasil', 'panvel', 'unimed', 'amil', 'sulamerica',
-    'hapvida', 'notredame', 'hospital', 'clinica', 'clínica',
-    'laboratório', 'laboratorio', 'dentista', 'odonto',
+  Saúde: [
+    'farmacia',
+    'farmácia',
+    'drogaria',
+    'drogasil',
+    'droga raia',
+    'drogal',
+    'raia drogasil',
+    'panvel',
+    'unimed',
+    'amil',
+    'sulamerica',
+    'hapvida',
+    'notredame',
+    'hospital',
+    'clinica',
+    'clínica',
+    'laboratório',
+    'laboratorio',
+    'dentista',
+    'odonto',
   ],
-  'Educação': [
-    'udemy', 'coursera', 'alura', 'escola', 'faculdade', 'universidade',
-    'curso ', 'mensalidade escolar', 'livrar', 'saraiva', 'amazon kindle',
+  Educação: [
+    'udemy',
+    'coursera',
+    'alura',
+    'escola',
+    'faculdade',
+    'universidade',
+    'curso ',
+    'mensalidade escolar',
+    'livrar',
+    'saraiva',
+    'amazon kindle',
   ],
-  'Moradia': [
-    'aluguel', 'condominio', 'condomínio', 'iptu', 'luz', 'energia',
-    'enel', 'cemig', 'copel', 'eletropaulo', 'sabesp', 'agua ',
-    'água ', 'gas ', 'gás ', 'internet', 'claro', 'vivo', 'tim', 'oi ',
-    'pisos', 'materiais',
+  Moradia: [
+    'aluguel',
+    'condominio',
+    'condomínio',
+    'iptu',
+    'luz',
+    'energia',
+    'enel',
+    'cemig',
+    'copel',
+    'eletropaulo',
+    'sabesp',
+    'agua ',
+    'água ',
+    'gas ',
+    'gás ',
+    'internet',
+    'claro',
+    'vivo',
+    'tim',
+    'oi ',
+    'pisos',
+    'materiais',
   ],
-  'Compras': [
-    'amazonmktplc', 'amazon br', 'americanas', 'magazine luiza', 'magalu',
-    'shopee', 'mercado livre', 'aliexpress', 'shein',
-    'shoes', 'clothing', 'renner', 'riachuelo', 'c&a', 'zara',
-    'shopping', 'sh park',
+  Compras: [
+    'amazonmktplc',
+    'amazon br',
+    'americanas',
+    'magazine luiza',
+    'magalu',
+    'shopee',
+    'mercado livre',
+    'aliexpress',
+    'shein',
+    'shoes',
+    'clothing',
+    'renner',
+    'riachuelo',
+    'c&a',
+    'zara',
+    'shopping',
+    'sh park',
   ],
-  'Receita': [
-    'salario', 'salário', 'pagamento recebido', 'pix recebido',
-    'transferencia recebida', 'transferência recebida', 'rendimento',
-    'dividendo', 'reembolso', 'cashback',
+  Receita: [
+    'salario',
+    'salário',
+    'pagamento recebido',
+    'pix recebido',
+    'transferencia recebida',
+    'transferência recebida',
+    'rendimento',
+    'dividendo',
+    'reembolso',
+    'cashback',
   ],
-  'Lazer': [
-    'arena beach', 'cinema', 'teatro', 'ingresso', 'show ',
-    'barbershop', 'barbearia', 'salao', 'salão',
+  Lazer: [
+    'arena beach',
+    'cinema',
+    'teatro',
+    'ingresso',
+    'show ',
+    'barbershop',
+    'barbearia',
+    'salao',
+    'salão',
   ],
 };
 
-function preCategorize(
-  transactions: TransactionToCategorize[],
-): Map<number, string> {
+function preCategorize(transactions: TransactionToCategorize[]): Map<number, string> {
   const matches = new Map<number, string>();
 
   for (let i = 0; i < transactions.length; i++) {
@@ -110,10 +239,7 @@ interface CategorizationResult {
 
 function buildPrompt(transactions: TransactionToCategorize[]): string {
   const txList = transactions
-    .map(
-      (tx, i) =>
-        `${i + 1}. "${tx.description}" R$${tx.amount.toFixed(2)} (${tx.type})`,
-    )
+    .map((tx, i) => `${i + 1}. "${tx.description}" R$${tx.amount.toFixed(2)} (${tx.type})`)
     .join('\n');
 
   return `Categorize estas transações bancárias brasileiras. Para cada uma, retorne APENAS um JSON array.
@@ -155,10 +281,7 @@ export async function categorizeTransactions(
   }
   if (transactions.length === 0) return 0;
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   // Load categories from DB for UUID mapping
   const { data: dbCategories, error: catError } = await supabase
@@ -191,9 +314,8 @@ export async function categorizeTransactions(
 
         for (const rule of userRules) {
           const pattern = rule.merchant_pattern.toLowerCase();
-          const matched = rule.match_type === 'exact'
-            ? text.trim() === pattern
-            : text.includes(pattern);
+          const matched =
+            rule.match_type === 'exact' ? text.trim() === pattern : text.includes(pattern);
 
           if (matched) {
             const ids = batchByCategoryId.get(rule.category_id) || [];
@@ -266,7 +388,9 @@ export async function categorizeTransactions(
 
       if (!response.ok) {
         const errBody = await response.text().catch(() => '');
-        console.error(`[categorize] Anthropic API error: status=${response.status} body=${errBody.slice(0, 200)}`);
+        console.error(
+          `[categorize] Anthropic API error: status=${response.status} body=${errBody.slice(0, 200)}`,
+        );
         continue;
       }
 
@@ -275,7 +399,9 @@ export async function categorizeTransactions(
       const results = parseAIResponse(text);
 
       const batchIndex = Math.floor(i / BATCH_SIZE);
-      console.warn(`[categorize] batch=${batchIndex} needsAI=${batch.length} aiResults=${results.length}`);
+      console.warn(
+        `[categorize] batch=${batchIndex} needsAI=${batch.length} aiResults=${results.length}`,
+      );
 
       // Update transactions with categories
       for (const result of results) {

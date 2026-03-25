@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getAccounts, getItem } from './client';
 import { mapPluggyAccountToDb } from './account-mapper';
 import { syncTransactions } from './sync';
@@ -22,16 +22,16 @@ export interface PluggyWebhookEvent {
 }
 
 export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<void> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   // Support both flat (Pluggy actual format) and nested (legacy) payload
   const itemId = event.itemId || event.data?.itemId;
 
   if (!itemId) {
-    console.error('[pluggy-webhook] no itemId found in event:', JSON.stringify(event).substring(0, 300));
+    console.error(
+      '[pluggy-webhook] no itemId found in event:',
+      JSON.stringify(event).substring(0, 300),
+    );
     return;
   }
 
@@ -59,19 +59,17 @@ export async function handleWebhookEvent(event: PluggyWebhookEvent): Promise<voi
         console.warn('[pluggy-webhook] could not fetch item status, assuming active');
       }
 
-      await supabase
-        .from('bank_connections')
-        .update({ status })
-        .eq('id', connection.id);
+      await supabase.from('bank_connections').update({ status }).eq('id', connection.id);
 
       // Upsert accounts with latest balances
       if (status === 'active') {
         const pluggyAccounts = await getAccounts(itemId);
         for (const acc of pluggyAccounts) {
-          await supabase.from('accounts').upsert(
-            mapPluggyAccountToDb(acc, connection.user_id, connection.id),
-            { onConflict: 'pluggy_account_id' },
-          );
+          await supabase
+            .from('accounts')
+            .upsert(mapPluggyAccountToDb(acc, connection.user_id, connection.id), {
+              onConflict: 'pluggy_account_id',
+            });
         }
         clearContextCache(connection.user_id);
         console.warn('[pluggy-webhook] item/updated: accounts synced for', connection.id);

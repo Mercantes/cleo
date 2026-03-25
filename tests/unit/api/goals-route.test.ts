@@ -12,8 +12,8 @@ const mockGoalsSelect = vi.fn();
 const mockTransactionsLte = vi.fn();
 const mockUpsert = vi.fn();
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: () => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: () => ({
     from: (table: string) => {
       if (table === 'goals') {
         return {
@@ -113,10 +113,12 @@ describe('PUT /api/goals', () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
     const { PUT } = await import('@/app/api/goals/route');
-    const response = await PUT(new NextRequest('http://localhost', {
-      method: 'PUT',
-      body: JSON.stringify({ monthlySavingsTarget: 500 }),
-    }));
+    const response = await PUT(
+      new NextRequest('http://localhost', {
+        method: 'PUT',
+        body: JSON.stringify({ monthlySavingsTarget: 500 }),
+      }),
+    );
 
     expect(response.status).toBe(401);
   });
@@ -126,10 +128,12 @@ describe('PUT /api/goals', () => {
     mockUpsert.mockResolvedValue({ error: null });
 
     const { PUT } = await import('@/app/api/goals/route');
-    const response = await PUT(new NextRequest('http://localhost', {
-      method: 'PUT',
-      body: JSON.stringify({ monthlySavingsTarget: 500, retirementAgeTarget: 65 }),
-    }));
+    const response = await PUT(
+      new NextRequest('http://localhost', {
+        method: 'PUT',
+        body: JSON.stringify({ monthlySavingsTarget: 500, retirementAgeTarget: 65 }),
+      }),
+    );
     const data = await response.json();
 
     expect(response.status).toBe(200);

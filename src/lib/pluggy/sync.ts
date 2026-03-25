@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getTransactions } from './client';
 import { formatTransactionName } from '@/lib/utils/format';
 import type { PluggyTransaction } from './types';
@@ -9,11 +9,7 @@ export interface SyncResult {
   errors: number;
 }
 
-function mapTransaction(
-  tx: PluggyTransaction,
-  userId: string,
-  accountId: string,
-) {
+function mapTransaction(tx: PluggyTransaction, userId: string, accountId: string) {
   return {
     user_id: userId,
     account_id: accountId,
@@ -37,10 +33,7 @@ export async function syncTransactions(
   itemId: string,
   fromDate?: string,
 ): Promise<SyncResult> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   const result: SyncResult = { imported: 0, skipped: 0, errors: 0 };
 
@@ -52,7 +45,8 @@ export async function syncTransactions(
 
   if (!dbAccounts || dbAccounts.length === 0) return result;
 
-  const from = fromDate || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const from =
+    fromDate || new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   const to = new Date().toISOString().split('T')[0];
 
   for (const dbAccount of dbAccounts) {
@@ -61,9 +55,7 @@ export async function syncTransactions(
 
       if (transactions.length === 0) continue;
 
-      const mapped = transactions.map((tx) =>
-        mapTransaction(tx, userId, dbAccount.id),
-      );
+      const mapped = transactions.map((tx) => mapTransaction(tx, userId, dbAccount.id));
 
       // Batch upsert with deduplication — ON CONFLICT DO NOTHING
       const { data, error } = await supabase

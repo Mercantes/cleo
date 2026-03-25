@@ -1,13 +1,52 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 
 const CHALLENGE_TEMPLATES = [
-  { title: 'Semana sem delivery', description: 'Não peça delivery por 7 dias e economize!', type: 'no_spend', durationDays: 7, xpReward: 50 },
-  { title: 'Desafio da marmita', description: 'Leve marmita para o trabalho por 5 dias seguidos.', type: 'no_spend', durationDays: 5, xpReward: 40 },
-  { title: 'Economia de R$100', description: 'Economize R$100 esta semana cortando gastos desnecessários.', type: 'savings', targetAmount: 100, durationDays: 7, xpReward: 60 },
-  { title: 'Sem compras por impulso', description: 'Passe 3 dias sem comprar nada que não seja essencial.', type: 'no_spend', durationDays: 3, xpReward: 30 },
-  { title: 'Caça ao desconto', description: 'Economize R$50 usando promoções e cupons esta semana.', type: 'savings', targetAmount: 50, durationDays: 7, xpReward: 45 },
-  { title: 'Desafio do cofrinho', description: 'Reserve R$200 este mês para sua meta de economia.', type: 'savings', targetAmount: 200, durationDays: 30, xpReward: 100 },
+  {
+    title: 'Semana sem delivery',
+    description: 'Não peça delivery por 7 dias e economize!',
+    type: 'no_spend',
+    durationDays: 7,
+    xpReward: 50,
+  },
+  {
+    title: 'Desafio da marmita',
+    description: 'Leve marmita para o trabalho por 5 dias seguidos.',
+    type: 'no_spend',
+    durationDays: 5,
+    xpReward: 40,
+  },
+  {
+    title: 'Economia de R$100',
+    description: 'Economize R$100 esta semana cortando gastos desnecessários.',
+    type: 'savings',
+    targetAmount: 100,
+    durationDays: 7,
+    xpReward: 60,
+  },
+  {
+    title: 'Sem compras por impulso',
+    description: 'Passe 3 dias sem comprar nada que não seja essencial.',
+    type: 'no_spend',
+    durationDays: 3,
+    xpReward: 30,
+  },
+  {
+    title: 'Caça ao desconto',
+    description: 'Economize R$50 usando promoções e cupons esta semana.',
+    type: 'savings',
+    targetAmount: 50,
+    durationDays: 7,
+    xpReward: 45,
+  },
+  {
+    title: 'Desafio do cofrinho',
+    description: 'Reserve R$200 este mês para sua meta de economia.',
+    type: 'savings',
+    targetAmount: 200,
+    durationDays: 30,
+    xpReward: 100,
+  },
 ] as const;
 
 const templateNames = CHALLENGE_TEMPLATES.map((t) => t.title);
@@ -23,7 +62,8 @@ export const createChallengeTool: ToolDefinition = {
     properties: {
       template_name: {
         type: 'string',
-        description: 'Nome exato do template pré-definido (ex: "Semana sem delivery"). Se fornecido, os outros campos são ignorados.',
+        description:
+          'Nome exato do template pré-definido (ex: "Semana sem delivery"). Se fornecido, os outros campos são ignorados.',
       },
       title: {
         type: 'string',
@@ -49,10 +89,7 @@ export const createChallengeTool: ToolDefinition = {
     },
   },
   execute: async (input: Record<string, unknown>, userId: string): Promise<ToolResult> => {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     // Check for existing active challenges (limit to 3 concurrent)
     const { data: activeChallenges } = await supabase
@@ -62,7 +99,10 @@ export const createChallengeTool: ToolDefinition = {
       .eq('status', 'active');
 
     if (activeChallenges && activeChallenges.length >= 3) {
-      return { success: false, message: 'O usuário já tem 3 desafios ativos. Complete ou cancele um antes de criar outro.' };
+      return {
+        success: false,
+        message: 'O usuário já tem 3 desafios ativos. Complete ou cancele um antes de criar outro.',
+      };
     }
 
     let challengeData: Record<string, unknown>;
@@ -98,7 +138,10 @@ export const createChallengeTool: ToolDefinition = {
       const durationDays = input.duration_days as number | undefined;
 
       if (!title || !durationDays) {
-        return { success: false, message: 'Para desafio customizado, forneça title e duration_days.' };
+        return {
+          success: false,
+          message: 'Para desafio customizado, forneça title e duration_days.',
+        };
       }
 
       const endDate = new Date();

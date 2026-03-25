@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPushNotification, isWebPushConfigured } from '@/lib/push/send';
 
 export const maxDuration = 60;
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 function formatBRL(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -21,7 +14,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   // Get all users with push subscriptions
   const { data: subscriptions } = await (
@@ -70,7 +63,9 @@ export async function GET(request: Request) {
       if (!transactions || transactions.length === 0) continue;
 
       const thisWeek = transactions.filter((t: { date: string }) => t.date >= weekStart);
-      const prevWeek = transactions.filter((t: { date: string }) => t.date >= prevWeekStart && t.date < weekStart);
+      const prevWeek = transactions.filter(
+        (t: { date: string }) => t.date >= prevWeekStart && t.date < weekStart,
+      );
 
       const income = thisWeek
         .filter((t: { type: string }) => t.type === 'credit')
@@ -99,9 +94,10 @@ export async function GET(request: Request) {
       let comparison = '';
       if (prevExpenses > 0) {
         const pctChange = ((expenses - prevExpenses) / prevExpenses) * 100;
-        comparison = pctChange > 0
-          ? ` (+${Math.round(pctChange)}% vs semana anterior)`
-          : ` (${Math.round(pctChange)}% vs semana anterior)`;
+        comparison =
+          pctChange > 0
+            ? ` (+${Math.round(pctChange)}% vs semana anterior)`
+            : ` (${Math.round(pctChange)}% vs semana anterior)`;
       }
 
       const body = `${txCount} transações. Gastos: ${formatBRL(expenses)}${comparison}${income > 0 ? ` | Receitas: ${formatBRL(income)}` : ''}. Top: ${topCats || 'N/A'}.`;
@@ -119,7 +115,10 @@ export async function GET(request: Request) {
         } catch (err) {
           console.error(`[weekly-summary] Push failed for ${sub.endpoint}:`, err);
           // Remove expired/invalid subscriptions (410 Gone, 404 Not Found)
-          if (err instanceof Error && (err.message.includes('410') || err.message.includes('404'))) {
+          if (
+            err instanceof Error &&
+            (err.message.includes('410') || err.message.includes('404'))
+          ) {
             await (db as unknown as { from: (t: string) => ReturnType<typeof db.from> })
               .from('push_subscriptions')
               .delete()
@@ -134,4 +133,3 @@ export async function GET(request: Request) {
 
   return NextResponse.json({ message: 'Weekly summaries sent', sent: sentCount });
 }
-

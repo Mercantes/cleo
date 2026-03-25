@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 const FREE_TIER_LIMIT = 30;
 
@@ -8,11 +8,15 @@ interface RateLimitResult {
   limit: number;
 }
 
+function getBrazilPeriod(): string {
+  const now = new Date();
+  const brDate = now.toLocaleDateString('en-CA', { timeZone: 'America/Sao_Paulo' });
+  const [year, month] = brDate.split('-');
+  return `${year}-${month}`;
+}
+
 export async function checkChatRateLimit(userId: string): Promise<RateLimitResult> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
 
   // Check user subscription tier
   const { data: profile } = await supabase
@@ -27,8 +31,7 @@ export async function checkChatRateLimit(userId: string): Promise<RateLimitResul
     return { allowed: true, remaining: Infinity, limit: Infinity };
   }
 
-  const now = new Date();
-  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const period = getBrazilPeriod();
 
   const { data: usage } = await supabase
     .from('chat_usage')
@@ -48,30 +51,11 @@ export async function checkChatRateLimit(userId: string): Promise<RateLimitResul
 }
 
 export async function incrementChatUsage(userId: string): Promise<void> {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const supabase = createAdminClient();
+  const period = getBrazilPeriod();
 
-  const now = new Date();
-  const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-  // Try to increment existing record
-  const { data: existing } = await supabase
-    .from('chat_usage')
-    .select('id, message_count')
-    .eq('user_id', userId)
-    .eq('period', period)
-    .single();
-
-  if (existing) {
-    await supabase
-      .from('chat_usage')
-      .update({ message_count: existing.message_count + 1 })
-      .eq('id', existing.id);
-  } else {
-    await supabase
-      .from('chat_usage')
-      .insert({ user_id: userId, period, message_count: 1 });
-  }
+  await supabase.rpc('increment_chat_usage', {
+    p_user_id: userId,
+    p_period: period,
+  });
 }

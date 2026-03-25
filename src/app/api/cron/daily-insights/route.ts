@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { sendPushNotification, isWebPushConfigured } from '@/lib/push/send';
 
 export const maxDuration = 60;
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
 
 function formatBRL(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -30,9 +23,15 @@ function generateInsights(
   budgets: Array<{ category_id: string; monthly_limit: number; category_name?: string }>,
   now: Date,
 ): Insight[] {
-  const currentIncome = currentTx.filter(t => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0);
-  const currentExpenses = currentTx.filter(t => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
-  const lastExpenses = lastTx.filter(t => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0);
+  const currentIncome = currentTx
+    .filter((t) => t.type === 'credit')
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const currentExpenses = currentTx
+    .filter((t) => t.type === 'debit')
+    .reduce((s, t) => s + Number(t.amount), 0);
+  const lastExpenses = lastTx
+    .filter((t) => t.type === 'debit')
+    .reduce((s, t) => s + Number(t.amount), 0);
 
   const dayOfMonth = now.getDate();
   const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
@@ -64,11 +63,11 @@ function generateInsights(
   // Category spike
   const currentCats = new Map<string, number>();
   const lastCats = new Map<string, number>();
-  for (const tx of currentTx.filter(t => t.type === 'debit')) {
+  for (const tx of currentTx.filter((t) => t.type === 'debit')) {
     const cat = tx.category_name || 'Outros';
     currentCats.set(cat, (currentCats.get(cat) || 0) + Number(tx.amount));
   }
-  for (const tx of lastTx.filter(t => t.type === 'debit')) {
+  for (const tx of lastTx.filter((t) => t.type === 'debit')) {
     const cat = tx.category_name || 'Outros';
     lastCats.set(cat, (lastCats.get(cat) || 0) + Number(tx.amount));
   }
@@ -115,9 +114,12 @@ function generateInsights(
   // Budget overspend
   if (budgets.length > 0) {
     const spendingByCat = new Map<string, number>();
-    for (const tx of currentTx.filter(t => t.type === 'debit')) {
+    for (const tx of currentTx.filter((t) => t.type === 'debit')) {
       if (tx.category_id) {
-        spendingByCat.set(tx.category_id, (spendingByCat.get(tx.category_id) || 0) + Number(tx.amount));
+        spendingByCat.set(
+          tx.category_id,
+          (spendingByCat.get(tx.category_id) || 0) + Number(tx.amount),
+        );
       }
     }
     for (const budget of budgets) {
@@ -171,7 +173,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: 'Push not configured', sent: 0 });
   }
 
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   // Get all users with push subscriptions
   const { data: subscriptions } = await (
@@ -194,8 +196,12 @@ export async function GET(request: Request) {
 
   const now = new Date();
   const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
-  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().split('T')[0];
+  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+    .toISOString()
+    .split('T')[0];
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    .toISOString()
+    .split('T')[0];
   const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0).toISOString().split('T')[0];
 
   let sentCount = 0;
@@ -203,13 +209,32 @@ export async function GET(request: Request) {
   for (const [userId, subs] of userSubs) {
     try {
       const [currentTxRes, lastTxRes, recurringRes, goalsRes, budgetsRes] = await Promise.all([
-        db.from('transactions').select('amount, type, category_id, categories(name)')
-          .eq('user_id', userId).gte('date', currentMonth).lte('date', currentMonthEnd),
-        db.from('transactions').select('amount, type, categories(name)')
-          .eq('user_id', userId).gte('date', lastMonthStart).lte('date', lastMonthEnd),
-        db.from('recurring_transactions').select('amount').eq('user_id', userId).eq('status', 'active'),
-        db.from('goals').select('monthly_savings_target, streak_months').eq('user_id', userId).single(),
-        db.from('category_budgets').select('category_id, monthly_limit, categories(name)').eq('user_id', userId),
+        db
+          .from('transactions')
+          .select('amount, type, category_id, categories(name)')
+          .eq('user_id', userId)
+          .gte('date', currentMonth)
+          .lte('date', currentMonthEnd),
+        db
+          .from('transactions')
+          .select('amount, type, categories(name)')
+          .eq('user_id', userId)
+          .gte('date', lastMonthStart)
+          .lte('date', lastMonthEnd),
+        db
+          .from('recurring_transactions')
+          .select('amount')
+          .eq('user_id', userId)
+          .eq('status', 'active'),
+        db
+          .from('goals')
+          .select('monthly_savings_target, streak_months')
+          .eq('user_id', userId)
+          .single(),
+        db
+          .from('category_budgets')
+          .select('category_id, monthly_limit, categories(name)')
+          .eq('user_id', userId),
       ]);
 
       const currentTx = (currentTxRes.data || []).map((t: Record<string, unknown>) => ({
@@ -249,7 +274,10 @@ export async function GET(request: Request) {
           sentCount++;
         } catch (err) {
           console.error(`[daily-insights] Push failed for ${sub.endpoint}:`, err);
-          if (err instanceof Error && (err.message.includes('410') || err.message.includes('404'))) {
+          if (
+            err instanceof Error &&
+            (err.message.includes('410') || err.message.includes('404'))
+          ) {
             await (db as unknown as { from: (t: string) => ReturnType<typeof db.from> })
               .from('push_subscriptions')
               .delete()

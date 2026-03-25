@@ -1,13 +1,6 @@
 import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/utils/with-auth';
-import { createClient } from '@supabase/supabase-js';
-
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
+import { createAdminClient } from '@/lib/supabase/admin';
 
 interface MonthResult {
   month: string;
@@ -18,7 +11,7 @@ interface MonthResult {
 }
 
 export const GET = withAuth(async (_request, { user }) => {
-  const db = getServiceClient();
+  const db = createAdminClient();
 
   // Get user goals
   const { data: goals } = await db
@@ -38,41 +31,50 @@ export const GET = withAuth(async (_request, { user }) => {
     });
   }
 
-  // Get last 12 months of transaction data
+  // Get last 12 months of transaction data in a single query
   const now = new Date();
-  const months: MonthResult[] = [];
+  const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+  const rangeStart = `${twelveMonthsAgo.getFullYear()}-${String(twelveMonthsAgo.getMonth() + 1).padStart(2, '0')}-01`;
+  const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
+  const { data: allTransactions } = await db
+    .from('transactions')
+    .select('date, amount, type')
+    .eq('user_id', user.id)
+    .gte('date', rangeStart)
+    .lte('date', rangeEnd);
+
+  const txs = allTransactions || [];
+
+  // Group transactions by month
+  const monthBuckets = new Map<string, { income: number; expenses: number; count: number }>();
+  for (const t of txs) {
+    const monthKey = (t.date as string).substring(0, 7); // "YYYY-MM"
+    const bucket = monthBuckets.get(monthKey) || { income: 0, expenses: 0, count: 0 };
+    if (t.type === 'credit') {
+      bucket.income += Number(t.amount);
+    } else {
+      bucket.expenses += Number(t.amount);
+    }
+    bucket.count++;
+    monthBuckets.set(monthKey, bucket);
+  }
+
+  const months: MonthResult[] = [];
   for (let i = 0; i < 12; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const monthStart = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-    const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+    const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
     const label = d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '');
-
-    const { data: transactions } = await db
-      .from('transactions')
-      .select('amount, type')
-      .eq('user_id', user.id)
-      .gte('date', monthStart)
-      .lte('date', monthEnd);
-
-    const txs = transactions || [];
-    const income = txs
-      .filter((t: { type: string }) => t.type === 'credit')
-      .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-    const expenses = txs
-      .filter((t: { type: string }) => t.type === 'debit')
-      .reduce((s: number, t: { amount: number }) => s + Number(t.amount), 0);
-    const savings = Math.max(0, income - expenses);
-
-    // Current month is "in progress" — only count as met if already exceeded
-    const metGoal = savings >= target;
+    const bucket = monthBuckets.get(monthKey) || { income: 0, expenses: 0, count: 0 };
+    const savings = Math.max(0, bucket.income - bucket.expenses);
+    const metGoal = bucket.count > 0 && savings >= target;
 
     months.push({
       month: label,
-      income,
-      expenses,
+      income: bucket.income,
+      expenses: bucket.expenses,
       savings,
-      metGoal: txs.length === 0 ? false : metGoal,
+      metGoal,
     });
   }
 

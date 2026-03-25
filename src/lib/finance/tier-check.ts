@@ -1,20 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { Tier, TierFeature, TierCheckResult, TIER_LIMITS, getCurrentPeriod } from './tier-config';
 
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-}
-
 export async function getUserTier(userId: string): Promise<Tier> {
-  const supabase = getServiceClient();
-  const { data } = await supabase
-    .from('profiles')
-    .select('tier')
-    .eq('id', userId)
-    .single();
+  const supabase = createAdminClient();
+  const { data } = await supabase.from('profiles').select('tier').eq('id', userId).single();
 
   return (data?.tier as Tier) || 'free';
 }
@@ -30,7 +19,7 @@ export async function checkTierLimit(
     return { allowed: true, current: 0, limit, tier };
   }
 
-  const supabase = getServiceClient();
+  const supabase = createAdminClient();
 
   // bank_connections is a total count, not per-period
   if (feature === 'bank_connections') {
@@ -58,32 +47,16 @@ export async function checkTierLimit(
   return { allowed: current < limit, current, limit, tier };
 }
 
-export async function incrementUsage(
-  userId: string,
-  feature: TierFeature,
-): Promise<void> {
+export async function incrementUsage(userId: string, feature: TierFeature): Promise<void> {
   // bank_connections are tracked by existing bank_connections table
   if (feature === 'bank_connections') return;
 
-  const supabase = getServiceClient();
+  const supabase = createAdminClient();
   const period = getCurrentPeriod();
 
-  const { data: existing } = await supabase
-    .from('usage_tracking')
-    .select('id, count')
-    .eq('user_id', userId)
-    .eq('feature', feature)
-    .eq('period', period)
-    .single();
-
-  if (existing) {
-    await supabase
-      .from('usage_tracking')
-      .update({ count: existing.count + 1 })
-      .eq('id', existing.id);
-  } else {
-    await supabase
-      .from('usage_tracking')
-      .insert({ user_id: userId, feature, count: 1, period });
-  }
+  await supabase.rpc('increment_usage', {
+    p_user_id: userId,
+    p_feature: feature,
+    p_period: period,
+  });
 }

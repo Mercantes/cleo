@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createAdminClient } from '@/lib/supabase/admin';
 import type { ToolDefinition, ToolResult } from './types';
 
 export const createBudgetTool: ToolDefinition = {
@@ -27,10 +27,7 @@ export const createBudgetTool: ToolDefinition = {
       return { success: false, message: 'O limite deve ser um valor positivo.' };
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const supabase = createAdminClient();
 
     // Find category by name
     const { data: category } = await supabase
@@ -44,17 +41,15 @@ export const createBudgetTool: ToolDefinition = {
     }
 
     // Upsert budget
-    const { error } = await supabase
-      .from('category_budgets')
-      .upsert(
-        {
-          user_id: userId,
-          category_id: category.id,
-          monthly_limit: monthlyLimit,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,category_id' },
-      );
+    const { error } = await supabase.from('category_budgets').upsert(
+      {
+        user_id: userId,
+        category_id: category.id,
+        monthly_limit: monthlyLimit,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'user_id,category_id' },
+    );
 
     if (error) {
       return { success: false, message: `Erro ao salvar orçamento: ${error.message}` };

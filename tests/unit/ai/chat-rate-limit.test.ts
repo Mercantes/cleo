@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const mockFrom = vi.fn();
+const mockRpc = vi.fn();
 
-vi.mock('@supabase/supabase-js', () => ({
-  createClient: vi.fn(() => ({
+vi.mock('@/lib/supabase/admin', () => ({
+  createAdminClient: vi.fn(() => ({
     from: (table: string) => mockFrom(table),
+    rpc: (...args: unknown[]) => mockRpc(...args),
   })),
 }));
 
@@ -117,5 +119,25 @@ describe('checkChatRateLimit', () => {
 
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(20);
+  });
+});
+
+describe('incrementChatUsage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('calls atomic rpc for increment', async () => {
+    mockRpc.mockResolvedValue({ data: 11, error: null });
+
+    const { incrementChatUsage } = await import('@/lib/ai/chat-rate-limit');
+    await incrementChatUsage('user-1');
+
+    expect(mockRpc).toHaveBeenCalledWith(
+      'increment_chat_usage',
+      expect.objectContaining({
+        p_user_id: 'user-1',
+      }),
+    );
   });
 });
