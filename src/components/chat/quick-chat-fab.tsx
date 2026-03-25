@@ -149,7 +149,7 @@ export function QuickChatFab() {
             className="fixed inset-0 z-40 bg-black/40 sm:hidden"
             onClick={() => setOpen(false)}
           />
-          <div className="fixed inset-x-0 bottom-0 top-0 z-50 flex flex-col bg-background sm:inset-auto sm:bottom-20 sm:left-auto sm:right-4 sm:top-auto sm:z-40 sm:max-h-[80vh] sm:w-96 sm:overflow-hidden sm:rounded-2xl sm:border sm:shadow-2xl md:bottom-6 md:right-6">
+          <div className="fixed inset-x-0 bottom-0 top-0 z-50 flex flex-col bg-background pt-safe sm:inset-auto sm:bottom-20 sm:left-auto sm:right-4 sm:top-auto sm:z-40 sm:max-h-[80vh] sm:w-96 sm:overflow-hidden sm:rounded-2xl sm:border sm:pt-0 sm:shadow-2xl md:bottom-6 md:right-6">
             {/* Header */}
             <div className="flex items-center justify-between border-b px-4 py-3">
               <div className="flex items-center gap-2">

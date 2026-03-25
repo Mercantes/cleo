@@ -3,7 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, MessageSquare, ArrowLeftRight, CalendarDays, Settings } from 'lucide-react';
+import {
+  LayoutDashboard,
+  MessageSquare,
+  ArrowLeftRight,
+  CalendarDays,
+  Settings,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const bottomNavItems = [
@@ -35,7 +41,7 @@ function useHasUnread(pathname: string) {
     }
     if (!visited) {
       fetch('/api/insights')
-        .then((r) => r.ok ? r.json() : null)
+        .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
           if (data?.insights?.length > 0) setHasUnread(true);
         })
@@ -51,7 +57,10 @@ export function BottomNav() {
   const hasUnread = useHasUnread(pathname);
 
   return (
-    <nav aria-label="Navegação principal" className="fixed inset-x-0 bottom-0 z-50 border-t bg-background pb-safe md:hidden">
+    <nav
+      aria-label="Navegação principal"
+      className="fixed inset-x-0 bottom-0 z-50 border-t bg-background pb-safe md:hidden"
+    >
       <div className="flex h-[4.5rem] items-center justify-around">
         {bottomNavItems.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -61,7 +70,7 @@ export function BottomNav() {
               key={item.href}
               href={item.href}
               className={cn(
-                'relative flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'relative flex min-h-[44px] min-w-0 flex-1 flex-col items-center justify-center gap-1 py-2 text-[11px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isActive ? 'text-primary' : 'text-muted-foreground',
               )}
             >

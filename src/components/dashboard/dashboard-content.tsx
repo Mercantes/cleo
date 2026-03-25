@@ -181,12 +181,11 @@ export function DashboardContent() {
   const hasData = summary && (summary.income > 0 || summary.expenses > 0);
 
   return (
-    <div className="min-w-0 space-y-4 sm:space-y-6">
-      {/* Pull-to-refresh indicator (mobile) */}
+    <div className="relative min-w-0 space-y-4 sm:space-y-6">
+      {/* Pull-to-refresh indicator (mobile) — absolute so it doesn't take layout space */}
       <div
         ref={indicatorRef}
-        className="pointer-events-none flex flex-col items-center gap-1 opacity-0 transition-opacity md:hidden"
-        style={{ transform: 'translateY(0)' }}
+        className="pointer-events-none absolute left-1/2 top-0 z-10 -translate-x-1/2 flex flex-col items-center gap-1 opacity-0 transition-all md:hidden"
       >
         <RefreshCw className="h-5 w-5 text-primary" />
         <span className="text-[10px] text-muted-foreground">Puxe para atualizar</span>
