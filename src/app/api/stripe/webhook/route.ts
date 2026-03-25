@@ -3,6 +3,17 @@ import Stripe from 'stripe';
 import { stripe } from '@/lib/stripe/client';
 import { updateUserTier, setGracePeriod } from '@/lib/stripe/subscription';
 import { createAdminClient } from '@/lib/supabase/admin';
+import type { Tier } from '@/lib/finance/tier-config';
+
+const PREMIUM_PRICE_ID = process.env.STRIPE_PREMIUM_PRICE_ID?.trim();
+
+function getTierFromSubscription(subscription: Stripe.Subscription): 'pro' | 'premium' {
+  if (PREMIUM_PRICE_ID) {
+    const hasPremium = subscription.items.data.some((item) => item.price.id === PREMIUM_PRICE_ID);
+    if (hasPremium) return 'premium';
+  }
+  return 'pro';
+}
 
 // In-memory set for idempotency (short-lived — serverless functions restart often)
 const processedEvents = new Set<string>();
@@ -40,9 +51,11 @@ export async function POST(request: NextRequest) {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.customer && session.subscription) {
+          const sub = await stripe.subscriptions.retrieve(session.subscription as string);
+          const tier = getTierFromSubscription(sub);
           await updateUserTier(
             session.customer as string,
-            'pro',
+            tier,
             session.subscription as string,
             'active',
           );
@@ -54,7 +67,8 @@ export async function POST(request: NextRequest) {
         const subscription = event.data.object as Stripe.Subscription;
         const status = subscription.status;
         if (status === 'active' || status === 'trialing') {
-          await updateUserTier(subscription.customer as string, 'pro', subscription.id, status);
+          const tier = getTierFromSubscription(subscription);
+          await updateUserTier(subscription.customer as string, tier, subscription.id, status);
         } else if (status === 'past_due') {
           await setGracePeriod(subscription.customer as string, 7);
         } else if (status === 'canceled' || status === 'unpaid') {

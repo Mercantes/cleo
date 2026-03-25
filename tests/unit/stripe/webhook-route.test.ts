@@ -10,10 +10,14 @@ vi.mock('@/lib/stripe/subscription', () => ({
 }));
 
 const mockConstructEvent = vi.fn();
+const mockSubscriptionsRetrieve = vi.fn();
 vi.mock('@/lib/stripe/client', () => ({
   stripe: {
     webhooks: {
       constructEvent: (...args: unknown[]) => mockConstructEvent(...args),
+    },
+    subscriptions: {
+      retrieve: (...args: unknown[]) => mockSubscriptionsRetrieve(...args),
     },
   },
 }));
@@ -58,6 +62,9 @@ describe('POST /api/stripe/webhook', () => {
       data: {
         object: { customer: 'cus_test', subscription: 'sub_test' },
       },
+    });
+    mockSubscriptionsRetrieve.mockResolvedValue({
+      items: { data: [{ price: { id: 'price_pro' } }] },
     });
 
     const { POST } = await import('@/app/api/stripe/webhook/route');
@@ -119,7 +126,12 @@ describe('POST /api/stripe/webhook', () => {
       id: 'evt_sub_updated_active',
       type: 'customer.subscription.updated',
       data: {
-        object: { customer: 'cus_test', id: 'sub_123', status: 'active' },
+        object: {
+          customer: 'cus_test',
+          id: 'sub_123',
+          status: 'active',
+          items: { data: [{ price: { id: 'price_pro' } }] },
+        },
       },
     });
 
@@ -182,7 +194,12 @@ describe('POST /api/stripe/webhook', () => {
       id: 'evt_sub_updated_trialing',
       type: 'customer.subscription.updated',
       data: {
-        object: { customer: 'cus_test', id: 'sub_trial', status: 'trialing' },
+        object: {
+          customer: 'cus_test',
+          id: 'sub_trial',
+          status: 'trialing',
+          items: { data: [{ price: { id: 'price_pro' } }] },
+        },
       },
     });
 

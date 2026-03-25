@@ -2,21 +2,22 @@
 
 import { useEffect } from 'react';
 import { useApi } from '@/hooks/use-api';
+import type { Tier } from '@/lib/finance/tier-config';
 
 const TIER_CACHE_KEY = 'cleo:tier-cache';
 
 interface UsageData {
-  tier: 'free' | 'pro';
+  tier: Tier;
   transactions: { current: number; limit: number };
   chat: { current: number; limit: number };
   gracePeriodUntil: string | null;
 }
 
-function getCachedTier(): 'free' | 'pro' {
+function getCachedTier(): Tier {
   if (typeof window === 'undefined') return 'free';
   try {
     const cached = localStorage.getItem(TIER_CACHE_KEY);
-    if (cached === 'pro' || cached === 'free') return cached;
+    if (cached === 'pro' || cached === 'premium' || cached === 'free') return cached;
   } catch {
     // localStorage unavailable
   }
@@ -51,7 +52,8 @@ export function useTier() {
 
   return {
     tier,
-    isPro: tier === 'pro',
+    isPro: tier === 'pro' || tier === 'premium',
+    isPremium: tier === 'premium',
     isLoading,
     gracePeriodUntil,
     isInGracePeriod,

@@ -49,6 +49,7 @@ const FREE_FEATURES: PlanFeature[] = [
   { label: '1 Conexão', status: 'included' },
   { label: 'Categorização automática', status: 'included' },
   { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Assistente de IA (10 msgs/mês)', status: 'limited' },
   { label: 'Acesso limitado à dashboard', status: 'limited' },
   { label: 'Atualização a cada 24h', status: 'limited' },
   { label: 'Histórico dos últimos 30D', status: 'limited' },
@@ -58,13 +59,13 @@ const FREE_FEATURES: PlanFeature[] = [
   { label: 'Tags', status: 'excluded' },
   { label: 'Projeção de saldo', status: 'excluded' },
   { label: 'Conecte suas contas PJs', status: 'excluded' },
-  { label: 'Assistente de IA', status: 'excluded' },
 ];
 
 const PRO_FEATURES: PlanFeature[] = [
   { label: 'Até 3 Conexões', status: 'included' },
   { label: 'Categorização automática', status: 'included' },
   { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Assistente de IA (50 msgs/mês)', status: 'included' },
   { label: 'Acesso completo à plataforma', status: 'included' },
   { label: 'Sincronização em tempo real', status: 'included' },
   { label: 'Histórico completo', status: 'included' },
@@ -73,7 +74,6 @@ const PRO_FEATURES: PlanFeature[] = [
   { label: 'Regras customizadas', status: 'included' },
   { label: 'Tags', status: 'included' },
   { label: 'Projeção de saldo (12 meses)', status: 'included' },
-  { label: 'Assistente de IA', status: 'included' },
   { label: 'Conecte suas contas PJs', status: 'excluded' },
 ];
 
@@ -81,6 +81,7 @@ const PREMIUM_FEATURES: PlanFeature[] = [
   { label: 'Conexões ilimitadas', status: 'included' },
   { label: 'Categorização automática', status: 'included' },
   { label: 'Transações e contas manuais', status: 'included' },
+  { label: 'Assistente de IA ilimitada', status: 'included' },
   { label: 'Acesso completo à plataforma', status: 'included' },
   { label: 'Sincronização em tempo real', status: 'included' },
   { label: 'Histórico completo', status: 'included' },
@@ -89,7 +90,6 @@ const PREMIUM_FEATURES: PlanFeature[] = [
   { label: 'Regras customizadas', status: 'included' },
   { label: 'Tags', status: 'included' },
   { label: 'Projeção de saldo (12 meses)', status: 'included' },
-  { label: 'Assistente de IA', status: 'included' },
   { label: 'Conecte suas contas PJs', status: 'included' },
 ];
 
@@ -129,7 +129,7 @@ const COMPARISON_TABLE: ComparisonRow[] = [
   { name: 'Detecção de recorrentes', free: '3 próximas', pro: true, premium: true },
   { name: 'Regras e tags', free: false, pro: true, premium: true },
   { name: 'Projeção de saldo', free: false, pro: true, premium: true },
-  { name: 'Assistente de IA', free: false, pro: true, premium: true },
+  { name: 'Assistente de IA', free: '10 msgs', pro: '50 msgs', premium: 'Ilimitado' },
   { name: 'Contas PJ', free: false, pro: false, premium: true },
   { name: 'Suporte prioritário', free: false, pro: true, premium: true },
 ];

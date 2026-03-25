@@ -35,14 +35,20 @@ import { TIER_LIMITS } from '@/lib/finance/tier-config';
 describe('tier-config', () => {
   it('defines correct free tier limits', () => {
     expect(TIER_LIMITS.free.transactions).toBe(100);
-    expect(TIER_LIMITS.free.chat).toBe(30);
+    expect(TIER_LIMITS.free.chat).toBe(10);
     expect(TIER_LIMITS.free.bank_connections).toBe(1);
   });
 
-  it('defines pro tier as unlimited', () => {
+  it('defines correct pro tier limits', () => {
     expect(TIER_LIMITS.pro.transactions).toBe(Infinity);
-    expect(TIER_LIMITS.pro.chat).toBe(Infinity);
-    expect(TIER_LIMITS.pro.bank_connections).toBe(Infinity);
+    expect(TIER_LIMITS.pro.chat).toBe(50);
+    expect(TIER_LIMITS.pro.bank_connections).toBe(3);
+  });
+
+  it('defines premium tier as fully unlimited', () => {
+    expect(TIER_LIMITS.premium.transactions).toBe(Infinity);
+    expect(TIER_LIMITS.premium.chat).toBe(Infinity);
+    expect(TIER_LIMITS.premium.bank_connections).toBe(Infinity);
   });
 });
 
@@ -69,11 +75,28 @@ describe('checkTierLimit', () => {
     vi.clearAllMocks();
   });
 
-  it('allows pro users without checking usage', async () => {
+  it('allows pro users without checking usage for unlimited features', async () => {
     mockSingle.mockResolvedValue({ data: { tier: 'pro' }, error: null });
-    const result = await checkTierLimit('user-1', 'chat');
+    const result = await checkTierLimit('user-1', 'transactions');
     expect(result.allowed).toBe(true);
     expect(result.tier).toBe('pro');
+  });
+
+  it('checks usage for pro users on limited features', async () => {
+    mockSingle
+      .mockResolvedValueOnce({ data: { tier: 'pro' }, error: null })
+      .mockResolvedValueOnce({ data: { count: 30 }, error: null });
+    const result = await checkTierLimit('user-1', 'chat');
+    expect(result.allowed).toBe(true);
+    expect(result.current).toBe(30);
+    expect(result.limit).toBe(50);
+  });
+
+  it('allows premium users without checking usage', async () => {
+    mockSingle.mockResolvedValue({ data: { tier: 'premium' }, error: null });
+    const result = await checkTierLimit('user-1', 'chat');
+    expect(result.allowed).toBe(true);
+    expect(result.tier).toBe('premium');
   });
 
   it('allows free user under limit', async () => {
@@ -84,17 +107,17 @@ describe('checkTierLimit', () => {
     const result = await checkTierLimit('user-1', 'chat');
     expect(result.allowed).toBe(true);
     expect(result.current).toBe(5);
-    expect(result.limit).toBe(30);
+    expect(result.limit).toBe(10);
   });
 
   it('blocks free user at limit', async () => {
     mockSingle
       .mockResolvedValueOnce({ data: { tier: 'free' }, error: null })
-      .mockResolvedValueOnce({ data: { count: 30 }, error: null });
+      .mockResolvedValueOnce({ data: { count: 10 }, error: null });
 
     const result = await checkTierLimit('user-1', 'chat');
     expect(result.allowed).toBe(false);
-    expect(result.current).toBe(30);
+    expect(result.current).toBe(10);
   });
 
   it('returns 0 current when no usage record', async () => {

@@ -16,7 +16,9 @@ export const GET = withAuth(async (_request, { user }) => {
     .single()
     .then(({ data }) => data?.grace_period_until || null);
 
-  if (tier === 'pro') {
+  const limits = TIER_LIMITS[tier];
+
+  if (limits.chat === Infinity && limits.transactions === Infinity) {
     const gracePeriodUntil = await gracePeriodPromise;
     return NextResponse.json(
       {
@@ -52,11 +54,11 @@ export const GET = withAuth(async (_request, { user }) => {
       tier,
       transactions: {
         current: usageMap['transactions'] || 0,
-        limit: TIER_LIMITS.free.transactions,
+        limit: limits.transactions,
       },
       chat: {
         current: usageMap['chat'] || 0,
-        limit: TIER_LIMITS.free.chat,
+        limit: limits.chat,
       },
       gracePeriodUntil,
     },

@@ -29,7 +29,7 @@ export async function getOrCreateCustomer(userId: string, email: string): Promis
 
 export async function updateUserTier(
   stripeCustomerId: string,
-  tier: 'free' | 'pro',
+  tier: 'free' | 'pro' | 'premium',
   subscriptionId?: string,
   subscriptionStatus?: string,
 ): Promise<void> {
@@ -37,7 +37,7 @@ export async function updateUserTier(
 
   const update: Record<string, unknown> = {
     tier,
-    subscription_status: subscriptionStatus || (tier === 'pro' ? 'active' : null),
+    subscription_status: subscriptionStatus || (tier !== 'free' ? 'active' : null),
   };
 
   if (subscriptionId !== undefined) {

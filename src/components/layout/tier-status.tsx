@@ -43,7 +43,7 @@ export function TierStatus() {
   if (usage.length === 0) return null;
 
   const tier = usage[0]?.tier || 'free';
-  const isPro = tier === 'pro';
+  const isPaid = tier === 'pro' || tier === 'premium';
 
   return (
     <div className="space-y-4">
@@ -52,15 +52,15 @@ export function TierStatus() {
           <span className="text-sm font-medium">Plano</span>
           <span
             className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-              isPro
+              isPaid
                 ? 'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300'
                 : 'bg-muted text-muted-foreground'
             }`}
           >
-            {isPro ? 'Pro' : 'Free'}
+            {tier === 'premium' ? 'Premium' : tier === 'pro' ? 'Pro' : 'Free'}
           </span>
         </div>
-        {!isPro && (
+        {!isPaid && (
           <Link
             href="/upgrade"
             className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
@@ -70,11 +70,19 @@ export function TierStatus() {
         )}
       </div>
 
-      {isPro ? (
+      {isPaid ? (
         <div className="space-y-3">
           <div className="space-y-2 rounded-lg border bg-violet-50 p-3 dark:bg-violet-950">
-            {['Transações ilimitadas', 'Chat ilimitado', 'Bancos ilimitados', 'Projeções avançadas'].map((f) => (
-              <div key={f} className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-300">
+            {[
+              'Transações ilimitadas',
+              'Chat ilimitado',
+              'Bancos ilimitados',
+              'Projeções avançadas',
+            ].map((f) => (
+              <div
+                key={f}
+                className="flex items-center gap-2 text-sm text-violet-700 dark:text-violet-300"
+              >
                 <Check className="h-3.5 w-3.5" />
                 {f}
               </div>
@@ -85,7 +93,8 @@ export function TierStatus() {
       ) : (
         <div className="space-y-3">
           {usage.map((item) => {
-            const percentage = item.limit === Infinity ? 0 : Math.min(100, (item.current / item.limit) * 100);
+            const percentage =
+              item.limit === Infinity ? 0 : Math.min(100, (item.current / item.limit) * 100);
             const isNearLimit = percentage >= 80;
 
             return (
@@ -94,7 +103,13 @@ export function TierStatus() {
                   <span className="text-muted-foreground">
                     {FEATURE_LABELS[item.feature] || item.feature}
                   </span>
-                  <span className={isNearLimit ? 'font-medium text-orange-600 dark:text-orange-400' : 'text-muted-foreground'}>
+                  <span
+                    className={
+                      isNearLimit
+                        ? 'font-medium text-orange-600 dark:text-orange-400'
+                        : 'text-muted-foreground'
+                    }
+                  >
                     {item.current}/{item.limit} {FEATURE_PERIOD[item.feature] || ''}
                   </span>
                 </div>
